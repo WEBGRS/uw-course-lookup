@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UW-Madison Course Quick-Lookup</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1c2024;--mut:#6b7280;--line:#e5e7eb;--accent:#c5050c;--mg:#0b6bcb;--rmp:#e0620d;--pos:#16794a;--neg:#b4232a;--chip:#f0f1f3}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#171b21;--fg:#e6e8eb;--mut:#9aa4b0;--line:#262c34;--accent:#ff6b72;--mg:#5aa2ec;--rmp:#ff9d52;--pos:#4bd196;--neg:#ff7b81;--chip:#222833}}
+:root[data-theme=dark]{--bg:#0f1216;--card:#171b21;--fg:#e6e8eb;--mut:#9aa4b0;--line:#262c34;--accent:#ff6b72;--mg:#5aa2ec;--rmp:#ff9d52;--pos:#4bd196;--neg:#ff7b81;--chip:#222833}
+:root[data-theme=light]{--bg:#f6f7f9;--card:#fff;--fg:#1c2024;--mut:#6b7280;--line:#e5e7eb;--accent:#c5050c;--mg:#0b6bcb;--rmp:#e0620d;--pos:#16794a;--neg:#b4232a;--chip:#f0f1f3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.accent{color:var(--accent)}
+.sub{color:var(--mut);font-size:13px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.lk{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.lk{grid-template-columns:1fr}}
+label{font-size:12px;color:var(--mut);display:block;margin-bottom:5px;font-weight:600}
+.ib{display:flex;gap:8px}
+input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--fg);font-size:14px}
+input:focus{outline:2px solid var(--mg)}
+button,.btn{cursor:pointer;border:0;border-radius:9px;padding:9px 13px;font-size:13px;font-weight:600;color:#fff;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.mg{background:var(--mg)}.rmp{background:var(--rmp)}
+.tip{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.6}
+.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+#filter{flex:1;min-width:180px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{background:transparent;color:var(--mut);border-radius:0;padding:8px 12px}
+.seg button.on{background:var(--accent);color:#fff}
+.count{color:var(--mut);font-size:12px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;color:var(--mut);text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card)}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:hover td{background:var(--chip)}
+.code{font-weight:700;font-size:15px}
+.chip{display:inline-block;background:var(--chip);border-radius:20px;padding:1px 8px;font-size:12px;color:var(--mut)}
+.pos{color:var(--pos);font-weight:700}.neg{color:var(--neg);font-weight:700}
+.acts{display:flex;gap:6px;justify-content:flex-end}
+.acts .btn{padding:6px 10px;font-size:12px}
+.right{text-align:right}
+.theme{margin-left:auto;background:transparent;color:var(--mut);border:1px solid var(--line)}
+.foot{color:var(--mut);font-size:12px;margin-top:18px;line-height:1.7}
+a.inline{color:var(--mg)}
+</style></head><body>
+<div class="wrap">
+<h1>🦡 UW-Madison <span class="accent">Course Quick-Lookup</span></h1>
+<div class="sub">One-click jump to <b style="color:var(--mg)">MadGrades</b> (grade distribution) and <b style="color:var(--rmp)">Rate My Professors</b> for any UW-Madison course. Seeded with <b id="ncourse"></b> courses ranked by how often they came up among peers. All ratings are pulled live from the official sites — nothing is stored here.</div>
+
+<div class="card">
+  <div class="lk">
+    <div><label>🔎 Any course → MadGrades grade distribution</label>
+      <div class="ib"><input id="mgIn" placeholder="e.g. CS 300 / math 234" onkeydown="if(event.key==='Enter')goMG()">
+      <button class="mg" onclick="goMG()">Grades</button></div></div>
+    <div><label>👨‍🏫 Any professor → RMP rating (UW-Madison)</label>
+      <div class="ib"><input id="rmpIn" placeholder="e.g. Beck Hasti" onkeydown="if(event.key==='Enter')goRMP()">
+      <button class="rmp" onclick="goRMP()">Professor</button></div></div>
+  </div>
+  <div class="tip">💡 Flow: click a course's <b style="color:var(--mg)">Grades</b> → MadGrades shows the GPA distribution and who has taught it → copy an instructor name into the box above (or the row's <b style="color:var(--rmp)">RMP</b>) to see their rating. (RMP is searched by professor, not by course.)
+  <a class="inline" href="https://www.ratemyprofessors.com/search/professors/18418" target="_blank" rel="noopener">All UW-Madison professors on RMP ↗</a></div>
+</div>
+
+<div class="card">
+  <div class="tools">
+    <input id="filter" placeholder="Filter course code, e.g. cs / math 340 / econ" oninput="render()">
+    <div class="seg">
+      <button id="s_n" class="on" onclick="setSort('n')">By mentions</button>
+      <button id="s_rec" onclick="setSort('rec')">Recommended</button>
+      <button id="s_code" onclick="setSort('code')">By number</button>
+    </div>
+    <span class="count" id="cnt"></span>
+    <button class="theme btn" onclick="toggleTheme()">🌓</button>
+  </div>
+  <div style="overflow-x:auto">
+  <table><thead><tr><th>Course</th><th>Mentions</th><th>Peer sentiment</th><th class="right">Lookup</th></tr></thead>
+  <tbody id="tb"></tbody></table>
+  </div>
+</div>
+
+<div class="foot">
+  · <b>Mentions</b> = how often the course code appeared in a UW-Madison student group chat (aggregate counts only — no messages or names are included).
+  <span class="pos">✅</span> = a peer spoke positively, <span class="neg">⚠️</span> = a peer complained. Subjective signal only; trust MadGrades/RMP for the real numbers.<br>
+  · Course subjects are auto-mapped to MadGrades' full names (e.g. CS → "computer sciences") for better hits. If empty, re-search by number or full subject name.<br>
+  · Static page, works offline; it only reaches the network when you click a lookup link.
+</div>
+</div>
+<script>
+const DATA=__DATA__;
+const RMP_SCHOOL="18418";
+document.getElementById('ncourse').textContent=DATA.length;
+let sort='n';
+function enc(s){return encodeURIComponent(s.trim())}
+function mgUrl(q){return "https://madgrades.com/search?query="+enc(q)}
+function rmpUrl(n){return "https://www.ratemyprofessors.com/search/professors/"+RMP_SCHOOL+"?q="+enc(n||"")}
+function goMG(){const v=document.getElementById('mgIn').value;if(v.trim())window.open(mgUrl(v),'_blank')}
+function goRMP(){const v=document.getElementById('rmpIn').value;window.open(rmpUrl(v),'_blank')}
+function setSort(s){sort=s;for(const id of ['n','rec','code'])document.getElementById('s_'+id).classList.toggle('on',id===s);render()}
+function toggleTheme(){const r=document.documentElement;const cur=r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');r.setAttribute('data-theme',cur==='dark'?'light':'dark')}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function render(){
+  const f=document.getElementById('filter').value.trim().toLowerCase();
+  let list=DATA.filter(r=>!f||r.code.toLowerCase().includes(f));
+  if(sort==='n')list.sort((a,b)=>b.n-a.n||a.code.localeCompare(b.code));
+  else if(sort==='code')list.sort((a,b)=>a.code.localeCompare(b.code));
+  else list.sort((a,b)=>(b.pos-b.neg)-(a.pos-a.neg)||b.n-a.n);
+  document.getElementById('cnt').textContent=list.length+" shown";
+  document.getElementById('tb').innerHTML=list.map(r=>{
+    let ev='';
+    if(r.pos)ev+='<span class="pos">✅'+r.pos+'</span> ';
+    if(r.neg)ev+='<span class="neg">⚠️'+r.neg+'</span> ';
+    if(!ev)ev='<span class="count">—</span>';
+    return '<tr><td><span class="code">'+esc(r.code)+'</span></td>'+
+      '<td><span class="chip">'+r.n+'</span></td>'+
+      '<td>'+ev+'</td>'+
+      '<td><div class="acts">'+
+        '<a class="btn mg" target="_blank" rel="noopener" href="'+mgUrl(r.mg)+'">📊 Grades</a>'+
+        '<a class="btn rmp" target="_blank" rel="noopener" href="'+rmpUrl('')+'">👨‍🏫 RMP</a>'+
+      '</div></td></tr>';
+  }).join('');
+}
+render();
+</script>
+</body></html>

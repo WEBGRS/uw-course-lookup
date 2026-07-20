@@ -1,0 +1,31 @@
+# ── Never commit raw / personal data ──────────────────────────────
+# Decrypted WeChat databases and any SQLite
+*.db
+*.db-shm
+*.db-wal
+*.bakdb
+*.sqlite
+*.sqlite3
+
+# Exports that may contain messages, names, phone numbers, ids
+*.csv
+export/
+wxdump_decrypted/
+decrypted/
+*_全部消息*
+*私聊*
+*分组.md
+*.key
+key.txt
+
+# ── Python ────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ── OS / editor ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
