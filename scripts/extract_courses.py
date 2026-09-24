@@ -2,14 +2,17 @@
 """Extract UW-Madison course codes from a decrypted WeChat group chat.
 
 Outputs an ANONYMIZED courses.json (course code + aggregate counts only).
-No message text, names, or ids are ever written out.
+No message text, names, or ids are ever written out. Courses mentioned by fewer
+than --min-people distinct people are dropped (k-anonymity), so a rare course
+can't point back to the one person who takes it.
 
 Usage:
     python extract_courses.py --db merge_all.db --group "<id>@chatroom" --out ../courses.json
+Then: python build_db.py  (verifies every code against the real catalog)
 """
 import argparse, json, re, sqlite3
 from collections import defaultdict
-from wxlib import sender_from_bytes  # noqa: F401  (kept for downstream reuse)
+from wxlib import sender_from_bytes
 
 # Structural / false-positive tokens that are not real subjects
 NOISE = set("""LEC SECTION SEC DIS LAB ROOM ZOOM COVID PM SEM ONLINE HTTP WWW COM ORG APT UNIT
@@ -18,7 +21,7 @@ LS IS MA CA JAVA STUDIES SCIENCE SCIENCES PHY PHYSIC PHILO""".split())
 
 # Common abbreviation -> canonical subject
 ALIAS = {"STATS": "STAT", "PSY": "PSYCH", "MICRO": "MICROBIO", "POL": "POLISCI", "PS": "POLISCI",
-         "THEATER": "THEATRE", "COMPSCI": "CS", "SCI": "NUTRISCI", "NTRSCI": "NUTRISCI",
+         "THEATER": "THEATRE", "COMPSCI": "CS", "NTRSCI": "NUTRISCI",
          "NUTRI": "NUTRISCI", "ENG": "ENGL", "ENGLISH": "ENGL", "GER": "GERMAN", "ZOO": "ZOOLOGY",
          "ASIALANG": "ASIAN", "PHYS": "PHYSICS", "CALC": "MATH", "PHIL": "PHILOS", "MKT": "MARKETING",
          "ACCTG": "ACCT", "GENETIC": "GENETICS", "EDUPOL": "EDPOL", "AST": "ASTRON", "OCN": "ATMOCN"}
@@ -44,11 +47,18 @@ SUBJ = {"CS": "computer sciences", "MATH": "mathematics", "STAT": "statistics", 
         "LSC": "life sciences communication", "ENTOM": "entomology", "BOTANY": "botany",
         "ZOOLOGY": "zoology", "AGRONOMY": "agronomy", "HORT": "horticulture", "MATSCI": "materials science"}
 
+# Two-word subjects written with a space ("comp sci 300") -> one token before matching
+MULTI_RE = re.compile(r"(?<![A-Za-z])(comp|poli|nutr|nutri|ed|com|gen|atm|l\s?i|e\s?c|e\s?m|m\s?e|b\s?m)\s+"
+                      r"(sci|psych|pol|arts|bus|ocn|s|e|a)(?![A-Za-z])(?=\s?-?\s?\d{3})", re.I)
 CODE_RE = re.compile(r"(?<![A-Za-z])([A-Za-z]{2,8}(?:\s?[/&]\s?[A-Za-z]{2,8})?)\s?[-]?\s?(\d{3})(?![0-9A-Za-z])")
 # Sentiment keywords (Chinese peer chat). Used only for aggregate +/- counts.
 POS = ["推荐", "好过", "简单", "水课", "很水", "给分", "甜", "捞", "轻松", "划水", "值得", "easy", "gpa",
        "无脑", "好拿", "高分", "神课", "包a", "包A"]
 NEG = ["劝退", "别选", "坑", "慎", "挂科", "变态", "杀手", "折磨", "地狱", "难拿", "版本陷阱", "耗时"]
+
+
+def join_multiword(text):
+    return MULTI_RE.sub(lambda m: re.sub(r"\s", "", m.group(1)) + m.group(2), text)
 
 
 def canon(subj_raw, num):
@@ -62,14 +72,17 @@ def main():
     ap.add_argument("--db", required=True, help="decrypted merge_all.db path")
     ap.add_argument("--group", required=True, help="target chatroom id, e.g. 12345@chatroom")
     ap.add_argument("--out", default="courses.json")
+    ap.add_argument("--min-people", type=int, default=3, help="k-anonymity threshold")
     a = ap.parse_args()
 
     conn = sqlite3.connect(a.db)
-    agg = defaultdict(lambda: {"n": 0, "pos": 0, "neg": 0})
-    q = "SELECT StrContent FROM MSG WHERE StrTalker=? AND Type=1"
-    for (sc,) in conn.execute(q, (a.group,)):
+    agg = defaultdict(lambda: {"n": 0, "pos": 0, "neg": 0, "who": set()})
+    q = "SELECT StrContent, BytesExtra FROM MSG WHERE StrTalker=? AND Type=1"
+    for sc, bx in conn.execute(q, (a.group,)):
         if not sc:
             continue
+        who = sender_from_bytes(bx)
+        sc = join_multiword(sc)
         hits = {canon(m.group(1), m.group(2)) for m in CODE_RE.finditer(sc)}
         pos = any(k in sc for k in POS)
         neg = any(k in sc for k in NEG)
@@ -78,6 +91,8 @@ def main():
                 continue
             d = agg[key]; d["n"] += 1
             d["pos"] += pos; d["neg"] += neg
+            if who:
+                d["who"].add(who)  # in memory only; only len() is written
     conn.close()
 
     rows = []
@@ -85,8 +100,10 @@ def main():
         subj, num = key.split()
         if not (subj in SUBJ or d["n"] >= 3):  # drop long-tail false positives
             continue
+        if d["who"] and len(d["who"]) < a.min_people:  # k-anonymity
+            continue
         word = SUBJ.get(subj, "")
-        rows.append({"code": key, "subj": subj, "num": num, "n": d["n"],
+        rows.append({"code": key, "subj": subj, "num": num, "n": d["n"], "people": len(d["who"]) or None,
                      "pos": int(d["pos"]), "neg": int(d["neg"]),
                      "mg": (word + " " + num).strip() if word else key})
     rows.sort(key=lambda r: (-r["n"], r["code"]))

@@ -6,6 +6,10 @@
 *.bakdb
 *.sqlite
 *.sqlite3
+# ...except the public course database built from public sources
+!data/uwcourses.db
+# API response cache (rebuildable)
+data/cache/
 
 # Exports that may contain messages, names, phone numbers, ids
 *.csv
@@ -29,3 +33,4 @@ venv/
 Thumbs.db
 .vscode/
 .idea/
+*.tmp

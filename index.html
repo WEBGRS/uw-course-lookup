@@ -1,126 +1,714 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>UW-Madison Course Quick-Lookup</title>
-<!-- Inline so the page stays one self-contained file. Without it the browser
-     requests /favicon.ico, gets a 404, and logs a console error on every visit. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23c5050c'/%3E%3Ctext x='16' y='23' font-family='Segoe UI,Arial,sans-serif' font-size='19' font-weight='700' fill='%23fff' text-anchor='middle'%3EW%3C/text%3E%3C/svg%3E">
+<title>UW Course Lookup</title>
+<meta name="description" content="Grade history, instructor-by-instructor GPA, current sections and student discussion for 220+ UW–Madison courses, in one page.">
+<meta property="og:title" content="UW Course Lookup">
+<meta property="og:description" content="Grade distributions, instructor GPA, Fall sections and r/UWMadison threads for UW–Madison courses.">
+<meta property="og:image" content="https://webgrs.github.io/uw-course-lookup/docs/light.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23c5050c'/%3E%3Crect x='6' y='20' width='4' height='6' fill='%23fff'/%3E%3Crect x='12' y='12' width='4' height='14' fill='%23fff'/%3E%3Crect x='18' y='6' width='4' height='20' fill='%23fff'/%3E%3Crect x='24' y='16' width='3' height='10' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--fg:#1c2024;--mut:#6b7280;--line:#e5e7eb;--accent:#c5050c;--mg:#0b6bcb;--rmp:#e0620d;--pos:#16794a;--neg:#b4232a;--chip:#f0f1f3}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#171b21;--fg:#e6e8eb;--mut:#9aa4b0;--line:#262c34;--accent:#ff6b72;--mg:#5aa2ec;--rmp:#ff9d52;--pos:#4bd196;--neg:#ff7b81;--chip:#222833}}
-:root[data-theme=dark]{--bg:#0f1216;--card:#171b21;--fg:#e6e8eb;--mut:#9aa4b0;--line:#262c34;--accent:#ff6b72;--mg:#5aa2ec;--rmp:#ff9d52;--pos:#4bd196;--neg:#ff7b81;--chip:#222833}
-:root[data-theme=light]{--bg:#f6f7f9;--card:#fff;--fg:#1c2024;--mut:#6b7280;--line:#e5e7eb;--accent:#c5050c;--mg:#0b6bcb;--rmp:#e0620d;--pos:#16794a;--neg:#b4232a;--chip:#f0f1f3}
+:root{color-scheme:light;
+  --bg:#f3f4f2;--surface:#fff;--surface-2:#f8f9f7;--ink:#16181b;--ink-2:#4d535a;--ink-3:#737980;--line:#dfe2de;--line-2:#eceeea;
+  --brand:#c5050c;--link:#1c5cab;--focus:#2a78d6;--hover:#eef1ee;
+  --gA:#1c5cab;--gAB:#3987e5;--gB:#9ec5f4;--gBC:#c9c8c1;--gC:#f2b08f;--gD:#e0703f;--gF:#b8321f;
+  --series:#2a78d6;--ref:#9a9d98;--ok:#16794a;--warn:#9a6700;--bad:#b4232a;--shadow:0 10px 30px rgba(20,24,28,.12)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --bg:#111315;--surface:#1a1d20;--surface-2:#16181b;--ink:#eceeef;--ink-2:#b3b9bf;--ink-3:#8b9198;--line:#2c3035;--line-2:#23272b;
+  --brand:#ff5a5f;--link:#86b6ef;--focus:#5598e7;--hover:#22262a;
+  --gA:#86b6ef;--gAB:#3987e5;--gB:#1f5596;--gBC:#55544f;--gC:#8f4a2b;--gD:#d4622f;--gF:#f07a6a;
+  --series:#5598e7;--ref:#6c7076;--ok:#4bd196;--warn:#e0b04a;--bad:#ff7b81;--shadow:0 10px 30px rgba(0,0,0,.5)}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --bg:#111315;--surface:#1a1d20;--surface-2:#16181b;--ink:#eceeef;--ink-2:#b3b9bf;--ink-3:#8b9198;--line:#2c3035;--line-2:#23272b;
+  --brand:#ff5a5f;--link:#86b6ef;--focus:#5598e7;--hover:#22262a;
+  --gA:#86b6ef;--gAB:#3987e5;--gB:#1f5596;--gBC:#55544f;--gC:#8f4a2b;--gD:#d4622f;--gF:#f07a6a;
+  --series:#5598e7;--ref:#6c7076;--ok:#4bd196;--warn:#e0b04a;--bad:#ff7b81;--shadow:0 10px 30px rgba(0,0,0,.5)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{max-width:960px;margin:0 auto;padding:20px 16px 60px}
-h1{font-size:22px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
-.accent{color:var(--accent)}
-.sub{color:var(--mut);font-size:13px;margin-bottom:18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
-.lk{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:640px){.lk{grid-template-columns:1fr}}
-label{font-size:12px;color:var(--mut);display:block;margin-bottom:5px;font-weight:600}
-.ib{display:flex;gap:8px}
-input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--fg);font-size:14px}
-input:focus{outline:2px solid var(--mg)}
-button,.btn{cursor:pointer;border:0;border-radius:9px;padding:9px 13px;font-size:13px;font-weight:600;color:#fff;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
-.mg{background:var(--mg)}.rmp{background:var(--rmp)}
-.tip{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.6}
-.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-#filter{flex:1;min-width:180px}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
-.seg button{background:transparent;color:var(--mut);border-radius:0;padding:8px 12px}
-.seg button.on{background:var(--accent);color:#fff}
-.count{color:var(--mut);font-size:12px}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:11px;color:var(--mut);text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card)}
-td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
-tr:hover td{background:var(--chip)}
-.code{font-weight:700;font-size:15px}
-.chip{display:inline-block;background:var(--chip);border-radius:20px;padding:1px 8px;font-size:12px;color:var(--mut)}
-.pos{color:var(--pos);font-weight:700}.neg{color:var(--neg);font-weight:700}
-.acts{display:flex;gap:6px;justify-content:flex-end}
-.acts .btn{padding:6px 10px;font-size:12px}
-.right{text-align:right}
-.theme{margin-left:auto;background:transparent;color:var(--mut);border:1px solid var(--line)}
-.foot{color:var(--mut);font-size:12px;margin-top:18px;line-height:1.7}
-a.inline{color:var(--mg)}
-</style></head><body>
-<div class="wrap">
-<h1>🦡 UW-Madison <span class="accent">Course Quick-Lookup</span></h1>
-<div class="sub">One-click jump to <b style="color:var(--mg)">MadGrades</b> (grade distribution) and <b style="color:var(--rmp)">Rate My Professors</b> for any UW-Madison course. Seeded with <b id="ncourse"></b> courses ranked by how often they came up among peers. All ratings are pulled live from the official sites — nothing is stored here.</div>
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+a{color:var(--link)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button,select,input{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+@media(max-width:640px){.wrap{padding:0 16px}.search kbd{display:none}.scale-row .p{display:none}}
 
-<div class="card">
-  <div class="lk">
-    <div><label>🔎 Any course → MadGrades grade distribution</label>
-      <div class="ib"><input id="mgIn" placeholder="e.g. CS 300 / math 234" onkeydown="if(event.key==='Enter')goMG()">
-      <button class="mg" onclick="goMG()">Grades</button></div></div>
-    <div><label>👨‍🏫 Any professor → RMP rating (UW-Madison)</label>
-      <div class="ib"><input id="rmpIn" placeholder="e.g. Beck Hasti" onkeydown="if(event.key==='Enter')goRMP()">
-      <button class="rmp" onclick="goRMP()">Professor</button></div></div>
-  </div>
-  <div class="tip">💡 Flow: click a course's <b style="color:var(--mg)">Grades</b> → MadGrades shows the GPA distribution and who has taught it → copy an instructor name into the box above (or the row's <b style="color:var(--rmp)">RMP</b>) to see their rating. (RMP is searched by professor, not by course.)
-  <a class="inline" href="https://www.ratemyprofessors.com/search/professors/18418" target="_blank" rel="noopener">All UW-Madison professors on RMP ↗</a></div>
-</div>
+/* Header */
+header{background:var(--surface);border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:14px;padding:18px 0 6px}
+.mark{width:34px;height:34px;border-radius:7px;background:var(--brand);display:flex;align-items:flex-end;padding:0 6px 7px;gap:2px;flex:none}
+.mark i{display:block;flex:1;background:#fff;border-radius:1px}
+h1{font:600 24px/1.15 "Source Serif 4",Georgia,serif;margin:0;letter-spacing:-.01em}
+.tagline{color:var(--ink-2);font-size:14px;margin:2px 0 0}
+.icon-btn{margin-left:auto;background:transparent;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--ink-2)}
+.icon-btn:hover{background:var(--hover)}
+.scale{padding:14px 0 16px}
+.scale-row{display:flex;height:34px;border-radius:6px;overflow:hidden;gap:2px}
+.scale-row div{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;min-width:0;white-space:nowrap;overflow:hidden}
+.scale-cap{display:flex;justify-content:space-between;gap:12px;color:var(--ink-3);font-size:12.5px;margin-top:6px;flex-wrap:wrap}
+nav.tabs{display:flex;gap:4px;margin-top:2px}
+nav.tabs a{padding:10px 14px;text-decoration:none;color:var(--ink-2);font-weight:600;font-size:14px;border-bottom:2px solid transparent}
+nav.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--brand)}
+main{padding:18px 0 60px}
 
-<div class="card">
-  <div class="tools">
-    <input id="filter" placeholder="Filter course code, e.g. cs / math 340 / econ" oninput="render()">
-    <div class="seg">
-      <button id="s_n" class="on" onclick="setSort('n')">By mentions</button>
-      <button id="s_rec" onclick="setSort('rec')">Recommended</button>
-      <button id="s_code" onclick="setSort('code')">By number</button>
-    </div>
-    <span class="count" id="cnt"></span>
-    <button class="theme btn" onclick="toggleTheme()">🌓</button>
-  </div>
-  <div style="overflow-x:auto">
-  <table><thead><tr><th>Course</th><th>Mentions</th><th>Peer sentiment</th><th class="right">Lookup</th></tr></thead>
-  <tbody id="tb"></tbody></table>
-  </div>
-</div>
+/* Toolbar */
+.toolbar{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+@media(max-width:640px){.toolbar{grid-template-columns:1fr}}
+.search{position:relative}
+.search input{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px 11px 38px;font-size:15px}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+.search kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font:600 11px "Public Sans",sans-serif;color:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+select,.chk{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13.5px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px;align-items:center}
+.chk{display:inline-flex;gap:6px;align-items:center;cursor:pointer;user-select:none}
+.chk input{margin:0;accent-color:var(--brand)}
+.resline{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--ink-3);font-size:13px;margin:10px 2px 8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 12px;font-weight:600;font-size:13px;cursor:pointer;text-decoration:none;color:var(--ink);display:inline-flex;gap:6px;align-items:center}
+.btn:hover{background:var(--hover)}
+.btn[disabled]{opacity:.5;cursor:default}
+.linkbtn{background:none;border:0;padding:0;color:var(--link);cursor:pointer;font-weight:600;font-size:13px}
 
-<div class="foot">
-  · <b>Mentions</b> = how often the course code appeared in a UW-Madison student group chat (aggregate counts only — no messages or names are included).
-  <span class="pos">✅</span> = a peer spoke positively, <span class="neg">⚠️</span> = a peer complained. Subjective signal only; trust MadGrades/RMP for the real numbers.<br>
-  · Course subjects are auto-mapped to MadGrades' full names (e.g. CS → "computer sciences") for better hits. If empty, re-search by number or full subject name.<br>
-  · Static page, works offline; it only reaches the network when you click a lookup link.
-</div>
-</div>
-<script>
-const DATA=[{"code":"MUSIC 113","subj":"MUSIC","num":"113","n":67,"pos":3,"neg":1,"mg":"music 113"},{"code":"MATH 234","subj":"MATH","num":"234","n":41,"pos":6,"neg":1,"mg":"mathematics 234"},{"code":"STAT 240","subj":"STAT","num":"240","n":32,"pos":3,"neg":0,"mg":"statistics 240"},{"code":"CHEM 103","subj":"CHEM","num":"103","n":30,"pos":1,"neg":0,"mg":"chemistry 103"},{"code":"CS 220","subj":"CS","num":"220","n":28,"pos":3,"neg":0,"mg":"computer sciences 220"},{"code":"CS 300","subj":"CS","num":"300","n":28,"pos":3,"neg":0,"mg":"computer sciences 300"},{"code":"ESL 118","subj":"ESL","num":"118","n":28,"pos":2,"neg":1,"mg":"esl 118"},{"code":"CHEM 109","subj":"CHEM","num":"109","n":23,"pos":2,"neg":0,"mg":"chemistry 109"},{"code":"BIOCHEM 104","subj":"BIOCHEM","num":"104","n":22,"pos":2,"neg":0,"mg":"biochemistry 104"},{"code":"THEATRE 100","subj":"THEATRE","num":"100","n":21,"pos":2,"neg":0,"mg":"theatre 100"},{"code":"ART 100","subj":"ART","num":"100","n":20,"pos":2,"neg":0,"mg":"art 100"},{"code":"LIS 202","subj":"LIS","num":"202","n":19,"pos":5,"neg":0,"mg":"information 202"},{"code":"NUTRISCI 132","subj":"NUTRISCI","num":"132","n":19,"pos":1,"neg":0,"mg":"nutritional sciences 132"},{"code":"CHEM 104","subj":"CHEM","num":"104","n":16,"pos":0,"neg":0,"mg":"chemistry 104"},{"code":"CS 252","subj":"CS","num":"252","n":16,"pos":1,"neg":0,"mg":"computer sciences 252"},{"code":"ART 176","subj":"ART","num":"176","n":14,"pos":3,"neg":0,"mg":"art 176"},{"code":"PHYSICS 109","subj":"PHYSICS","num":"109","n":14,"pos":0,"neg":0,"mg":"physics 109"},{"code":"MATH 340","subj":"MATH","num":"340","n":13,"pos":0,"neg":0,"mg":"mathematics 340"},{"code":"ANTHRO 104","subj":"ANTHRO","num":"104","n":12,"pos":3,"neg":0,"mg":"anthropology 104"},{"code":"CS 200","subj":"CS","num":"200","n":12,"pos":0,"neg":0,"mg":"computer sciences 200"},{"code":"MATH 221","subj":"MATH","num":"221","n":12,"pos":1,"neg":0,"mg":"mathematics 221"},{"code":"ECON 301","subj":"ECON","num":"301","n":11,"pos":0,"neg":0,"mg":"economics 301"},{"code":"PSYCH 202","subj":"PSYCH","num":"202","n":10,"pos":0,"neg":0,"mg":"psychology 202"},{"code":"STAT 340","subj":"STAT","num":"340","n":10,"pos":1,"neg":0,"mg":"statistics 340"},{"code":"ASIAN 100","subj":"ASIAN","num":"100","n":8,"pos":0,"neg":0,"mg":"asian 100"},{"code":"CS 320","subj":"CS","num":"320","n":8,"pos":1,"neg":1,"mg":"computer sciences 320"},{"code":"ECON 101","subj":"ECON","num":"101","n":8,"pos":0,"neg":0,"mg":"economics 101"},{"code":"ECON 310","subj":"ECON","num":"310","n":8,"pos":1,"neg":0,"mg":"economics 310"},{"code":"MUSIC 102","subj":"MUSIC","num":"102","n":8,"pos":0,"neg":0,"mg":"music 102"},{"code":"ART 107","subj":"ART","num":"107","n":7,"pos":0,"neg":0,"mg":"art 107"},{"code":"CS 240","subj":"CS","num":"240","n":7,"pos":0,"neg":0,"mg":"computer sciences 240"},{"code":"GENETICS 133","subj":"GENETICS","num":"133","n":7,"pos":0,"neg":0,"mg":"genetics 133"},{"code":"EDPOL 210","subj":"EDPOL","num":"210","n":6,"pos":0,"neg":0,"mg":"educational policy 210"},{"code":"ESL 117","subj":"ESL","num":"117","n":6,"pos":1,"neg":0,"mg":"esl 117"},{"code":"MATH 320","subj":"MATH","num":"320","n":6,"pos":0,"neg":0,"mg":"mathematics 320"},{"code":"STAT 303","subj":"STAT","num":"303","n":6,"pos":1,"neg":0,"mg":"statistics 303"},{"code":"ASTRON 103","subj":"ASTRON","num":"103","n":5,"pos":1,"neg":0,"mg":"astronomy 103"},{"code":"CHEM 343","subj":"CHEM","num":"343","n":5,"pos":0,"neg":0,"mg":"chemistry 343"},{"code":"CS 400","subj":"CS","num":"400","n":5,"pos":0,"neg":0,"mg":"computer sciences 400"},{"code":"CURRIC 277","subj":"CURRIC","num":"277","n":5,"pos":0,"neg":0,"mg":"curriculum instruction 277"},{"code":"EDPOL 140","subj":"EDPOL","num":"140","n":5,"pos":1,"neg":1,"mg":"educational policy 140"},{"code":"ENGL 100","subj":"ENGL","num":"100","n":5,"pos":0,"neg":0,"mg":"english 100"},{"code":"MATH 211","subj":"MATH","num":"211","n":5,"pos":0,"neg":0,"mg":"mathematics 211"},{"code":"MICROBIO 303","subj":"MICROBIO","num":"303","n":5,"pos":0,"neg":0,"mg":"microbiology 303"},{"code":"PHILOS 101","subj":"PHILOS","num":"101","n":5,"pos":0,"neg":0,"mg":"philosophy 101"},{"code":"STAT 371","subj":"STAT","num":"371","n":5,"pos":0,"neg":0,"mg":"statistics 371"},{"code":"ART 108","subj":"ART","num":"108","n":4,"pos":0,"neg":0,"mg":"art 108"},{"code":"ASIAN 103","subj":"ASIAN","num":"103","n":4,"pos":0,"neg":0,"mg":"asian 103"},{"code":"BIO 152","subj":"BIO","num":"152","n":4,"pos":0,"neg":0,"mg":"biology 152"},{"code":"ECON 300","subj":"ECON","num":"300","n":4,"pos":1,"neg":0,"mg":"economics 300"},{"code":"ECON 410","subj":"ECON","num":"410","n":4,"pos":0,"neg":0,"mg":"economics 410"},{"code":"ECON 455","subj":"ECON","num":"455","n":4,"pos":0,"neg":0,"mg":"economics 455"},{"code":"EDPOL 320","subj":"EDPOL","num":"320","n":4,"pos":0,"neg":0,"mg":"educational policy 320"},{"code":"ENGL 120","subj":"ENGL","num":"120","n":4,"pos":0,"neg":0,"mg":"english 120"},{"code":"ENGL 153","subj":"ENGL","num":"153","n":4,"pos":0,"neg":0,"mg":"english 153"},{"code":"ENGL 176","subj":"ENGL","num":"176","n":4,"pos":0,"neg":0,"mg":"english 176"},{"code":"LIS 461","subj":"LIS","num":"461","n":4,"pos":0,"neg":0,"mg":"information 461"},{"code":"MATH 321","subj":"MATH","num":"321","n":4,"pos":0,"neg":0,"mg":"mathematics 321"},{"code":"MUSIC 101","subj":"MUSIC","num":"101","n":4,"pos":1,"neg":0,"mg":"music 101"},{"code":"STAT 309","subj":"STAT","num":"309","n":4,"pos":2,"neg":0,"mg":"statistics 309"},{"code":"CHEM 344","subj":"CHEM","num":"344","n":3,"pos":0,"neg":0,"mg":"chemistry 344"},{"code":"ECON 302","subj":"ECON","num":"302","n":3,"pos":2,"neg":0,"mg":"economics 302"},{"code":"ECON 441","subj":"ECON","num":"441","n":3,"pos":0,"neg":0,"mg":"economics 441"},{"code":"ENGL 175","subj":"ENGL","num":"175","n":3,"pos":0,"neg":0,"mg":"english 175"},{"code":"ESL 116","subj":"ESL","num":"116","n":3,"pos":0,"neg":0,"mg":"esl 116"},{"code":"FOLKLORE 100","subj":"FOLKLORE","num":"100","n":3,"pos":0,"neg":0,"mg":"folklore 100"},{"code":"GEOG 170","subj":"GEOG","num":"170","n":3,"pos":0,"neg":0,"mg":"geography 170"},{"code":"GERMAN 272","subj":"GERMAN","num":"272","n":3,"pos":0,"neg":0,"mg":"german 272"},{"code":"LSC 450","subj":"LSC","num":"450","n":3,"pos":0,"neg":0,"mg":"life sciences communication 450"},{"code":"MATH 431","subj":"MATH","num":"431","n":3,"pos":0,"neg":0,"mg":"mathematics 431"},{"code":"NURSING 105","subj":"NURSING","num":"105","n":3,"pos":0,"neg":0,"mg":"nursing 105"},{"code":"PHYSICS 202","subj":"PHYSICS","num":"202","n":3,"pos":2,"neg":0,"mg":"physics 202"},{"code":"POLISCI 140","subj":"POLISCI","num":"140","n":3,"pos":1,"neg":0,"mg":"political science 140"},{"code":"POLISCI 350","subj":"POLISCI","num":"350","n":3,"pos":0,"neg":0,"mg":"political science 350"},{"code":"POLISCI 515","subj":"POLISCI","num":"515","n":3,"pos":0,"neg":0,"mg":"political science 515"},{"code":"PSYCH 225","subj":"PSYCH","num":"225","n":3,"pos":0,"neg":0,"mg":"psychology 225"},{"code":"STAT 311","subj":"STAT","num":"311","n":3,"pos":0,"neg":0,"mg":"statistics 311"},{"code":"AFROAMER 154","subj":"AFROAMER","num":"154","n":2,"pos":0,"neg":0,"mg":"afro american 154"},{"code":"ANTHRO 105","subj":"ANTHRO","num":"105","n":2,"pos":0,"neg":0,"mg":"anthropology 105"},{"code":"ASIAN 236","subj":"ASIAN","num":"236","n":2,"pos":0,"neg":0,"mg":"asian 236"},{"code":"ASTRON 236","subj":"ASTRON","num":"236","n":2,"pos":0,"neg":0,"mg":"astronomy 236"},{"code":"BIOCHEM 103","subj":"BIOCHEM","num":"103","n":2,"pos":0,"neg":0,"mg":"biochemistry 103"},{"code":"BIOCHEM 501","subj":"BIOCHEM","num":"501","n":2,"pos":1,"neg":0,"mg":"biochemistry 501"},{"code":"CS 532","subj":"CS","num":"532","n":2,"pos":0,"neg":0,"mg":"computer sciences 532"},{"code":"DANCE 100","subj":"DANCE","num":"100","n":2,"pos":0,"neg":0,"mg":"dance 100"},{"code":"ECE 203","subj":"ECE","num":"203","n":2,"pos":0,"neg":0,"mg":"electrical computer engineering 203"},{"code":"ECE 230","subj":"ECE","num":"230","n":2,"pos":0,"neg":0,"mg":"electrical computer engineering 230"},{"code":"ECE 315","subj":"ECE","num":"315","n":2,"pos":0,"neg":0,"mg":"electrical computer engineering 315"},{"code":"ECE 352","subj":"ECE","num":"352","n":2,"pos":0,"neg":0,"mg":"electrical computer engineering 352"},{"code":"ECON 205","subj":"ECON","num":"205","n":2,"pos":0,"neg":0,"mg":"economics 205"},{"code":"ECON 312","subj":"ECON","num":"312","n":2,"pos":0,"neg":0,"mg":"economics 312"},{"code":"EDPOL 212","subj":"EDPOL","num":"212","n":2,"pos":1,"neg":0,"mg":"educational policy 212"},{"code":"EDPOL 240","subj":"EDPOL","num":"240","n":2,"pos":0,"neg":0,"mg":"educational policy 240"},{"code":"EDUPSY 301","subj":"EDUPSY","num":"301","n":2,"pos":1,"neg":0,"mg":"educational psychology 301"},{"code":"EMA 201","subj":"EMA","num":"201","n":2,"pos":0,"neg":0,"mg":"engineering mechanics 201"},{"code":"ENTOM 205","subj":"ENTOM","num":"205","n":2,"pos":0,"neg":0,"mg":"entomology 205"},{"code":"ESL 343","subj":"ESL","num":"343","n":2,"pos":0,"neg":0,"mg":"esl 343"},{"code":"HIST 219","subj":"HIST","num":"219","n":2,"pos":0,"neg":0,"mg":"history 219"},{"code":"INTEGSCI 100","subj":"INTEGSCI","num":"100","n":2,"pos":0,"neg":0,"mg":"integrated science 100"},{"code":"LIS 440","subj":"LIS","num":"440","n":2,"pos":0,"neg":0,"mg":"information 440"},{"code":"LITTRANS 261","subj":"LITTRANS","num":"261","n":2,"pos":0,"neg":0,"mg":"literature in translation 261"},{"code":"LITTRANS 327","subj":"LITTRANS","num":"327","n":2,"pos":0,"neg":0,"mg":"literature in translation 327"},{"code":"MATH 123","subj":"MATH","num":"123","n":2,"pos":0,"neg":0,"mg":"mathematics 123"},{"code":"MATH 341","subj":"MATH","num":"341","n":2,"pos":0,"neg":0,"mg":"mathematics 341"},{"code":"MATH 421","subj":"MATH","num":"421","n":2,"pos":0,"neg":0,"mg":"mathematics 421"},{"code":"MATH 425","subj":"MATH","num":"425","n":2,"pos":0,"neg":0,"mg":"mathematics 425"},{"code":"MATH 521","subj":"MATH","num":"521","n":2,"pos":0,"neg":0,"mg":"mathematics 521"},{"code":"MATH 770","subj":"MATH","num":"770","n":2,"pos":0,"neg":1,"mg":"mathematics 770"},{"code":"PHILOS 211","subj":"PHILOS","num":"211","n":2,"pos":0,"neg":0,"mg":"philosophy 211"},{"code":"PHILOS 244","subj":"PHILOS","num":"244","n":2,"pos":0,"neg":0,"mg":"philosophy 244"},{"code":"PHYSICS 241","subj":"PHYSICS","num":"241","n":2,"pos":0,"neg":0,"mg":"physics 241"},{"code":"POLISCI 210","subj":"POLISCI","num":"210","n":2,"pos":0,"neg":0,"mg":"political science 210"},{"code":"POLISCI 300","subj":"POLISCI","num":"300","n":2,"pos":0,"neg":0,"mg":"political science 300"},{"code":"PSYCH 125","subj":"PSYCH","num":"125","n":2,"pos":0,"neg":0,"mg":"psychology 125"},{"code":"PSYCH 454","subj":"PSYCH","num":"454","n":2,"pos":0,"neg":0,"mg":"psychology 454"},{"code":"RPSE 100","subj":"RPSE","num":"100","n":2,"pos":1,"neg":0,"mg":"rehabilitation psychology 100"},{"code":"SLAVIC 245","subj":"SLAVIC","num":"245","n":2,"pos":0,"neg":0,"mg":"slavic 245"},{"code":"SOC 134","subj":"SOC","num":"134","n":2,"pos":0,"neg":0,"mg":"sociology 134"},{"code":"STAT 324","subj":"STAT","num":"324","n":2,"pos":0,"neg":0,"mg":"statistics 324"},{"code":"THEATRE 120","subj":"THEATRE","num":"120","n":2,"pos":0,"neg":0,"mg":"theatre 120"},{"code":"ZOOLOGY 500","subj":"ZOOLOGY","num":"500","n":2,"pos":0,"neg":0,"mg":"zoology 500"},{"code":"AAE 350","subj":"AAE","num":"350","n":1,"pos":0,"neg":0,"mg":"agricultural applied economics 350"},{"code":"AAE 352","subj":"AAE","num":"352","n":1,"pos":0,"neg":0,"mg":"agricultural applied economics 352"},{"code":"AFRICA 201","subj":"AFRICA","num":"201","n":1,"pos":0,"neg":0,"mg":"african 201"},{"code":"AFRICAN 100","subj":"AFRICAN","num":"100","n":1,"pos":0,"neg":0,"mg":"african 100"},{"code":"AFRICAN 210","subj":"AFRICAN","num":"210","n":1,"pos":0,"neg":0,"mg":"african 210"},{"code":"AFROAMER 156","subj":"AFROAMER","num":"156","n":1,"pos":0,"neg":0,"mg":"afro american 156"},{"code":"AGRONOMY 103","subj":"AGRONOMY","num":"103","n":1,"pos":0,"neg":0,"mg":"agronomy 103"},{"code":"ANAT 335","subj":"ANAT","num":"335","n":1,"pos":0,"neg":0,"mg":"anatomy 335"},{"code":"ART 102","subj":"ART","num":"102","n":1,"pos":0,"neg":0,"mg":"art 102"},{"code":"ART 250","subj":"ART","num":"250","n":1,"pos":0,"neg":0,"mg":"art 250"},{"code":"ART 310","subj":"ART","num":"310","n":1,"pos":0,"neg":0,"mg":"art 310"},{"code":"ARTS 250","subj":"ARTS","num":"250","n":1,"pos":1,"neg":0,"mg":"art 250"},{"code":"ARTS 272","subj":"ARTS","num":"272","n":1,"pos":0,"neg":0,"mg":"art 272"},{"code":"ASIAN 152","subj":"ASIAN","num":"152","n":1,"pos":0,"neg":0,"mg":"asian 152"},{"code":"ASIAN 255","subj":"ASIAN","num":"255","n":1,"pos":0,"neg":0,"mg":"asian 255"},{"code":"ASIAN 261","subj":"ASIAN","num":"261","n":1,"pos":0,"neg":0,"mg":"asian 261"},{"code":"ASIAN 268","subj":"ASIAN","num":"268","n":1,"pos":0,"neg":0,"mg":"asian 268"},{"code":"ASIAN 360","subj":"ASIAN","num":"360","n":1,"pos":0,"neg":0,"mg":"asian 360"},{"code":"ASIAN 361","subj":"ASIAN","num":"361","n":1,"pos":0,"neg":0,"mg":"asian 361"},{"code":"ASIAN 371","subj":"ASIAN","num":"371","n":1,"pos":0,"neg":0,"mg":"asian 371"},{"code":"ASIAN 403","subj":"ASIAN","num":"403","n":1,"pos":0,"neg":0,"mg":"asian 403"},{"code":"ATMOCN 100","subj":"ATMOCN","num":"100","n":1,"pos":1,"neg":0,"mg":"atmospheric oceanic 100"},{"code":"BIO 101","subj":"BIO","num":"101","n":1,"pos":0,"neg":0,"mg":"biology 101"},{"code":"BIOCHEM 560","subj":"BIOCHEM","num":"560","n":1,"pos":0,"neg":0,"mg":"biochemistry 560"},{"code":"BIOCHEM 700","subj":"BIOCHEM","num":"700","n":1,"pos":0,"neg":0,"mg":"biochemistry 700"},{"code":"BME 200","subj":"BME","num":"200","n":1,"pos":1,"neg":0,"mg":"biomedical engineering 200"},{"code":"BOTANY 100","subj":"BOTANY","num":"100","n":1,"pos":0,"neg":0,"mg":"botany 100"},{"code":"BOTANY 130","subj":"BOTANY","num":"130","n":1,"pos":0,"neg":0,"mg":"botany 130"},{"code":"CHEM 341","subj":"CHEM","num":"341","n":1,"pos":0,"neg":0,"mg":"chemistry 341"},{"code":"CHEM 345","subj":"CHEM","num":"345","n":1,"pos":0,"neg":0,"mg":"chemistry 345"},{"code":"CHEM 346","subj":"CHEM","num":"346","n":1,"pos":0,"neg":0,"mg":"chemistry 346"},{"code":"CHEM 564","subj":"CHEM","num":"564","n":1,"pos":0,"neg":0,"mg":"chemistry 564"},{"code":"CLASSICS 111","subj":"CLASSICS","num":"111","n":1,"pos":0,"neg":0,"mg":"classics 111"},{"code":"CLASSICS 270","subj":"CLASSICS","num":"270","n":1,"pos":0,"neg":0,"mg":"classics 270"},{"code":"COMMARTS 310","subj":"COMMARTS","num":"310","n":1,"pos":0,"neg":0,"mg":"communication arts 310"},{"code":"CS 319","subj":"CS","num":"319","n":1,"pos":0,"neg":0,"mg":"computer sciences 319"},{"code":"CS 354","subj":"CS","num":"354","n":1,"pos":0,"neg":0,"mg":"computer sciences 354"},{"code":"CS 407","subj":"CS","num":"407","n":1,"pos":0,"neg":0,"mg":"computer sciences 407"},{"code":"CS 475","subj":"CS","num":"475","n":1,"pos":0,"neg":0,"mg":"computer sciences 475"},{"code":"CS 506","subj":"CS","num":"506","n":1,"pos":0,"neg":0,"mg":"computer sciences 506"},{"code":"CS 520","subj":"CS","num":"520","n":1,"pos":0,"neg":0,"mg":"computer sciences 520"},{"code":"CS 524","subj":"CS","num":"524","n":1,"pos":0,"neg":0,"mg":"computer sciences 524"},{"code":"CS 542","subj":"CS","num":"542","n":1,"pos":0,"neg":0,"mg":"computer sciences 542"},{"code":"CS 559","subj":"CS","num":"559","n":1,"pos":0,"neg":0,"mg":"computer sciences 559"},{"code":"CS 566","subj":"CS","num":"566","n":1,"pos":0,"neg":0,"mg":"computer sciences 566"},{"code":"CS 570","subj":"CS","num":"570","n":1,"pos":0,"neg":0,"mg":"computer sciences 570"},{"code":"CS 765","subj":"CS","num":"765","n":1,"pos":0,"neg":0,"mg":"computer sciences 765"},{"code":"CURRIC 357","subj":"CURRIC","num":"357","n":1,"pos":1,"neg":0,"mg":"curriculum instruction 357"},{"code":"CURRIC 576","subj":"CURRIC","num":"576","n":1,"pos":0,"neg":0,"mg":"curriculum instruction 576"},{"code":"DS 365","subj":"DS","num":"365","n":1,"pos":0,"neg":0,"mg":"data science 365"},{"code":"ECE 252","subj":"ECE","num":"252","n":1,"pos":0,"neg":0,"mg":"electrical computer engineering 252"},{"code":"ECE 270","subj":"ECE","num":"270","n":1,"pos":0,"neg":0,"mg":"electrical computer engineering 270"},{"code":"ECE 330","subj":"ECE","num":"330","n":1,"pos":0,"neg":0,"mg":"electrical computer engineering 330"},{"code":"ECE 335","subj":"ECE","num":"335","n":1,"pos":0,"neg":0,"mg":"electrical computer engineering 335"},{"code":"ECON 100","subj":"ECON","num":"100","n":1,"pos":0,"neg":0,"mg":"economics 100"},{"code":"ECON 321","subj":"ECON","num":"321","n":1,"pos":0,"neg":0,"mg":"economics 321"},{"code":"ECON 330","subj":"ECON","num":"330","n":1,"pos":0,"neg":0,"mg":"economics 330"},{"code":"ECON 420","subj":"ECON","num":"420","n":1,"pos":0,"neg":0,"mg":"economics 420"},{"code":"EDPOL 143","subj":"EDPOL","num":"143","n":1,"pos":1,"neg":0,"mg":"educational policy 143"},{"code":"EDPOL 163","subj":"EDPOL","num":"163","n":1,"pos":0,"neg":0,"mg":"educational policy 163"},{"code":"EDPOL 350","subj":"EDPOL","num":"350","n":1,"pos":0,"neg":0,"mg":"educational policy 350"},{"code":"EMA 303","subj":"EMA","num":"303","n":1,"pos":0,"neg":0,"mg":"engineering mechanics 303"},{"code":"EMA 524","subj":"EMA","num":"524","n":1,"pos":0,"neg":0,"mg":"engineering mechanics 524"},{"code":"ENGL 144","subj":"ENGL","num":"144","n":1,"pos":0,"neg":0,"mg":"english 144"},{"code":"ENGL 173","subj":"ENGL","num":"173","n":1,"pos":0,"neg":0,"mg":"english 173"},{"code":"ENGL 177","subj":"ENGL","num":"177","n":1,"pos":0,"neg":0,"mg":"english 177"},{"code":"ENGL 201","subj":"ENGL","num":"201","n":1,"pos":0,"neg":0,"mg":"english 201"},{"code":"ENGL 361","subj":"ENGL","num":"361","n":1,"pos":0,"neg":0,"mg":"english 361"},{"code":"ENTOM 201","subj":"ENTOM","num":"201","n":1,"pos":1,"neg":0,"mg":"entomology 201"},{"code":"ESL 114","subj":"ESL","num":"114","n":1,"pos":0,"neg":0,"mg":"esl 114"},{"code":"FOLKLORE 210","subj":"FOLKLORE","num":"210","n":1,"pos":0,"neg":0,"mg":"folklore 210"},{"code":"FRENCH 211","subj":"FRENCH","num":"211","n":1,"pos":0,"neg":0,"mg":"french 211"},{"code":"GENBUS 306","subj":"GENBUS","num":"306","n":1,"pos":0,"neg":0,"mg":"general business 306"},{"code":"GENETICS 113","subj":"GENETICS","num":"113","n":1,"pos":0,"neg":0,"mg":"genetics 113"},{"code":"GEOG 101","subj":"GEOG","num":"101","n":1,"pos":0,"neg":0,"mg":"geography 101"},{"code":"GEOG 573","subj":"GEOG","num":"573","n":1,"pos":0,"neg":0,"mg":"geography 573"},{"code":"GERMAN 101","subj":"GERMAN","num":"101","n":1,"pos":0,"neg":0,"mg":"german 101"},{"code":"GERMAN 280","subj":"GERMAN","num":"280","n":1,"pos":0,"neg":0,"mg":"german 280"},{"code":"HISTORY 103","subj":"HISTORY","num":"103","n":1,"pos":0,"neg":0,"mg":"history 103"},{"code":"HISTORY 229","subj":"HISTORY","num":"229","n":1,"pos":0,"neg":0,"mg":"history 229"},{"code":"HISTORY 242","subj":"HISTORY","num":"242","n":1,"pos":0,"neg":0,"mg":"history 242"},{"code":"HISTORY 342","subj":"HISTORY","num":"342","n":1,"pos":0,"neg":0,"mg":"history 342"},{"code":"INTEGSCI 101","subj":"INTEGSCI","num":"101","n":1,"pos":1,"neg":0,"mg":"integrated science 101"},{"code":"INTERDIS 215","subj":"INTERDIS","num":"215","n":1,"pos":0,"neg":0,"mg":"interdisciplinary 215"},{"code":"LIS 351","subj":"LIS","num":"351","n":1,"pos":0,"neg":0,"mg":"information 351"},{"code":"LIS 407","subj":"LIS","num":"407","n":1,"pos":0,"neg":0,"mg":"information 407"},{"code":"LSC 100","subj":"LSC","num":"100","n":1,"pos":0,"neg":0,"mg":"life sciences communication 100"},{"code":"MATH 112","subj":"MATH","num":"112","n":1,"pos":0,"neg":0,"mg":"mathematics 112"},{"code":"MATH 222","subj":"MATH","num":"222","n":1,"pos":0,"neg":0,"mg":"mathematics 222"},{"code":"MATH 240","subj":"MATH","num":"240","n":1,"pos":0,"neg":0,"mg":"mathematics 240"},{"code":"MATH 309","subj":"MATH","num":"309","n":1,"pos":0,"neg":0,"mg":"mathematics 309"},{"code":"MATH 319","subj":"MATH","num":"319","n":1,"pos":0,"neg":0,"mg":"mathematics 319"},{"code":"MATH 375","subj":"MATH","num":"375","n":1,"pos":0,"neg":0,"mg":"mathematics 375"},{"code":"MATH 467","subj":"MATH","num":"467","n":1,"pos":0,"neg":0,"mg":"mathematics 467"},{"code":"MATH 519","subj":"MATH","num":"519","n":1,"pos":0,"neg":0,"mg":"mathematics 519"},{"code":"MATH 522","subj":"MATH","num":"522","n":1,"pos":0,"neg":0,"mg":"mathematics 522"},{"code":"MATH 541","subj":"MATH","num":"541","n":1,"pos":0,"neg":0,"mg":"mathematics 541"},{"code":"MATH 542","subj":"MATH","num":"542","n":1,"pos":0,"neg":0,"mg":"mathematics 542"},{"code":"MATH 616","subj":"MATH","num":"616","n":1,"pos":0,"neg":0,"mg":"mathematics 616"},{"code":"MATH 632","subj":"MATH","num":"632","n":1,"pos":0,"neg":0,"mg":"mathematics 632"},{"code":"MATH 700","subj":"MATH","num":"700","n":1,"pos":0,"neg":0,"mg":"mathematics 700"},{"code":"ME 231","subj":"ME","num":"231","n":1,"pos":0,"neg":0,"mg":"mechanical engineering 231"},{"code":"MHR 641","subj":"MHR","num":"641","n":1,"pos":0,"neg":0,"mg":"management human resources 641"},{"code":"MICROBIO 100","subj":"MICROBIO","num":"100","n":1,"pos":0,"neg":0,"mg":"microbiology 100"},{"code":"NUTRISCI 100","subj":"NUTRISCI","num":"100","n":1,"pos":0,"neg":0,"mg":"nutritional sciences 100"},{"code":"NUTRISCI 101","subj":"NUTRISCI","num":"101","n":1,"pos":0,"neg":0,"mg":"nutritional sciences 101"},{"code":"NUTRISCI 110","subj":"NUTRISCI","num":"110","n":1,"pos":0,"neg":0,"mg":"nutritional sciences 110"},{"code":"NUTRISCI 300","subj":"NUTRISCI","num":"300","n":1,"pos":0,"neg":0,"mg":"nutritional sciences 300"},{"code":"NUTRISCI 331","subj":"NUTRISCI","num":"331","n":1,"pos":0,"neg":0,"mg":"nutritional sciences 331"},{"code":"PATH 311","subj":"PATH","num":"311","n":1,"pos":0,"neg":0,"mg":"pathology 311"},{"code":"PHILOS 241","subj":"PHILOS","num":"241","n":1,"pos":0,"neg":0,"mg":"philosophy 241"},{"code":"PHILOS 341","subj":"PHILOS","num":"341","n":1,"pos":0,"neg":0,"mg":"philosophy 341"},{"code":"PHYSICS 103","subj":"PHYSICS","num":"103","n":1,"pos":1,"neg":0,"mg":"physics 103"},{"code":"PHYSICS 106","subj":"PHYSICS","num":"106","n":1,"pos":0,"neg":0,"mg":"physics 106"},{"code":"PHYSICS 201","subj":"PHYSICS","num":"201","n":1,"pos":0,"neg":0,"mg":"physics 201"},{"code":"PHYSICS 207","subj":"PHYSICS","num":"207","n":1,"pos":0,"neg":0,"mg":"physics 207"},{"code":"PHYSICS 307","subj":"PHYSICS","num":"307","n":1,"pos":0,"neg":0,"mg":"physics 307"},{"code":"PHYSICS 311","subj":"PHYSICS","num":"311","n":1,"pos":0,"neg":0,"mg":"physics 311"},{"code":"PHYSICS 361","subj":"PHYSICS","num":"361","n":1,"pos":0,"neg":0,"mg":"physics 361"},{"code":"PHYSICS 731","subj":"PHYSICS","num":"731","n":1,"pos":0,"neg":0,"mg":"physics 731"},{"code":"PLANTSCI 110","subj":"PLANTSCI","num":"110","n":1,"pos":0,"neg":0,"mg":"plant pathology 110"},{"code":"PLANTSCI 380","subj":"PLANTSCI","num":"380","n":1,"pos":0,"neg":0,"mg":"plant pathology 380"},{"code":"POLISCI 160","subj":"POLISCI","num":"160","n":1,"pos":0,"neg":0,"mg":"political science 160"},{"code":"POLISCI 220","subj":"POLISCI","num":"220","n":1,"pos":0,"neg":0,"mg":"political science 220"},{"code":"PSYCH 220","subj":"PSYCH","num":"220","n":1,"pos":0,"neg":0,"mg":"psychology 220"},{"code":"PSYCH 237","subj":"PSYCH","num":"237","n":1,"pos":0,"neg":0,"mg":"psychology 237"},{"code":"PSYCH 515","subj":"PSYCH","num":"515","n":1,"pos":0,"neg":0,"mg":"psychology 515"},{"code":"PSYCH 610","subj":"PSYCH","num":"610","n":1,"pos":0,"neg":0,"mg":"psychology 610"},{"code":"STAT 304","subj":"STAT","num":"304","n":1,"pos":0,"neg":0,"mg":"statistics 304"},{"code":"STAT 333","subj":"STAT","num":"333","n":1,"pos":0,"neg":0,"mg":"statistics 333"},{"code":"STAT 453","subj":"STAT","num":"453","n":1,"pos":0,"neg":0,"mg":"statistics 453"},{"code":"STAT 641","subj":"STAT","num":"641","n":1,"pos":0,"neg":0,"mg":"statistics 641"},{"code":"THEATRE 256","subj":"THEATRE","num":"256","n":1,"pos":0,"neg":0,"mg":"theatre 256"},{"code":"ZOOLOGY 101","subj":"ZOOLOGY","num":"101","n":1,"pos":0,"neg":0,"mg":"zoology 101"},{"code":"ZOOLOGY 410","subj":"ZOOLOGY","num":"410","n":1,"pos":0,"neg":0,"mg":"zoology 410"}];
-const RMP_SCHOOL="18418";
-document.getElementById('ncourse').textContent=DATA.length;
-let sort='n';
-function enc(s){return encodeURIComponent(s.trim())}
-function mgUrl(q){return "https://madgrades.com/search?query="+enc(q)}
-function rmpUrl(n){return "https://www.ratemyprofessors.com/search/professors/"+RMP_SCHOOL+"?q="+enc(n||"")}
-function goMG(){const v=document.getElementById('mgIn').value;if(v.trim())window.open(mgUrl(v),'_blank')}
-function goRMP(){const v=document.getElementById('rmpIn').value;window.open(rmpUrl(v),'_blank')}
-function setSort(s){sort=s;for(const id of ['n','rec','code'])document.getElementById('s_'+id).classList.toggle('on',id===s);render()}
-function toggleTheme(){const r=document.documentElement;const cur=r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');r.setAttribute('data-theme',cur==='dark'?'light':'dark')}
-function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-function render(){
-  const f=document.getElementById('filter').value.trim().toLowerCase();
-  let list=DATA.filter(r=>!f||r.code.toLowerCase().includes(f));
-  if(sort==='n')list.sort((a,b)=>b.n-a.n||a.code.localeCompare(b.code));
-  else if(sort==='code')list.sort((a,b)=>a.code.localeCompare(b.code));
-  else list.sort((a,b)=>(b.pos-b.neg)-(a.pos-a.neg)||b.n-a.n);
-  document.getElementById('cnt').textContent=list.length+" shown";
-  document.getElementById('tb').innerHTML=list.map(r=>{
-    let ev='';
-    if(r.pos)ev+='<span class="pos">✅'+r.pos+'</span> ';
-    if(r.neg)ev+='<span class="neg">⚠️'+r.neg+'</span> ';
-    if(!ev)ev='<span class="count">—</span>';
-    return '<tr><td><span class="code">'+esc(r.code)+'</span></td>'+
-      '<td><span class="chip">'+r.n+'</span></td>'+
-      '<td>'+ev+'</td>'+
-      '<td><div class="acts">'+
-        '<a class="btn mg" target="_blank" rel="noopener" href="'+mgUrl(r.mg)+'">📊 Grades</a>'+
-        '<a class="btn rmp" target="_blank" rel="noopener" href="'+rmpUrl('')+'">👨‍🏫 RMP</a>'+
-      '</div></td></tr>';
-  }).join('');
+/* Course table */
+.list{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.row{display:grid;grid-template-columns:28px minmax(0,2.4fr) 52px 150px 58px 96px 82px 118px;gap:12px;align-items:center;padding:11px 14px;border-top:1px solid var(--line-2);cursor:pointer}
+.row:first-child{border-top:0}
+.row:hover{background:var(--hover)}
+.row.head{cursor:default;background:var(--surface-2);font-size:12px;color:var(--ink-3);font-weight:600;padding:8px 14px}
+.row.head:hover{background:var(--surface-2)}
+.row.head button{background:none;border:0;padding:0;color:inherit;font-weight:600;cursor:pointer;text-align:left}
+.row.head button[aria-sort]{color:var(--ink)}
+.star{background:none;border:0;cursor:pointer;color:var(--ink-3);font-size:17px;line-height:1;padding:2px}
+.star[aria-pressed="true"]{color:#e0a100}
+.cname{min-width:0}
+.code{font-weight:700;letter-spacing:.005em}
+.alias{color:var(--ink-3);font-weight:500;font-size:12.5px}
+.title{color:var(--ink-2);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.num{text-align:right}
+.gpa{display:flex;flex-direction:column;gap:4px}
+.gpa b{font-size:15px}
+.strip{display:flex;height:7px;border-radius:3px;overflow:hidden;gap:1px;background:var(--line-2)}
+.strip i{display:block;height:100%}
+.muted{color:var(--ink-3)}
+.small{font-size:12.5px}
+.talk{font-size:12.5px;color:var(--ink-2);line-height:1.35}
+.status{font-size:12.5px;display:inline-flex;align-items:center;gap:6px;color:var(--ink-2)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.dot.open{background:var(--ok)}.dot.wait{background:var(--warn)}.dot.closed{background:var(--bad)}.dot.off{background:var(--line)}
+.up{color:var(--ok)}.down{color:var(--bad)}
+.more{text-align:center;padding:14px}
+@media(max-width:900px){
+  .row{grid-template-columns:26px minmax(0,1fr) 120px;grid-template-areas:"s n g" "s t t";row-gap:6px}
+  .row>.c-star{grid-area:s;align-self:start}.row>.cname{grid-area:n}.row>.c-gpa{grid-area:g}
+  .row>.c-meta{grid-area:t;display:flex!important;gap:14px;flex-wrap:wrap}
+  .row>.c-cr,.row>.c-pa,.row>.c-tr,.row>.c-talk,.row>.c-now{display:none}
+  .row.head{display:none}
 }
+.c-meta{display:none;font-size:12.5px;color:var(--ink-2)}
+.catalog-hits{margin-top:18px}
+.catalog-hits h3{font-size:14px;margin:0 0 8px;color:var(--ink-2)}
+.cat-item{display:flex;justify-content:space-between;gap:10px;padding:9px 14px;border-top:1px solid var(--line-2);font-size:14px;align-items:center;flex-wrap:wrap}
+.cat-item:first-child{border-top:0}
+.cat-item .links{display:flex;gap:12px;font-size:13px}
+
+/* Drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,12,14,.35);opacity:0;pointer-events:none;transition:opacity .18s}
+.scrim.on{opacity:1;pointer-events:auto}
+aside.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:var(--surface);box-shadow:var(--shadow);transform:translateX(102%);transition:transform .22s ease;overflow-y:auto;z-index:20;border-left:1px solid var(--line)}
+aside.drawer.on{transform:none}
+@media (prefers-reduced-motion:reduce){aside.drawer,.scrim{transition:none}}
+.d-head{position:sticky;top:0;background:var(--surface);padding:16px 22px 12px;border-bottom:1px solid var(--line-2);z-index:2}
+.d-head .x{position:absolute;right:14px;top:14px}
+.d-code{font-weight:700;font-size:13.5px;color:var(--ink-2)}
+.d-title{font:600 23px/1.2 "Source Serif 4",Georgia,serif;margin:3px 40px 8px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:2px 9px;color:var(--ink-2);background:var(--surface-2)}
+.d-body{padding:6px 22px 40px}
+.d-sec{padding:16px 0;border-bottom:1px solid var(--line-2)}
+.d-sec:last-child{border-bottom:0}
+.d-sec h3{font-size:14px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.d-sec h3 .muted{font-weight:500;font-size:12.5px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+@media(max-width:520px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface-2);border:1px solid var(--line-2);border-radius:9px;padding:8px 10px}
+.kpi b{display:block;font-size:19px;line-height:1.2}
+.kpi span{font-size:12px;color:var(--ink-3)}
+.linkrow{display:flex;flex-wrap:wrap;gap:8px}
+.desc{color:var(--ink-2);font-size:14px;margin:0 0 8px}
+.prq{font-size:13px;color:var(--ink-3);margin:0}
+.itable{width:100%;border-collapse:collapse;font-size:13.5px}
+.itable td,.itable th{padding:6px 4px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:middle}
+.itable th{font-size:12px;color:var(--ink-3);font-weight:600}
+.itable td.r,.itable th.r{text-align:right}
+.bar{position:relative;height:8px;background:var(--line-2);border-radius:4px;min-width:60px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--series)}
+.badge{font-size:11px;font-weight:700;color:var(--ok);border:1px solid currentColor;border-radius:4px;padding:0 4px;margin-left:6px;white-space:nowrap}
+.threads{list-style:none;margin:0;padding:0}
+.threads li{padding:7px 0;border-bottom:1px solid var(--line-2);display:flex;gap:10px;justify-content:space-between;font-size:14px}
+.threads li:last-child{border-bottom:0}
+.tone{font-size:12px;white-space:nowrap}
+
+/* Charts */
+svg text{fill:var(--ink-3);font:11.5px "Public Sans",sans-serif}
+svg .lbl{fill:var(--ink-2);font-weight:600}
+svg .grid{stroke:var(--line-2)}
+svg .axis{stroke:var(--line)}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12.5px;padding:6px 9px;border-radius:7px;z-index:50;max-width:260px;opacity:0;transition:opacity .08s;line-height:1.4}
+.tip.on{opacity:1}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--ink-3);margin-top:4px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+/* Insights */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px 14px;min-width:0}
+.panel.wide{grid-column:1/-1}
+.panel h2{font:600 19px/1.25 "Source Serif 4",Georgia,serif;margin:0 0 4px}
+.panel .lede{color:var(--ink-2);font-size:13.5px;margin:0 0 12px;max-width:72ch}
+.panel table{width:100%;border-collapse:collapse;font-size:13.5px}
+.panel td,.panel th{padding:7px 6px;border-bottom:1px solid var(--line-2);text-align:left}
+.panel th{font-size:12px;color:var(--ink-3);font-weight:600}
+.panel td.r,.panel th.r{text-align:right}
+.panel tr[data-c]{cursor:pointer}.panel tr[data-c]:hover td{background:var(--hover)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:24px;line-height:1.2}
+.stat span{font-size:12.5px;color:var(--ink-3)}
+.prose{max-width:74ch}
+.prose h2{font:600 20px/1.25 "Source Serif 4",Georgia,serif;margin:26px 0 8px}
+.prose p,.prose li{color:var(--ink-2)}
+.prose code{background:var(--surface-2);border:1px solid var(--line-2);border-radius:4px;padding:0 4px;font-size:13px}
+dialog{border:1px solid var(--line);border-radius:14px;padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);width:min(980px,96vw);max-height:90vh}
+dialog::backdrop{background:rgba(10,12,14,.4)}
+.cmp{overflow:auto;padding:18px 20px}
+.cmp table{border-collapse:collapse;width:100%;font-size:13.5px}
+.cmp th,.cmp td{padding:8px 10px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:top;min-width:150px}
+.cmp th:first-child{min-width:110px;color:var(--ink-3);font-weight:600;font-size:12.5px}
+footer{color:var(--ink-3);font-size:12.5px;padding:24px 0 40px;border-top:1px solid var(--line)}
+[hidden]{display:none!important}
+</style></head><body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="mark" aria-hidden="true"><i style="height:6px"></i><i style="height:14px"></i><i style="height:20px"></i><i style="height:10px"></i></div>
+      <div>
+        <h1>UW Course Lookup</h1>
+        <p class="tagline">Grade history, instructor-by-instructor GPA, this term's sections and what students say, for UW–Madison courses.</p>
+      </div>
+      <button class="icon-btn" id="themeBtn" title="Switch light or dark theme" aria-label="Switch light or dark theme">◐</button>
+    </div>
+    <div class="scale" id="scale" aria-label="Grade distribution across all tracked courses"></div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#/courses" data-tab="courses">Courses</a>
+      <a href="#/insights" data-tab="insights">Insights</a>
+      <a href="#/about" data-tab="about">About the data</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="v-courses">
+    <div class="toolbar">
+      <label class="search"><span class="sr" hidden>Search</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" autocomplete="off" placeholder="Course, title or instructor, e.g. cs 577, calculus, Renault" aria-label="Search courses">
+        <kbd>/</kbd>
+      </label>
+      <select id="sort" aria-label="Sort by">
+        <option value="m">Most discussed</option>
+        <option value="gpa">Highest GPA</option>
+        <option value="gpaL">Lowest GPA</option>
+        <option value="pa">Most A's</option>
+        <option value="tr">Rising grades</option>
+        <option value="sp">Instructor matters most</option>
+        <option value="rd">Most Reddit threads</option>
+        <option value="en">Largest this term</option>
+        <option value="code">Course number</option>
+      </select>
+    </div>
+    <div class="filters">
+      <select id="fSubj" aria-label="Subject"><option value="">All subjects</option></select>
+      <select id="fLvl" aria-label="Course level">
+        <option value="">Any level</option><option value="1">100s</option><option value="2">200s</option><option value="3">300s</option><option value="4">400s</option><option value="5">500+</option>
+      </select>
+      <select id="fBr" aria-label="Breadth"><option value="">Any breadth</option></select>
+      <select id="fGpa" aria-label="Minimum GPA">
+        <option value="">Any GPA</option><option value="3.8">GPA ≥ 3.8</option><option value="3.5">GPA ≥ 3.5</option><option value="3.2">GPA ≥ 3.2</option><option value="3">GPA ≥ 3.0</option>
+      </select>
+      <label class="chk"><input type="checkbox" id="fNow"> <span id="fNowLbl">Offered this term</span></label>
+      <label class="chk"><input type="checkbox" id="fSaved"> Saved</label>
+      <button class="linkbtn" id="reset">Clear filters</button>
+    </div>
+    <div class="resline"><span id="cnt"></span><button class="btn" id="cmpBtn" disabled>Compare saved</button></div>
+    <div class="list" id="list" role="table" aria-label="Courses"></div>
+    <div class="more" id="moreWrap" hidden><button class="btn" id="more">Show more</button></div>
+    <div class="catalog-hits" id="catHits" hidden>
+      <h3 id="catTitle"></h3>
+      <div class="list" id="catList"></div>
+    </div>
+  </section>
+
+  <section id="v-insights" hidden></section>
+
+  <section id="v-about" class="prose" hidden>
+    <h2>Where the numbers come from</h2>
+    <ul>
+      <li><b>Grades</b>: <a href="https://madgrades.com" target="_blank" rel="noopener">MadGrades</a>, which republishes UW–Madison's public grade reports by term, section and instructor. GPA counts letter grades only (A=4, AB=3.5, B=3, BC=2.5, C=2, D=1, F=0); S/U, credit and incomplete grades are left out.</li>
+      <li><b>Catalog and current sections</b>: the public <a href="https://public.enroll.wisc.edu" target="_blank" rel="noopener">Course Search &amp; Enroll</a> API. Credits, breadths, prerequisites and who teaches this term come from there. Seat numbers are a snapshot from the build date, so check Enroll before you plan around them.</li>
+      <li><b>Chat mentions</b>: how often a course code came up in a UW–Madison student group chat. Only aggregate counts were ever exported: no messages, names or ids.</li>
+      <li><b>Reddit</b>: public threads in <a href="https://www.reddit.com/r/UWMadison/" target="_blank" rel="noopener">r/UWMadison</a> that name the course, found by web search. Only the thread title and link are stored. Tone is a rough keyword score (words like "easy" vs "cooked").</li>
+      <li><b>Rate My Professors</b>: not copied. Each instructor has a link that searches RMP at UW–Madison.</li>
+    </ul>
+    <h2>How courses were checked</h2>
+    <p>Course codes pulled from chat are messy ("cs300", "comp sci 300", "stats 240"). Each one was matched against the real catalog, and codes that don't exist were dropped. That included a few that were really "comp sci" misread as nutrition science. Cross-listed courses such as COMP SCI 240 / MATH 240 were merged into one row.</p>
+    <h2>Reading the derived numbers</h2>
+    <ul>
+      <li><b>Recent GPA</b> uses the last six terms with grades.</li>
+      <li><b>Trend</b> is a weighted least-squares slope of term GPA since fall 2016, in GPA points per year.</li>
+      <li><b>Instructor spread</b> is the gap between the most and least generous instructor with at least 30 graded students in that course.</li>
+      <li><b>Adjusted GPA</b> (used for "Highest GPA" ranking) pulls small courses toward their subject's average, so a 12-student seminar with a 4.0 doesn't outrank a 900-student course with a 3.9.</li>
+    </ul>
+    <h2>Open data</h2>
+    <p>The full SQLite database (<code>data/uwcourses.db</code>) and the scripts that build it are in the <a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">GitHub repo</a>. The write-up of the analysis lives in <code>docs/ANALYSIS.md</code>.</p>
+  </section>
+</main>
+
+<footer><div class="wrap" id="foot"></div></footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle"></aside>
+<dialog id="cmp"></dialog>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/catalog.js"></script>
+<script>
+"use strict";
+const D = window.UWCL, CAT = window.UWCL_CATALOG || [], C = D.courses, INS = D.insights || {};
+const BY = Object.fromEntries(C.map(c => [c.id, c]));
+const G = ["A","AB","B","BC","C","D","F"], GV = ["--gA","--gAB","--gB","--gBC","--gC","--gD","--gF"];
+const PAGE = 60;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const f2 = v => v == null ? "–" : v.toFixed(2);
+const pct = v => v == null ? "–" : Math.round(v * 100) + "%";
+const TERM = +D.meta.term;
+function termLabel(t){ const y = 2000 + Math.floor(t / 10) % 100; return ({2:"Fall " + (y - 1), 4:"Spring " + y, 6:"Summer " + y})[t % 10] || t; }
+function termShort(t){ const y = 2000 + Math.floor(t / 10) % 100; return ({2:"F" + String(y - 1).slice(2), 4:"S" + String(y).slice(2), 6:"Su" + String(y).slice(2)})[t % 10] || t; }
+function termYear(t){ const y = 2000 + Math.floor(t / 10) % 100; return ({2:y - 1 + .7, 4:y + .1, 6:y + .45})[t % 10] || y; }
+const store = {
+  get(k, d){ try { const v = localStorage.getItem("uwcl." + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v){ try { localStorage.setItem("uwcl." + k, JSON.stringify(v)); } catch {} }
+};
+let saved = new Set(store.get("saved", []));
+const mgUrl = c => c.mg ? "https://madgrades.com/courses/" + c.mg : "https://madgrades.com/search?query=" + encodeURIComponent(c.code);
+const enrollUrl = code => "https://public.enroll.wisc.edu/search?term=" + TERM + "&keywords=" + encodeURIComponent(code);
+const guideUrl = code => "https://guide.wisc.edu/search/?P=" + encodeURIComponent(code);
+const rmpUrl = n => "https://www.ratemyprofessors.com/search/professors/18418?q=" + encodeURIComponent(n);
+const redditUrl = c => "https://www.reddit.com/r/UWMadison/search/?q=" + encodeURIComponent('"' + c.code + '"');
+
+/* Theme */
+(function(){
+  const t = store.get("theme", null); if (t) document.documentElement.dataset.theme = t;
+  $("#themeBtn").onclick = () => {
+    const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const nx = cur === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = nx; store.set("theme", nx);
+  };
+})();
+
+/* Tooltip */
+const tip = $("#tip");
+function showTip(e, html){ tip.innerHTML = html; tip.classList.add("on"); moveTip(e); }
+function moveTip(e){ const w = tip.offsetWidth, h = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + h > innerHeight - 8) y = e.clientY - h - 14; tip.style.left = x + "px"; tip.style.top = y + "px"; }
+function hideTip(){ tip.classList.remove("on"); }
+function bindTips(root){
+  root.querySelectorAll("[data-tip]").forEach(el => {
+    el.addEventListener("pointerenter", e => showTip(e, el.dataset.tip));
+    el.addEventListener("pointermove", moveTip);
+    el.addEventListener("pointerleave", hideTip);
+  });
+}
+
+/* Grade strip */
+function strip(dist, h){
+  if (!dist) return '<div class="strip" style="height:' + (h || 7) + 'px"></div>';
+  const tot = dist.reduce((a, b) => a + b, 0) || 1;
+  return '<div class="strip" style="height:' + (h || 7) + 'px" data-tip="' + esc(G.map((g, i) => g + " " + (dist[i] / tot * 100).toFixed(1) + "%").join(" · ")) + '">' +
+    dist.map((v, i) => v ? '<i style="width:' + (v / tot * 100) + '%;background:var(' + GV[i] + ')"></i>' : "").join("") + "</div>";
+}
+
+/* Header scale */
+(function(){
+  const d = D.meta.campusDist, tot = d.reduce((a, b) => a + b, 0);
+  const light = new Set([2, 3, 4]);
+  $("#scale").innerHTML = '<div class="scale-row">' + d.map((v, i) => {
+    const p = v / tot * 100;
+    return '<div style="flex:' + v + ';background:var(' + GV[i] + ');color:' + (light.has(i) ? "var(--ink)" : "#fff") + '" data-tip="' + G[i] + ": " + p.toFixed(1) + '% of letter grades">' + (p > 4 ? G[i] + '<span class="p">&nbsp;' + Math.round(p) + "%</span>" : p > 1.5 ? G[i] : "") + "</div>";
+  }).join("") + '</div><div class="scale-cap"><span>Letter grades across the ' + C.length + " courses here, " + tot.toLocaleString() + ' grades since ' + termLabel(Math.min(...C.filter(c => c.terms.length).map(c => c.terms[0][0]))) + '. Average GPA ' + (INS.campus_gpa ? INS.campus_gpa.toFixed(2) : "–") + '.</span><span>UW grades on A, AB, B, BC, C, D, F</span></div>';
+  bindTips($("#scale"));
+})();
+
+/* Filters */
+const subjects = [...new Set(C.map(c => c.sa))].sort();
+$("#fSubj").insertAdjacentHTML("beforeend", subjects.map(s => '<option>' + esc(s) + "</option>").join(""));
+const breadths = [...new Set(C.flatMap(c => c.br))].sort();
+$("#fBr").insertAdjacentHTML("beforeend", breadths.map(s => '<option>' + esc(s) + "</option>").concat(['<option value="__es">Ethnic Studies</option>', '<option value="__ge">Comm A/B or QR</option>']).join(""));
+$("#fNowLbl").textContent = "Offered " + termLabel(TERM);
+
+let shown = PAGE;
+const st = { q:"", sort:"m", subj:"", lvl:"", br:"", gpa:"", now:false, sv:false };
+function readFilters(){
+  st.q = $("#q").value.trim().toLowerCase(); st.sort = $("#sort").value; st.subj = $("#fSubj").value; st.lvl = $("#fLvl").value;
+  st.br = $("#fBr").value; st.gpa = $("#fGpa").value; st.now = $("#fNow").checked; st.sv = $("#fSaved").checked;
+}
+function norm(s){ return s.toLowerCase().replace(/[^a-z0-9]/g, ""); }
+const SHORT = {"cs":"compsci","compsci":"compsci","stats":"stat","econ":"econ","ece":"ece","polisci":"polisci","psych":"psych","bio":"biology","nutrisci":"nutrsci"};
+function qMatch(c, q){
+  if (!q) return true;
+  const nq = norm(q), expanded = nq.replace(/^([a-z]+)/, m => SHORT[m] || m);
+  const hay = c._hay || (c._hay = [c.code, ...c.al, c.t, c.sn, ...c.ins.map(i => i[0]), ...(c.now ? c.now.who : [])].join(" ").toLowerCase());
+  const codes = c._codes || (c._codes = [c.code, ...c.al].map(norm));
+  if (codes.some(x => x.includes(nq) || x.includes(expanded))) return true;
+  if (/^[a-z&\s]+\d{2,3}$/.test(q)) return false;  // looks like a course code: code match only
+  return q.split(/\s+/).every(w => hay.includes(w));
+}
+function filtered(){
+  const out = C.filter(c => qMatch(c, st.q)
+    && (!st.subj || c.sa === st.subj)
+    && (!st.lvl || (st.lvl === "5" ? c.num >= 500 : Math.floor(c.num / 100) == st.lvl))
+    && (!st.br || (st.br === "__es" ? c.es : st.br === "__ge" ? !!c.ge : c.br.includes(st.br)))
+    && (!st.gpa || (c.gpa != null && c.gpa >= +st.gpa))
+    && (!st.now || c.now)
+    && (!st.sv || saved.has(c.id)));
+  const nz = (v, d) => v == null ? d : v;
+  const cmp = {
+    m: (a, b) => b.m - a.m || b.rdn - a.rdn || nz(b.en, 0) - nz(a.en, 0),
+    gpa: (a, b) => nz(b.gs, -1) - nz(a.gs, -1),
+    gpaL: (a, b) => nz(a.gs, 9) - nz(b.gs, 9),
+    pa: (a, b) => nz(b.pa, -1) - nz(a.pa, -1),
+    tr: (a, b) => nz(b.tr, -9) - nz(a.tr, -9),
+    sp: (a, b) => nz(b.sp, -1) - nz(a.sp, -1),
+    rd: (a, b) => b.rdn - a.rdn || b.m - a.m,
+    en: (a, b) => nz(b.en, -1) - nz(a.en, -1),
+    code: (a, b) => a.code.localeCompare(b.code, "en", {numeric:true}),
+  }[st.sort];
+  return out.sort(cmp);
+}
+function spark(terms){
+  const t = terms.filter(x => x[2] >= 10 && x[0] % 10 !== 6).slice(-12);
+  if (t.length < 3) return '<span class="muted small">–</span>';
+  const ys = t.map(x => x[1]), lo = Math.min(...ys) - .05, hi = Math.max(...ys) + .05, W = 60, H = 18;
+  const pts = t.map((x, i) => (i / (t.length - 1) * W).toFixed(1) + "," + (H - (x[1] - lo) / (hi - lo) * H).toFixed(1)).join(" ");
+  return '<svg width="' + W + '" height="' + H + '" aria-hidden="true" style="overflow:visible"><polyline points="' + pts + '" fill="none" stroke="var(--series)" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+}
+function trendTxt(v){ if (v == null) return ""; const cls = v > .01 ? "up" : v < -.01 ? "down" : "muted"; return '<span class="' + cls + ' small">' + (v > 0 ? "+" : "") + v.toFixed(2) + "/yr</span>"; }
+function nowTxt(c, bare){
+  if (!c.now) return '<span class="status"><span class="dot off"></span>Not this term</span>';
+  const s = c.now.open ? ["open", "Open"] : c.now.wait ? ["wait", "Waitlist"] : ["closed", "Full"];
+  return '<span class="status"><span class="dot ' + s[0] + '"></span>' + s[1] + (c.en && !bare ? '<span class="muted small">· ' + c.en.toLocaleString() + "</span>" : "") + '</span>';
+}
+function talkTxt(c){
+  const parts = [c.m ? c.m + " chat" : "", c.rdn ? c.rdn + " Reddit" : ""].filter(Boolean);
+  return '<div class="talk">' + (parts.join("<br>") || '<span class="muted">–</span>') + "</div>";
+}
+const COLS = [["", ""], ["code", "Course"], ["", "Cr"], ["gpa", "GPA · grades"], ["pa", "A's"], ["tr", "Trend"], ["m", "Talk"], ["", termLabel(TERM)]];
+function render(){
+  readFilters();
+  const rows = filtered();
+  $("#cnt").textContent = rows.length + " of " + C.length + " courses";
+  const head = '<div class="row head" role="row">' + COLS.map(([k, l], i) =>
+    '<div role="columnheader" class="' + (i === 2 || i === 4 ? "num" : "") + '">' + (k ? '<button data-sort="' + k + '"' + (st.sort === k ? ' aria-sort="descending"' : "") + ">" + l + "</button>" : esc(l)) + "</div>").join("") + "</div>";
+  $("#list").innerHTML = head + (rows.length ? rows.slice(0, shown).map(c =>
+    '<div class="row" role="row" tabindex="0" data-id="' + c.id + '">' +
+      '<div class="c-star"><button class="star" data-star="' + c.id + '" aria-pressed="' + saved.has(c.id) + '" aria-label="Save ' + esc(c.code) + '">' + (saved.has(c.id) ? "★" : "☆") + "</button></div>" +
+      '<div class="cname"><div><span class="code">' + esc(c.code) + "</span>" + (c.al.length ? ' <span class="alias">= ' + esc(c.al.join(", ")) + "</span>" : "") + '</div><div class="title">' + esc(c.t) + "</div></div>" +
+      '<div class="c-cr num small">' + esc(c.cr || "–") + "</div>" +
+      '<div class="c-gpa gpa"><b>' + f2(c.gpa) + "</b>" + strip(c.dist) + "</div>" +
+      '<div class="c-pa num">' + pct(c.pa) + "</div>" +
+      '<div class="c-tr">' + spark(c.terms) + "<br>" + trendTxt(c.tr) + "</div>" +
+      '<div class="c-talk">' + talkTxt(c) + "</div>" +
+      '<div class="c-now">' + nowTxt(c) + "</div>" +
+      '<div class="c-meta"><span>' + esc(c.cr || "?") + " cr</span><span>A's " + pct(c.pa) + "</span><span>" + c.m + " chat · " + c.rdn + " Reddit</span>" + nowTxt(c) + "</div>" +
+    "</div>").join("") : '<div class="row" style="cursor:default"><div></div><div class="muted">No tracked course matches. Try fewer filters, or see the catalog matches below.</div></div>');
+  $("#moreWrap").hidden = rows.length <= shown;
+  bindTips($("#list"));
+  renderCatalog(rows);
+  $("#cmpBtn").disabled = saved.size < 2;
+  $("#cmpBtn").textContent = "Compare saved (" + saved.size + ")";
+}
+function renderCatalog(rows){
+  const q = st.q;
+  if (q.length < 2){ $("#catHits").hidden = true; return; }
+  const known = new Set(C.flatMap(c => [c.code, ...c.al]));
+  const nq = norm(q).replace(/^([a-z]+)/, m => SHORT[m] || m);
+  const hits = CAT.filter(([code, title]) => !known.has(code) && (norm(code).includes(nq) || title.toLowerCase().includes(q))).slice(0, 12);
+  $("#catHits").hidden = !hits.length;
+  $("#catTitle").textContent = "Also in the " + termLabel(TERM) + " catalog (no grade data here yet)";
+  $("#catList").innerHTML = hits.map(([code, title, cr]) => '<div class="cat-item"><span><b>' + esc(code) + "</b> " + esc(title) + ' <span class="muted small">' + esc(cr) + ' cr</span></span><span class="links"><a target="_blank" rel="noopener" href="https://madgrades.com/search?query=' + encodeURIComponent(code) + '">MadGrades</a><a target="_blank" rel="noopener" href="' + enrollUrl(code) + '">Enroll</a></span></div>').join("");
+}
+["#q", "#sort", "#fSubj", "#fLvl", "#fBr", "#fGpa", "#fNow", "#fSaved"].forEach(s => $(s).addEventListener(s === "#q" ? "input" : "change", () => { shown = PAGE; render(); syncQuery(); }));
+$("#reset").onclick = () => { ["#q", "#fSubj", "#fLvl", "#fBr", "#fGpa"].forEach(s => $(s).value = ""); $("#fNow").checked = $("#fSaved").checked = false; $("#sort").value = "m"; render(); syncQuery(); };
+$("#more").onclick = () => { shown += PAGE; render(); };
+$("#list").addEventListener("click", e => {
+  const s = e.target.closest("[data-star]"); if (s){ toggleSave(s.dataset.star); e.stopPropagation(); return; }
+  const h = e.target.closest("[data-sort]"); if (h){ $("#sort").value = h.dataset.sort === "gpa" && st.sort === "gpa" ? "gpaL" : h.dataset.sort; render(); syncQuery(); return; }
+  const r = e.target.closest(".row[data-id]"); if (r) location.hash = "#/c/" + r.dataset.id;
+});
+$("#list").addEventListener("keydown", e => { const r = e.target.closest(".row[data-id]"); if (r && (e.key === "Enter" || e.key === " ") && !e.target.closest("button")){ e.preventDefault(); location.hash = "#/c/" + r.dataset.id; } });
+document.addEventListener("keydown", e => {
+  if (e.key === "/" && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){ e.preventDefault(); location.hash = "#/courses"; $("#q").focus(); }
+  if (e.key === "Escape" && $("#drawer").classList.contains("on")) closeDrawer();
+});
+function toggleSave(id){ saved.has(id) ? saved.delete(id) : saved.add(id); store.set("saved", [...saved]); render(); if (cur) openDrawer(cur.id, true); }
+function syncQuery(){
+  const p = new URLSearchParams();
+  for (const [k, v] of Object.entries(st)) if (v && k !== "sv") p.set(k, v === true ? "1" : v);
+  if (st.sort === "m") p.delete("sort");
+  history.replaceState(null, "", location.pathname + (p.toString() ? "?" + p : "") + location.hash);
+}
+(function loadQuery(){
+  const p = new URLSearchParams(location.search);
+  const map = {q:"#q", sort:"#sort", subj:"#fSubj", lvl:"#fLvl", br:"#fBr", gpa:"#fGpa"};
+  for (const [k, s] of Object.entries(map)) if (p.get(k)) $(s).value = p.get(k);
+  if (p.get("now")) $("#fNow").checked = true;
+})();
+
+/* Charts */
+function distChart(c){
+  const d = c.dist, tot = d.reduce((a, b) => a + b, 0), cd = D.meta.campusDist, ct = cd.reduce((a, b) => a + b, 0);
+  const W = 560, H = 170, L = 8, R = 8, T = 18, B = 24, bw = (W - L - R) / 7;
+  const mx = Math.max(...d.map(v => v / tot), ...cd.map(v => v / ct));
+  const y = v => T + (H - T - B) * (1 - v / mx);
+  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Grade distribution of ' + esc(c.code) + '">';
+  s += '<line class="axis" x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '"/>';
+  d.forEach((v, i) => {
+    const p = v / tot, cp = cd[i] / ct, x = L + i * bw + 5, w = bw - 10, top = y(p), h = Math.max(H - B - top, 0);
+    s += '<g data-tip="<b>' + G[i] + "</b>: " + (p * 100).toFixed(1) + "% (" + v.toLocaleString() + " students)<br>All tracked courses: " + (cp * 100).toFixed(1) + '%">';
+    s += '<rect x="' + (x - 4) + '" y="' + T + '" width="' + (w + 8) + '" height="' + (H - B - T) + '" fill="transparent"/>';
+    s += '<path d="M' + x + "," + (H - B) + "V" + (top + Math.min(4, h)) + "q0,-4 4,-4h" + (w - 8) + "q4,0 4,4V" + (H - B) + 'Z" fill="var(' + GV[i] + ')"/>';
+    s += '<line x1="' + (x - 3) + '" x2="' + (x + w + 3) + '" y1="' + y(cp) + '" y2="' + y(cp) + '" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 2" opacity=".55"/>';
+    s += '<text x="' + (x + w / 2) + '" y="' + (top - 5) + '" text-anchor="middle" class="lbl">' + Math.round(p * 100) + "%</text>";
+    s += '<text x="' + (x + w / 2) + '" y="' + (H - 7) + '" text-anchor="middle">' + G[i] + "</text></g>";
+  });
+  return s + '</svg><div class="legend"><span><i style="background:var(--gA)"></i>This course</span><span><i style="background:none;border-top:2px dashed var(--ink);opacity:.55;height:0;vertical-align:3px"></i>All ' + C.length + ' tracked courses</span></div>';
+}
+function lineChart(points, opt){
+  // points: [{x, y, n, label}]
+  const W = opt.w || 560, H = opt.h || 180, L = 36, R = 12, T = 12, B = 26;
+  const xs = points.map(p => p.x), ys = points.map(p => p.y).concat(opt.ref != null ? [opt.ref] : []);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  let y0 = Math.floor((Math.min(...ys) - .05) * 10) / 10, y1 = Math.ceil((Math.max(...ys) + .05) * 10) / 10;
+  if (y1 - y0 < .4){ const m = (y0 + y1) / 2; y0 = m - .2; y1 = m + .2; }
+  const X = v => L + (W - L - R) * (x1 === x0 ? .5 : (v - x0) / (x1 - x0)), Y = v => T + (H - T - B) * (1 - (v - y0) / (y1 - y0));
+  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="' + esc(opt.label) + '">';
+  const step = (y1 - y0) > 1 ? .5 : (y1 - y0) > .5 ? .2 : .1;
+  for (let v = Math.ceil(y0 / step) * step; v <= y1 + 1e-9; v += step) s += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + v.toFixed(1) + "</text>";
+  for (let yr = Math.ceil(x0); yr <= x1; yr += (x1 - x0 > 10 ? 4 : x1 - x0 > 5 ? 2 : 1)) s += '<text x="' + X(yr) + '" y="' + (H - 8) + '" text-anchor="middle">' + yr + "</text>";
+  if (opt.ref != null) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(opt.ref) + '" y2="' + Y(opt.ref) + '" stroke="var(--ref)" stroke-dasharray="4 3"/><text x="' + (W - R) + '" y="' + (Y(opt.ref) - 5) + '" text-anchor="end">' + esc(opt.refLabel) + "</text>";
+  s += '<polyline points="' + points.map(p => X(p.x).toFixed(1) + "," + Y(p.y).toFixed(1)).join(" ") + '" fill="none" stroke="var(--series)" stroke-width="2" stroke-linejoin="round"/>';
+  (opt.notes || []).forEach(n => { const p = points.find(q => Math.abs(q.x - n.x) < .01); if (p) s += '<text class="lbl" x="' + (X(p.x) + 8) + '" y="' + (Y(p.y) + 4) + '">' + esc(n.text) + "</text>"; });
+  points.forEach(p => { s += '<g data-tip="' + esc(p.label) + '"><circle cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="9" fill="transparent"/><circle cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="3.5" fill="var(--series)" stroke="var(--surface)" stroke-width="1.5"/></g>'; });
+  return s + "</svg>";
+}
+
+/* Drawer */
+let cur = null, lastFocus = null;
+function openDrawer(id, keepScroll){
+  const c = BY[id];
+  if (!c){ $("#q").value = id.replace(/-/g, " "); show("courses"); render(); return; }
+  cur = c;
+  const dr = $("#drawer"), top = keepScroll ? dr.scrollTop : 0;
+  if (!keepScroll) lastFocus = document.activeElement;
+  const chips = [c.cr && c.cr + " credits", c.lvl, ...c.br, c.ge, c.es && "Ethnic Studies", c.typ && c.typ !== "Not Applicable" && "Usually " + c.typ.toLowerCase()].filter(Boolean);
+  const nowIns = c.ins.filter(i => i[5]);
+  let h = '<div class="d-head"><button class="icon-btn x" id="dClose" aria-label="Close">✕</button>' +
+    '<div class="d-code">' + esc(c.code) + (c.al.length ? " · also " + esc(c.al.join(", ")) : "") + " · " + esc(c.sn) + "</div>" +
+    '<h2 class="d-title" id="dTitle">' + esc(c.t) + '</h2><div class="chips">' + chips.map(x => '<span class="chip">' + esc(x) + "</span>").join("") + "</div></div>";
+  h += '<div class="d-body">';
+  h += '<div class="d-sec"><div class="linkrow">' +
+    '<button class="btn" data-star="' + c.id + '" aria-pressed="' + saved.has(c.id) + '">' + (saved.has(c.id) ? "★ Saved" : "☆ Save") + "</button>" +
+    '<a class="btn" target="_blank" rel="noopener" href="' + mgUrl(c) + '">MadGrades</a>' +
+    '<a class="btn" target="_blank" rel="noopener" href="' + enrollUrl(c.code) + '">Course Search &amp; Enroll</a>' +
+    '<a class="btn" target="_blank" rel="noopener" href="' + guideUrl(c.code) + '">Guide</a>' +
+    '<a class="btn" target="_blank" rel="noopener" href="' + redditUrl(c) + '">Search Reddit</a>' +
+    '<button class="btn" id="dShare">Copy link</button></div></div>';
+  if (c.d || c.prq) h += '<div class="d-sec">' + (c.d ? '<p class="desc">' + esc(c.d) + "</p>" : "") + (c.prq ? '<p class="prq"><b>Requisites:</b> ' + esc(c.prq) + "</p>" : "") + "</div>";
+  // This term
+  h += '<div class="d-sec"><h3>' + termLabel(TERM) + (c.now ? ' <span class="muted">snapshot ' + esc(D.meta.built_at.slice(0, 10)) + "</span>" : "") + "</h3>";
+  if (c.now){
+    h += "<p style='margin:0 0 6px'>" + nowTxt(c, true) + " &nbsp;" + (c.en ? "about " + c.en.toLocaleString() + " students enrolled, " : "") + c.now.lec + " lecture section" + (c.now.lec === 1 ? "" : "s") + ", " + c.now.open + " of " + c.now.pk + " enrollment options open" + (c.now.wait ? ", " + c.now.wait + " waitlisted" : "") + ".</p>";
+    if (c.now.who.length) h += '<p class="small" style="margin:0;color:var(--ink-2)">Teaching: ' + c.now.who.map(n => {
+      const m = c.ins.find(i => i[5] && sameName(i[0], n));
+      return esc(n) + (m ? ' <span class="muted">(past GPA here ' + f2(m[1]) + ")</span>" : ' <span class="muted">(no grade history in this course)</span>');
+    }).join(", ") + "</p>";
+  } else h += '<p class="muted" style="margin:0">Not offered this term' + (c.last ? "; last taught " + termLabel(c.last) : "") + ".</p>";
+  h += "</div>";
+  // Grades
+  if (c.dist){
+    h += '<div class="d-sec"><h3>Grades <span class="muted">' + c.n.toLocaleString() + " students, " + termLabel(c.terms[0][0]) + " – " + termLabel(c.terms[c.terms.length - 1][0]) + "</span></h3>";
+    h += '<div class="kpis"><div class="kpi"><b>' + f2(c.gpa) + '</b><span>GPA, all terms</span></div><div class="kpi"><b>' + f2(c.gr) + '</b><span>Last 6 terms</span></div><div class="kpi"><b>' + pct(c.pa) + '</b><span>Got an A</span></div><div class="kpi"><b>' + (c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%") + '</b><span>Got a D or F</span></div></div>';
+    h += distChart(c);
+    const pts = c.terms.filter(t => t[2] >= 10 && t[0] % 10 !== 6).map(t => ({x: termYear(t[0]), y: t[1], label: "<b>" + termLabel(t[0]) + "</b><br>GPA " + t[1].toFixed(2) + " · " + t[2] + " students"}));
+    if (pts.length >= 3){
+      h += '<h3 style="margin-top:16px">GPA by fall and spring term ' + (c.tr != null ? '<span class="muted">' + trendTxt(c.tr) + " since 2016</span>" : "") + "</h3>";
+      h += lineChart(pts, {label: "GPA by term for " + c.code, ref: INS.campus_gpa, refLabel: "tracked-course avg " + (INS.campus_gpa || 0).toFixed(2)});
+    }
+    h += "</div>";
+  } else h += '<div class="d-sec"><h3>Grades</h3><p class="muted">MadGrades has no letter-grade history for this course.</p></div>';
+  // Instructors
+  if (c.ins.length){
+    const mxN = Math.max(...c.ins.map(i => i[2]));
+    h += '<div class="d-sec"><h3>Instructors <span class="muted">' + (c.sp != null ? "spread " + c.sp.toFixed(2) + " GPA points" : "") + "</span></h3>";
+    h += '<table class="itable"><thead><tr><th>Name</th><th class="r">GPA</th><th class="r">A\'s</th><th>Students</th><th class="r">Last</th><th></th></tr></thead><tbody>' +
+      c.ins.map(i => '<tr><td>' + esc(i[0]) + (i[5] ? '<span class="badge">' + termShort(TERM) + "</span>" : "") + '</td><td class="r"><b>' + f2(i[1]) + '</b></td><td class="r">' + pct(i[3]) + '</td><td><div class="bar" data-tip="' + i[2].toLocaleString() + ' graded students"><i style="width:' + (i[2] / mxN * 100) + '%"></i></div></td><td class="r small muted">' + termShort(i[4]) + '</td><td class="small"><a target="_blank" rel="noopener" href="' + rmpUrl(i[0]) + '">RMP</a></td></tr>').join("") +
+      "</tbody></table>" + (c.ins.length && c.ins.some(i => i[2] < 30) ? '<p class="small muted" style="margin:8px 0 0">Fewer than 30 students is a thin sample, so weigh those GPAs lightly.</p>' : "") + "</div>";
+  }
+  // Talk
+  h += '<div class="d-sec"><h3>What students say</h3>';
+  h += '<p class="small" style="margin:0 0 10px;color:var(--ink-2)">' + (c.src === "enrollment" ? "Added because it is one of the largest courses this term; it never came up in the group chat" : "Mentioned <b>" + c.m + "</b> time" + (c.m === 1 ? "" : "s") + " in a UW student group chat" + (c.pos || c.neg ? " (" + c.pos + " positive, " + c.neg + " negative)" : "")) + ". Found <b>" + c.rdn + "</b> r/UWMadison thread" + (c.rdn === 1 ? "" : "s") + (c.rdt != null ? ", tone " + (c.rdt > .15 ? "mostly positive" : c.rdt < -.15 ? "mostly negative" : "mixed") : "") + ".</p>";
+  if (c.rd.length) h += '<ul class="threads">' + c.rd.map(t => '<li><a target="_blank" rel="noopener" href="' + esc(t[1]) + '">' + esc(t[0]) + '</a><span class="tone ' + (t[3] > 0 ? "up" : t[3] < 0 ? "down" : "muted") + '">' + (t[3] > 0 ? "+ " : t[3] < 0 ? "− " : "") + (t[2] || "") + "</span></li>").join("") + "</ul>";
+  h += "</div></div>";
+  dr.innerHTML = h; dr.scrollTop = top;
+  bindTips(dr);
+  $("#dClose").onclick = closeDrawer;
+  dr.querySelector("[data-star]").onclick = () => toggleSave(c.id);
+  $("#dShare").onclick = () => { const u = location.origin + location.pathname + "#/c/" + c.id; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => $("#dShare").textContent = "Copied", () => prompt("Copy this link", u)); };
+  dr.classList.add("on"); $("#scrim").classList.add("on");
+  if (!keepScroll) $("#dClose").focus();
+  document.title = c.code + " · UW Course Lookup";
+}
+function sameName(a, b){ const pa = a.toUpperCase().split(/\s+/), pb = b.toUpperCase().split(/\s+/); return pa[0] === pb[0] && pa[pa.length - 1] === pb[pb.length - 1]; }
+function closeDrawer(){
+  $("#drawer").classList.remove("on"); $("#scrim").classList.remove("on"); cur = null; hideTip();
+  document.title = "UW Course Lookup";
+  if (location.hash.startsWith("#/c/")) history.replaceState(null, "", location.pathname + location.search + "#/" + (lastTab || "courses"));
+  if (lastFocus) lastFocus.focus();
+}
+$("#scrim").onclick = closeDrawer;
+
+/* Compare */
+$("#cmpBtn").onclick = () => {
+  const list = [...saved].map(id => BY[id]).filter(Boolean);
+  const rows = [
+    ["Title", c => esc(c.t)], ["Credits", c => esc(c.cr || "–")], ["GPA", c => "<b>" + f2(c.gpa) + "</b> <span class='muted small'>recent " + f2(c.gr) + "</span>"],
+    ["Grades", c => strip(c.dist, 10)], ["A's", c => pct(c.pa)], ["D or F", c => c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"],
+    ["Trend", c => trendTxt(c.tr) || "–"], ["Instructor spread", c => c.sp == null ? "–" : c.sp.toFixed(2)],
+    [termLabel(TERM), c => nowTxt(c) + (c.now && c.now.who.length ? "<div class='small muted'>" + esc(c.now.who.slice(0, 4).join(", ")) + "</div>" : "")],
+    ["Breadth", c => esc(c.br.join(", ") || "–")], ["Talk", c => c.m + " chat · " + c.rdn + " Reddit"],
+  ];
+  $("#cmp").innerHTML = '<div class="cmp"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h2 style="font:600 20px \'Source Serif 4\',serif;margin:0">Compare saved courses</h2><button class="icon-btn" id="cmpClose" aria-label="Close">✕</button></div><table><thead><tr><th></th>' +
+    list.map(c => '<th><a href="#/c/' + c.id + '" data-close>' + esc(c.code) + "</a></th>").join("") + "</tr></thead><tbody>" +
+    rows.map(([l, f]) => "<tr><th>" + l + "</th>" + list.map(c => "<td>" + f(c) + "</td>").join("") + "</tr>").join("") + "</tbody></table></div>";
+  bindTips($("#cmp"));
+  $("#cmp").showModal();
+  $("#cmpClose").onclick = () => $("#cmp").close();
+  $("#cmp").querySelectorAll("[data-close]").forEach(a => a.onclick = () => $("#cmp").close());
+};
+
+/* Insights */
+function rhoTxt(r){ return r ? "ρ " + (r.rho > 0 ? "+" : "") + r.rho.toFixed(2) + ", p " + (r.p < .001 ? "< .001" : r.p.toFixed(3)) + ", n " + r.n : "–"; }
+function rhoRead(r){ if (!r) return "not enough data"; const a = Math.abs(r.rho); const s = r.p < .05 ? "" : ", not significant"; return (a < .1 ? "no relationship" : a < .3 ? "weak" : a < .5 ? "moderate" : "strong") + (a >= .1 ? (r.rho > 0 ? " positive" : " negative") : "") + s; }
+function scatter(){
+  const pts = C.filter(c => c.gpa != null && c.n >= 50 && c.src === "chat");
+  const W = 1080, H = 380, L = 46, R = 16, T = 14, B = 36;
+  const lx = v => Math.log10(v), X = v => L + (W - L - R) * (lx(v) - 0) / (lx(80) - 0);
+  const y0 = 2.4, y1 = 4.0, Y = v => T + (H - T - B) * (1 - (Math.max(v, y0) - y0) / (y1 - y0));
+  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Chat mentions versus GPA for each course">';
+  for (let v = 2.4; v <= 4.0001; v += .4) s += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + v.toFixed(1) + "</text>";
+  [1, 2, 5, 10, 20, 50].forEach(v => s += '<line class="grid" x1="' + X(v) + '" x2="' + X(v) + '" y1="' + T + '" y2="' + (H - B) + '"/><text x="' + X(v) + '" y="' + (H - 16) + '" text-anchor="middle">' + v + "</text>");
+  s += '<text x="' + ((W + L) / 2) + '" y="' + (H - 1) + '" text-anchor="middle">Chat mentions (log scale)</text><text x="12" y="' + ((H - B) / 2) + '" transform="rotate(-90 12 ' + ((H - B) / 2) + ')" text-anchor="middle">Course GPA</text>';
+  if (INS.campus_gpa) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(INS.campus_gpa) + '" y2="' + Y(INS.campus_gpa) + '" stroke="var(--ref)" stroke-dasharray="4 3"/>';
+  const jit = c => ((c.num * 7919) % 100) / 100 * .5 - .25;
+  const labeled = new Set(pts.slice().sort((a, b) => b.m - a.m).slice(0, 7).map(c => c.id).concat(pts.slice().sort((a, b) => a.gpa - b.gpa).slice(0, 3).map(c => c.id)));
+  pts.forEach(c => {
+    const x = X(Math.max(1, c.m) * Math.pow(10, jit(c) * .08)), y = Y(c.gpa);
+    s += '<g data-c="' + c.id + '" style="cursor:pointer" data-tip="<b>' + esc(c.code) + "</b> " + esc(c.t) + "<br>GPA " + c.gpa.toFixed(2) + " · " + c.m + " mentions · " + c.n.toLocaleString() + ' students"><circle cx="' + x + '" cy="' + y + '" r="10" fill="transparent"/><circle cx="' + x + '" cy="' + y + '" r="4.5" fill="var(--series)" fill-opacity=".72" stroke="var(--surface)" stroke-width="1.5"/>' +
+      (labeled.has(c.id) ? '<text class="lbl" x="' + (x > W - 140 ? x - 8 : x + 8) + '" y="' + (y + 4) + '"' + (x > W - 140 ? ' text-anchor="end"' : "") + ">" + esc(c.code) + "</text>" : "") + "</g>";
+  });
+  return s + "</svg>";
+}
+function dotPlot(rows, key, lo, hi, label){
+  const W = 520, rowH = 30, L = 70, R = 60, H = rows.length * rowH + 26, X = v => L + (W - L - R) * (v - lo) / (hi - lo);
+  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="' + esc(label) + '">';
+  for (let v = lo; v <= hi + 1e-9; v += .2) s += '<line class="grid" x1="' + X(v) + '" x2="' + X(v) + '" y1="4" y2="' + (H - 22) + '"/><text x="' + X(v) + '" y="' + (H - 6) + '" text-anchor="middle">' + v.toFixed(1) + "</text>";
+  rows.forEach((r, i) => { const y = 16 + i * rowH;
+    s += '<g data-tip="<b>' + esc(r.level) + "</b>: weighted GPA " + r.gpa.toFixed(2) + ", median course " + r.median_course_gpa.toFixed(2) + " (" + r.courses + ' courses)"><rect x="0" y="' + (y - 13) + '" width="' + W + '" height="' + rowH + '" fill="transparent"/><text class="lbl" x="0" y="' + (y + 4) + '">' + esc(r.level) + '</text><line x1="' + X(Math.min(r.gpa, r.median_course_gpa)) + '" x2="' + X(Math.max(r.gpa, r.median_course_gpa)) + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-width="3"/>' +
+      '<circle cx="' + X(r.median_course_gpa) + '" cy="' + y + '" r="5" fill="var(--surface)" stroke="var(--series)" stroke-width="2"/><circle cx="' + X(r.gpa) + '" cy="' + y + '" r="5.5" fill="var(--series)"/><text x="' + (W - R + 8) + '" y="' + (y + 4) + '">' + r.gpa.toFixed(2) + "</text></g>"; });
+  return s + '</svg><div class="legend"><span><i style="background:var(--series);border-radius:50%"></i>Weighted by students</span><span><i style="border:2px solid var(--series);border-radius:50%;background:none"></i>Median course</span></div>';
+}
+function dumbbell(rows){
+  const W = 1080, rowH = 32, L = 110, R = 16, H = rows.length * rowH + 28, lo = 1.8, hi = 4.0, X = v => L + (W - L - R) * (v - lo) / (hi - lo);
+  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Lowest and highest instructor GPA within the same course">';
+  for (let v = 2.0; v <= 4.0001; v += .5) s += '<line class="grid" x1="' + X(v) + '" x2="' + X(v) + '" y1="4" y2="' + (H - 22) + '"/><text x="' + X(v) + '" y="' + (H - 6) + '" text-anchor="middle">' + v.toFixed(1) + "</text>";
+  rows.forEach((r, i) => { const y = 18 + i * rowH, id = r.code.replace(/ /g, "-");
+    s += '<g data-c="' + id + '" style="cursor:pointer"><rect x="0" y="' + (y - 14) + '" width="' + W + '" height="' + rowH + '" fill="transparent"/><text class="lbl" x="0" y="' + (y + 4) + '">' + esc(r.code) + '</text>' +
+      '<line x1="' + X(r.low.gpa) + '" x2="' + X(r.high.gpa) + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>' +
+      '<g data-tip="<b>' + esc(r.low.name) + "</b><br>GPA " + r.low.gpa.toFixed(2) + " · " + r.low.n + ' students"><circle cx="' + X(r.low.gpa) + '" cy="' + y + '" r="9" fill="transparent"/><circle cx="' + X(r.low.gpa) + '" cy="' + y + '" r="5.5" fill="var(--gF)"/></g>' +
+      '<g data-tip="<b>' + esc(r.high.name) + "</b><br>GPA " + r.high.gpa.toFixed(2) + " · " + r.high.n + ' students"><circle cx="' + X(r.high.gpa) + '" cy="' + y + '" r="9" fill="transparent"/><circle cx="' + X(r.high.gpa) + '" cy="' + y + '" r="5.5" fill="var(--gA)"/></g>' +
+      '<text x="' + ((X(r.low.gpa) + X(r.high.gpa)) / 2) + '" y="' + (y - 8) + '" text-anchor="middle">' + r.spread.toFixed(2) + "</text></g>"; });
+  return s + '</svg><div class="legend"><span><i style="background:var(--gA);border-radius:50%"></i>Most generous instructor</span><span><i style="background:var(--gF);border-radius:50%"></i>Least generous instructor</span></div>';
+}
+function courseTable(rows, cols){
+  return "<table><thead><tr>" + cols.map(c => "<th" + (c[2] ? ' class="r"' : "") + ">" + c[0] + "</th>").join("") + "</tr></thead><tbody>" +
+    rows.map(r => '<tr data-c="' + r.code.replace(/ /g, "-") + '">' + cols.map(c => "<td" + (c[2] ? ' class="r"' : "") + ">" + c[1](r) + "</td>").join("") + "</tr>").join("") + "</tbody></table>";
+}
+let insDone = false;
+function renderInsights(){
+  if (insDone) return; insDone = true;
+  const k = INS.counts || {}, cr = INS.correlations || {};
+  let h = '<div class="stats">' + [
+    [k.courses, k.from_chat + " from student chat, " + k.from_enrollment + " large courses added"], [(k.graded_students || 0).toLocaleString(), "letter grades analysed"],
+    [(k.instructors || 0).toLocaleString(), "instructors"], [k.reddit_threads, "r/UWMadison threads"],
+    [k.offered_now, "offered " + termLabel(TERM)], [k.rejected_seed_codes, "chat codes rejected as not real courses"]].map(([v, l]) => '<div class="stat"><b>' + v + "</b><span>" + l + "</span></div>").join("") + "</div>";
+  h += '<div class="grid2">';
+  h += '<div class="panel wide"><h2>Popular doesn\'t mean easy</h2><p class="lede">Each dot is a course. How much students talk about a course says almost nothing about how it grades (' + rhoTxt(cr.mentions_vs_gpa) + '). The busiest courses are mostly required intro sequences, and those land on both sides of the average (dashed line). Click a dot to open the course.</p>' + scatter() + "</div>";
+  h += '<div class="panel wide"><h2>The instructor can matter more than the course</h2><p class="lede">Same course number, same catalog description, and a gap of more than a full letter grade between instructors. Check who is teaching before you judge a course by its average.</p>' + dumbbell((INS.instructor_spread || []).slice(0, 10)) + "</div>";
+  h += '<div class="panel"><h2>Do peer signals track grades?</h2><p class="lede">Spearman rank correlation with a permutation test. Reddit is the one peer signal that tracks grades: courses whose threads sound upbeat really do grade higher. Chat volume and chat sentiment do not. Both tone scores come from keyword matching, so treat them as rough.</p><table><thead><tr><th>Signal</th><th>Result</th><th>Reading</th></tr></thead><tbody>' +
+    [["Chat mentions vs GPA", cr.mentions_vs_gpa], ["Chat sentiment vs GPA", cr.chat_sentiment_vs_gpa], ["Reddit tone vs GPA", cr.reddit_tone_vs_gpa], ["Chat vs Reddit volume", cr.chat_vs_reddit_volume], ["Course number vs GPA", cr.course_level_vs_gpa]]
+      .map(([l, r]) => "<tr><td>" + l + '</td><td class="small">' + rhoTxt(r) + '</td><td class="small">' + rhoRead(r) + "</td></tr>").join("") + "</tbody></table></div>";
+  h += '<div class="panel"><h2>GPA by course level</h2><p class="lede">The 200s and 300s grade hardest. That is where the gateway math, chemistry and economics courses sit. Grad-level courses grade easiest.</p>' + dotPlot(INS.by_level || [], "gpa", 2.8, 3.8, "GPA by course level") + "</div>";
+  if ((INS.campus_trend || []).length > 4){
+    h += '<div class="panel wide"><h2>Grades over time, all tracked courses</h2><p class="lede">GPA across every tracked course by fall and spring term, weighted by students. Grades have crept up by roughly a third of a letter since 2006, and the spring 2020 spike is the pandemic term, when many students switched courses to pass/fail. Summer terms are left out.</p>' +
+      lineChart(INS.campus_trend.map(t => ({x: termYear(t.term), y: t.gpa, label: "<b>" + t.label + "</b><br>GPA " + t.gpa.toFixed(3) + " · " + t.graded.toLocaleString() + " grades"})), {w: 1080, h: 240, label: "GPA over time across tracked courses", notes: [{x: termYear(1204), text: "Spring 2020: pandemic grading"}]}) + "</div>";
+  }
+  const tcols = [["Course", r => "<b>" + esc(r.code) + '</b> <span class="muted small">' + esc(r.title) + "</span>"], ["GPA", r => f2(r.gpa), 1], ["Per year", r => trendTxt(r.trend), 1]];
+  h += '<div class="panel"><h2>Grading got easier</h2><p class="lede">Steepest upward GPA slope since fall 2016.</p>' + courseTable(INS.rising || [], tcols) + "</div>";
+  h += '<div class="panel"><h2>Grading got harder</h2><p class="lede">Steepest downward slope over the same window.</p>' + courseTable(INS.falling || [], tcols) + "</div>";
+  h += '<div class="panel"><h2>Popular and tough</h2><p class="lede">Courses mentioned at least 8 times, lowest GPA first.</p>' + courseTable(INS.popular_and_tough || [], [tcols[0], ["GPA", r => f2(r.gpa), 1], ["D or F", r => (r.pct_df * 100).toFixed(1) + "%", 1]]) + "</div>";
+  h += '<div class="panel"><h2>High GPA, rarely discussed</h2><p class="lede">At least 300 graded students and three or fewer chat mentions, ranked by adjusted GPA.</p>' + courseTable(INS.quiet_high_gpa || [], [tcols[0], ["GPA", r => f2(r.gpa), 1], ["Students", r => r.graded.toLocaleString(), 1]]) + "</div>";
+  h += '<div class="panel wide"><h2>By subject</h2><p class="lede">Subjects with at least three tracked courses, most discussed first.</p><table><thead><tr><th>Subject</th><th class="r">Courses</th><th class="r">Mentions</th><th class="r">GPA</th></tr></thead><tbody>' +
+    (INS.by_subject || []).map(s => '<tr style="cursor:pointer" data-subj="' + esc(s.subject) + '"><td><b>' + esc(s.subject) + '</b></td><td class="r">' + s.courses + '</td><td class="r">' + s.mentions + '</td><td class="r">' + f2(s.gpa) + "</td></tr>").join("") + "</tbody></table></div>";
+  h += "</div>";
+  const v = $("#v-insights"); v.innerHTML = h; bindTips(v);
+  v.addEventListener("click", e => {
+    const c = e.target.closest("[data-c]"); if (c && BY[c.dataset.c]){ location.hash = "#/c/" + c.dataset.c; return; }
+    const s = e.target.closest("[data-subj]"); if (s){ $("#fSubj").value = s.dataset.subj; location.hash = "#/courses"; render(); syncQuery(); }
+  });
+}
+
+/* Router */
+let lastTab = "courses";
+function route(){
+  const h = location.hash || "#/courses";
+  const m = h.match(/^#\/c\/(.+)$/);
+  if (m){ if (!document.querySelector("section:not([hidden])")) show(lastTab); openDrawer(decodeURIComponent(m[1])); return; }
+  if ($("#drawer").classList.contains("on")){ $("#drawer").classList.remove("on"); $("#scrim").classList.remove("on"); cur = null; }
+  const tab = (h.match(/^#\/(courses|insights|about)/) || [, "courses"])[1];
+  show(tab);
+}
+function show(tab){
+  lastTab = tab;
+  for (const t of ["courses", "insights", "about"]) $("#v-" + t).hidden = t !== tab;
+  document.querySelectorAll("nav.tabs a").forEach(a => a.dataset.tab === tab ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  if (tab === "insights") renderInsights();
+}
+addEventListener("hashchange", route);
+
+$("#foot").innerHTML = "Built " + esc(D.meta.built_at.slice(0, 10)) + " from MadGrades, UW Course Search &amp; Enroll, r/UWMadison and anonymized chat counts. Not affiliated with UW–Madison. " +
+  '<a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">Source and data on GitHub</a>.';
 render();
+route();
 </script>
 </body></html>
