@@ -10,6 +10,14 @@ official sites**; nothing is scraped, cached, or stored here.
 
 👉 **[Open the tool](https://webgrs.github.io/uw-course-lookup/)** (GitHub Pages) or just open `index.html` locally.
 
+![Course list with Grades and RMP buttons](docs/light.png)
+
+<details><summary>Dark theme</summary>
+
+![Dark theme](docs/dark.png)
+
+</details>
+
 ## Features
 - 🔎 Universal lookup — type any course or professor, jump to MadGrades / RMP.
 - 📊 Per-course **Grades** button, auto-mapped to MadGrades' full subject name (e.g. `CS` → `computer sciences`) for reliable hits.
