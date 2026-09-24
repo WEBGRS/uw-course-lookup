@@ -1,0 +1,955 @@
+{
+ "counts": {
+  "courses": 290,
+  "from_chat": 223,
+  "from_enrollment": 67,
+  "with_grades": 283,
+  "graded_students": 1909097,
+  "instructors": 6847,
+  "reddit_threads": 1921,
+  "offered_now": 257,
+  "rejected_seed_codes": 26
+ },
+ "campus_gpa": 3.227,
+ "correlations": {
+  "mentions_vs_gpa": {
+   "rho": -0.07,
+   "p": 0.3028,
+   "n": 215
+  },
+  "chat_sentiment_vs_gpa": {
+   "rho": -0.225,
+   "p": 0.1564,
+   "n": 40
+  },
+  "reddit_tone_vs_gpa": {
+   "rho": 0.433,
+   "p": 0.0005,
+   "n": 220
+  },
+  "chat_vs_reddit_volume": {
+   "rho": 0.437,
+   "p": 0.0005,
+   "n": 223
+  },
+  "course_level_vs_gpa": {
+   "rho": -0.09,
+   "p": 0.1459,
+   "n": 278
+  }
+ },
+ "by_level": [
+  {
+   "level": "Under 100",
+   "courses": 3,
+   "gpa": 3.823,
+   "median_course_gpa": 3.975
+  },
+  {
+   "level": "100s",
+   "courses": 76,
+   "gpa": 3.3,
+   "median_course_gpa": 3.569
+  },
+  {
+   "level": "200s",
+   "courses": 61,
+   "gpa": 3.119,
+   "median_course_gpa": 3.424
+  },
+  {
+   "level": "300s",
+   "courses": 80,
+   "gpa": 3.152,
+   "median_course_gpa": 3.271
+  },
+  {
+   "level": "400s",
+   "courses": 23,
+   "gpa": 3.256,
+   "median_course_gpa": 3.264
+  },
+  {
+   "level": "500s",
+   "courses": 26,
+   "gpa": 3.293,
+   "median_course_gpa": 3.336
+  },
+  {
+   "level": "600+",
+   "courses": 9,
+   "gpa": 3.678,
+   "median_course_gpa": 3.604
+  }
+ ],
+ "campus_trend": [
+  {
+   "term": 1072,
+   "label": "Fall 2006",
+   "gpa": 3.016,
+   "graded": 34547
+  },
+  {
+   "term": 1074,
+   "label": "Spring 2007",
+   "gpa": 3.024,
+   "graded": 29809
+  },
+  {
+   "term": 1082,
+   "label": "Fall 2007",
+   "gpa": 3.007,
+   "graded": 36338
+  },
+  {
+   "term": 1084,
+   "label": "Spring 2008",
+   "gpa": 3.037,
+   "graded": 31794
+  },
+  {
+   "term": 1092,
+   "label": "Fall 2008",
+   "gpa": 3.046,
+   "graded": 36783
+  },
+  {
+   "term": 1094,
+   "label": "Spring 2009",
+   "gpa": 3.05,
+   "graded": 32356
+  },
+  {
+   "term": 1102,
+   "label": "Fall 2009",
+   "gpa": 3.029,
+   "graded": 36724
+  },
+  {
+   "term": 1104,
+   "label": "Spring 2010",
+   "gpa": 3.043,
+   "graded": 33326
+  },
+  {
+   "term": 1112,
+   "label": "Fall 2010",
+   "gpa": 3.04,
+   "graded": 37681
+  },
+  {
+   "term": 1114,
+   "label": "Spring 2011",
+   "gpa": 3.027,
+   "graded": 33602
+  },
+  {
+   "term": 1122,
+   "label": "Fall 2011",
+   "gpa": 3.045,
+   "graded": 38415
+  },
+  {
+   "term": 1124,
+   "label": "Spring 2012",
+   "gpa": 3.046,
+   "graded": 34124
+  },
+  {
+   "term": 1132,
+   "label": "Fall 2012",
+   "gpa": 3.089,
+   "graded": 40311
+  },
+  {
+   "term": 1134,
+   "label": "Spring 2013",
+   "gpa": 3.091,
+   "graded": 36230
+  },
+  {
+   "term": 1142,
+   "label": "Fall 2013",
+   "gpa": 3.078,
+   "graded": 42480
+  },
+  {
+   "term": 1144,
+   "label": "Spring 2014",
+   "gpa": 3.084,
+   "graded": 37626
+  },
+  {
+   "term": 1152,
+   "label": "Fall 2014",
+   "gpa": 3.118,
+   "graded": 45649
+  },
+  {
+   "term": 1154,
+   "label": "Spring 2015",
+   "gpa": 3.125,
+   "graded": 39672
+  },
+  {
+   "term": 1162,
+   "label": "Fall 2015",
+   "gpa": 3.174,
+   "graded": 47693
+  },
+  {
+   "term": 1164,
+   "label": "Spring 2016",
+   "gpa": 3.196,
+   "graded": 40455
+  },
+  {
+   "term": 1172,
+   "label": "Fall 2016",
+   "gpa": 3.193,
+   "graded": 49211
+  },
+  {
+   "term": 1174,
+   "label": "Spring 2017",
+   "gpa": 3.201,
+   "graded": 42312
+  },
+  {
+   "term": 1182,
+   "label": "Fall 2017",
+   "gpa": 3.222,
+   "graded": 54671
+  },
+  {
+   "term": 1184,
+   "label": "Spring 2018",
+   "gpa": 3.228,
+   "graded": 46952
+  },
+  {
+   "term": 1192,
+   "label": "Fall 2018",
+   "gpa": 3.227,
+   "graded": 58233
+  },
+  {
+   "term": 1194,
+   "label": "Spring 2019",
+   "gpa": 3.235,
+   "graded": 49653
+  },
+  {
+   "term": 1202,
+   "label": "Fall 2019",
+   "gpa": 3.249,
+   "graded": 60808
+  },
+  {
+   "term": 1204,
+   "label": "Spring 2020",
+   "gpa": 3.593,
+   "graded": 44461
+  },
+  {
+   "term": 1212,
+   "label": "Fall 2020",
+   "gpa": 3.394,
+   "graded": 63577
+  },
+  {
+   "term": 1222,
+   "label": "Fall 2021",
+   "gpa": 3.301,
+   "graded": 67311
+  },
+  {
+   "term": 1224,
+   "label": "Spring 2022",
+   "gpa": 3.313,
+   "graded": 59390
+  },
+  {
+   "term": 1232,
+   "label": "Fall 2022",
+   "gpa": 3.32,
+   "graded": 72317
+  },
+  {
+   "term": 1234,
+   "label": "Spring 2023",
+   "gpa": 3.338,
+   "graded": 63324
+  },
+  {
+   "term": 1242,
+   "label": "Fall 2023",
+   "gpa": 3.363,
+   "graded": 74641
+  },
+  {
+   "term": 1244,
+   "label": "Spring 2024",
+   "gpa": 3.354,
+   "graded": 63797
+  },
+  {
+   "term": 1252,
+   "label": "Fall 2024",
+   "gpa": 3.392,
+   "graded": 78135
+  },
+  {
+   "term": 1254,
+   "label": "Spring 2025",
+   "gpa": 3.385,
+   "graded": 67794
+  },
+  {
+   "term": 1262,
+   "label": "Fall 2025",
+   "gpa": 3.397,
+   "graded": 79754
+  },
+  {
+   "term": 1264,
+   "label": "Spring 2026",
+   "gpa": 3.388,
+   "graded": 67141
+  }
+ ],
+ "instructor_spread": [
+  {
+   "code": "MATH 320",
+   "title": "Linear Algebra and Differential Equations",
+   "gpa": 2.948,
+   "mentions": 6,
+   "spread": 1.67,
+   "high": {
+    "name": "Yu-Chan Chang",
+    "gpa": 3.569,
+    "n": 203
+   },
+   "low": {
+    "name": "Sean Rostami",
+    "gpa": 1.899,
+    "n": 237
+   }
+  },
+  {
+   "code": "MATH 340",
+   "title": "Elementary Matrix and Linear Algebra",
+   "gpa": 2.942,
+   "mentions": 13,
+   "spread": 1.641,
+   "high": {
+    "name": "Brian Hepler",
+    "gpa": 3.938,
+    "n": 129
+   },
+   "low": {
+    "name": "Sean Rostami",
+    "gpa": 2.297,
+    "n": 148
+   }
+  },
+  {
+   "code": "MATH 234",
+   "title": "Calculus--Functions of Several Variables",
+   "gpa": 2.957,
+   "mentions": 41,
+   "spread": 1.456,
+   "high": {
+    "name": "Chanwoo Kim",
+    "gpa": 3.761,
+    "n": 134
+   },
+   "low": {
+    "name": "Jeff Viaclovsky",
+    "gpa": 2.305,
+    "n": 490
+   }
+  },
+  {
+   "code": "MATH 467",
+   "title": "Introduction to Number Theory",
+   "gpa": 3.264,
+   "mentions": 1,
+   "spread": 1.416,
+   "high": {
+    "name": "Shaoming Guo",
+    "gpa": 3.9,
+    "n": 30
+   },
+   "low": {
+    "name": "Max Lahn",
+    "gpa": 2.484,
+    "n": 31
+   }
+  },
+  {
+   "code": "PSYCH 202",
+   "title": "Introduction to Psychology",
+   "gpa": 3.005,
+   "mentions": 10,
+   "spread": 1.389,
+   "high": {
+    "name": "Benjamin Douglas",
+    "gpa": 3.846,
+    "n": 371
+   },
+   "low": {
+    "name": "Jon Willits",
+    "gpa": 2.457,
+    "n": 268
+   }
+  },
+  {
+   "code": "MATH 541",
+   "title": "Modern Algebra 1",
+   "gpa": 3.011,
+   "mentions": 1,
+   "spread": 1.321,
+   "high": {
+    "name": "Shamgar Gurevich",
+    "gpa": 3.47,
+    "n": 232
+   },
+   "low": {
+    "name": "Aleksandr Pavlov",
+    "gpa": 2.149,
+    "n": 37
+   }
+  },
+  {
+   "code": "ASTRON 103",
+   "title": "The Evolving Universe: Stars, Galaxies, and Cosmology",
+   "gpa": 3.166,
+   "mentions": 5,
+   "spread": 1.31,
+   "high": {
+    "name": "Ralf Kotulla",
+    "gpa": 3.761,
+    "n": 251
+   },
+   "low": {
+    "name": "Trevor Legrand Irwin",
+    "gpa": 2.451,
+    "n": 122
+   }
+  },
+  {
+   "code": "PSYCH 210",
+   "title": "Basic Statistics for Psychology",
+   "gpa": 2.8,
+   "mentions": 0,
+   "spread": 1.254,
+   "high": {
+    "name": "Steven Schwering",
+    "gpa": 3.55,
+    "n": 129
+   },
+   "low": {
+    "name": "Shan Leng",
+    "gpa": 2.296,
+    "n": 49
+   }
+  },
+  {
+   "code": "MATH 221",
+   "title": "Calculus and Analytic Geometry 1",
+   "gpa": 2.856,
+   "mentions": 12,
+   "spread": 1.247,
+   "high": {
+    "name": "Jose Rodriguez",
+    "gpa": 3.668,
+    "n": 309
+   },
+   "low": {
+    "name": "Steven Bauman",
+    "gpa": 2.422,
+    "n": 326
+   }
+  },
+  {
+   "code": "COMP SCI 577",
+   "title": "Introduction to Algorithms",
+   "gpa": 3.04,
+   "mentions": 0,
+   "spread": 1.223,
+   "high": {
+    "name": "Nicollas Mocelin Sdroievski",
+    "gpa": 3.875,
+    "n": 36
+   },
+   "low": {
+    "name": "Guy Thampakkul",
+    "gpa": 2.652,
+    "n": 33
+   }
+  },
+  {
+   "code": "MATH 112",
+   "title": "College Algebra",
+   "gpa": 2.606,
+   "mentions": 1,
+   "spread": 1.211,
+   "high": {
+    "name": "Jaeun Park",
+    "gpa": 3.17,
+    "n": 44
+   },
+   "low": {
+    "name": "Kwame Nyamekye",
+    "gpa": 1.959,
+    "n": 37
+   }
+  },
+  {
+   "code": "PHILOS 241",
+   "title": "Introductory Ethics",
+   "gpa": 3.488,
+   "mentions": 1,
+   "spread": 1.201,
+   "high": {
+    "name": "Lukas Myers",
+    "gpa": 3.974,
+    "n": 78
+   },
+   "low": {
+    "name": "John Basl",
+    "gpa": 2.773,
+    "n": 64
+   }
+  }
+ ],
+ "rising": [
+  {
+   "code": "NUTR SCI 132",
+   "title": "Nutrition Today",
+   "gpa": 3.126,
+   "mentions": 19,
+   "trend": 0.137
+  },
+  {
+   "code": "PHYSICS 241",
+   "title": "Introduction to Modern Physics",
+   "gpa": 3.137,
+   "mentions": 2,
+   "trend": 0.118
+  },
+  {
+   "code": "COMP SCI 320",
+   "title": "Data Science Programming II",
+   "gpa": 3.587,
+   "mentions": 8,
+   "trend": 0.104
+  },
+  {
+   "code": "M E 231",
+   "title": "Geometric Modeling for Design and Manufacturing",
+   "gpa": 3.332,
+   "mentions": 1,
+   "trend": 0.089
+  },
+  {
+   "code": "COMP SCI 200",
+   "title": "Programming I",
+   "gpa": 3.252,
+   "mentions": 12,
+   "trend": 0.087
+  },
+  {
+   "code": "GEOSCI 331",
+   "title": "Gems: The Science Behind the Sparkle",
+   "gpa": 3.325,
+   "mentions": 0,
+   "trend": 0.078
+  },
+  {
+   "code": "L I S 440",
+   "title": "Navigating the Data Revolution: Concepts of Data & Information Science",
+   "gpa": 3.826,
+   "mentions": 2,
+   "trend": 0.078
+  },
+  {
+   "code": "MATH 519",
+   "title": "Ordinary Differential Equations",
+   "gpa": 3.162,
+   "mentions": 1,
+   "trend": 0.075
+  }
+ ],
+ "falling": [
+  {
+   "code": "STAT 340",
+   "title": "Data Science Modeling II",
+   "gpa": 3.033,
+   "mentions": 10,
+   "trend": -0.105
+  },
+  {
+   "code": "MATH 467",
+   "title": "Introduction to Number Theory",
+   "gpa": 3.264,
+   "mentions": 1,
+   "trend": -0.09
+  },
+  {
+   "code": "STAT 240",
+   "title": "Data Science Modeling I",
+   "gpa": 3.355,
+   "mentions": 32,
+   "trend": -0.084
+  },
+  {
+   "code": "ED POL 320",
+   "title": "Climate Change, Sustainability, and Education",
+   "gpa": 3.785,
+   "mentions": 4,
+   "trend": -0.079
+  },
+  {
+   "code": "ECON 455",
+   "title": "Behavioral Economics",
+   "gpa": 3.277,
+   "mentions": 4,
+   "trend": -0.054
+  },
+  {
+   "code": "COMP SCI 220",
+   "title": "Data Science Programming I",
+   "gpa": 3.424,
+   "mentions": 28,
+   "trend": -0.052
+  },
+  {
+   "code": "MATH 221",
+   "title": "Calculus and Analytic Geometry 1",
+   "gpa": 2.856,
+   "mentions": 12,
+   "trend": -0.05
+  },
+  {
+   "code": "M S & E 350",
+   "title": "Introduction to Materials Science",
+   "gpa": 3.391,
+   "mentions": 0,
+   "trend": -0.048
+  }
+ ],
+ "popular_and_tough": [
+  {
+   "code": "MATH 221",
+   "title": "Calculus and Analytic Geometry 1",
+   "gpa": 2.856,
+   "mentions": 12,
+   "pct_df": 0.113
+  },
+  {
+   "code": "CHEM 104",
+   "title": "General Chemistry II",
+   "gpa": 2.941,
+   "mentions": 16,
+   "pct_df": 0.059
+  },
+  {
+   "code": "MATH 340",
+   "title": "Elementary Matrix and Linear Algebra",
+   "gpa": 2.942,
+   "mentions": 13,
+   "pct_df": 0.094
+  },
+  {
+   "code": "MATH 234",
+   "title": "Calculus--Functions of Several Variables",
+   "gpa": 2.957,
+   "mentions": 41,
+   "pct_df": 0.083
+  },
+  {
+   "code": "CHEM 103",
+   "title": "General Chemistry I",
+   "gpa": 2.978,
+   "mentions": 30,
+   "pct_df": 0.064
+  },
+  {
+   "code": "PSYCH 202",
+   "title": "Introduction to Psychology",
+   "gpa": 3.005,
+   "mentions": 10,
+   "pct_df": 0.077
+  },
+  {
+   "code": "ECON 301",
+   "title": "Intermediate Microeconomic Theory",
+   "gpa": 3.011,
+   "mentions": 11,
+   "pct_df": 0.052
+  },
+  {
+   "code": "ECON 310",
+   "title": "Statistics: Measurement in Economics",
+   "gpa": 3.028,
+   "mentions": 8,
+   "pct_df": 0.036
+  }
+ ],
+ "quiet_high_gpa": [
+  {
+   "code": "ED POL 212",
+   "title": "Education for Social Justice",
+   "gpa": 3.941,
+   "mentions": 2,
+   "graded": 476
+  },
+  {
+   "code": "ZOOLOGY 500",
+   "title": "Undergraduate Neurobiology Seminar",
+   "gpa": 3.948,
+   "mentions": 2,
+   "graded": 2533
+  },
+  {
+   "code": "E C E 315",
+   "title": "Introductory Microprocessor Laboratory",
+   "gpa": 3.889,
+   "mentions": 2,
+   "graded": 1884
+  },
+  {
+   "code": "ENGL 201",
+   "title": "Intermediate Composition",
+   "gpa": 3.861,
+   "mentions": 1,
+   "graded": 3639
+  },
+  {
+   "code": "ED POL 240",
+   "title": "Comparative Education",
+   "gpa": 3.843,
+   "mentions": 2,
+   "graded": 967
+  },
+  {
+   "code": "CURRIC 357",
+   "title": "Game Design I",
+   "gpa": 3.837,
+   "mentions": 1,
+   "graded": 688
+  },
+  {
+   "code": "ASIAN 371",
+   "title": "Topics-Chinese Literature",
+   "gpa": 3.859,
+   "mentions": 1,
+   "graded": 937
+  },
+  {
+   "code": "ENGL 144",
+   "title": "Women's Writing",
+   "gpa": 3.842,
+   "mentions": 1,
+   "graded": 1348
+  }
+ ],
+ "by_subject": [
+  {
+   "subject": "COMP SCI",
+   "courses": 25,
+   "mentions": 120,
+   "gpa": 3.291
+  },
+  {
+   "subject": "MATH",
+   "courses": 26,
+   "mentions": 105,
+   "gpa": 2.89
+  },
+  {
+   "subject": "CHEM",
+   "courses": 9,
+   "mentions": 81,
+   "gpa": 2.963
+  },
+  {
+   "subject": "MUSIC",
+   "courses": 5,
+   "mentions": 79,
+   "gpa": 3.899
+  },
+  {
+   "subject": "STAT",
+   "courses": 12,
+   "mentions": 67,
+   "gpa": 3.155
+  },
+  {
+   "subject": "ECON",
+   "courses": 15,
+   "mentions": 53,
+   "gpa": 3.054
+  },
+  {
+   "subject": "ART",
+   "courses": 5,
+   "mentions": 46,
+   "gpa": 3.784
+  },
+  {
+   "subject": "L I S",
+   "courses": 5,
+   "mentions": 27,
+   "gpa": 3.793
+  },
+  {
+   "subject": "PHYSICS",
+   "courses": 12,
+   "mentions": 27,
+   "gpa": 3.082
+  },
+  {
+   "subject": "ENGL",
+   "courses": 11,
+   "mentions": 27,
+   "gpa": 3.752
+  },
+  {
+   "subject": "BIOCHEM",
+   "courses": 3,
+   "mentions": 25,
+   "gpa": 3.335
+  },
+  {
+   "subject": "ASIAN",
+   "courses": 9,
+   "mentions": 21,
+   "gpa": 3.635
+  },
+  {
+   "subject": "ED POL",
+   "courses": 7,
+   "mentions": 21,
+   "gpa": 3.859
+  },
+  {
+   "subject": "PSYCH",
+   "courses": 11,
+   "mentions": 17,
+   "gpa": 3.079
+  },
+  {
+   "subject": "PHILOS",
+   "courses": 5,
+   "mentions": 11,
+   "gpa": 3.409
+  },
+  {
+   "subject": "E C E",
+   "courses": 7,
+   "mentions": 11,
+   "gpa": 3.304
+  },
+  {
+   "subject": "POLI SCI",
+   "courses": 4,
+   "mentions": 10,
+   "gpa": 3.457
+  },
+  {
+   "subject": "CURRIC",
+   "courses": 3,
+   "mentions": 7,
+   "gpa": 3.841
+  },
+  {
+   "subject": "MICROBIO",
+   "courses": 3,
+   "mentions": 6,
+   "gpa": 3.07
+  },
+  {
+   "subject": "BIOLOGY",
+   "courses": 3,
+   "mentions": 6,
+   "gpa": 2.871
+  },
+  {
+   "subject": "GEOG",
+   "courses": 4,
+   "mentions": 5,
+   "gpa": 3.386
+  },
+  {
+   "subject": "GERMAN",
+   "courses": 3,
+   "mentions": 5,
+   "gpa": 3.516
+  },
+  {
+   "subject": "HISTORY",
+   "courses": 4,
+   "mentions": 5,
+   "gpa": 3.427
+  },
+  {
+   "subject": "LSC",
+   "courses": 3,
+   "mentions": 4,
+   "gpa": 3.573
+  },
+  {
+   "subject": "AFRICAN",
+   "courses": 3,
+   "mentions": 4,
+   "gpa": 3.389
+  },
+  {
+   "subject": "E M A",
+   "courses": 4,
+   "mentions": 4,
+   "gpa": 2.837
+  },
+  {
+   "subject": "GEN BUS",
+   "courses": 7,
+   "mentions": 1,
+   "gpa": 3.301
+  },
+  {
+   "subject": "ACCT I S",
+   "courses": 4,
+   "mentions": 0,
+   "gpa": 3.09
+  },
+  {
+   "subject": "ANAT&PHY",
+   "courses": 3,
+   "mentions": 0,
+   "gpa": 3.078
+  },
+  {
+   "subject": "CNSR SCI",
+   "courses": 5,
+   "mentions": 0,
+   "gpa": 3.772
+  }
+ ],
+ "sentiment_groups": {
+  "chat_positive": {
+   "courses": 37,
+   "mean_gpa": 3.421
+  },
+  "chat_negative": {
+   "courses": 1,
+   "mean_gpa": 3.852
+  },
+  "no_sentiment": {
+   "courses": 177,
+   "mean_gpa": 3.424
+  }
+ }
+}

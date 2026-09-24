@@ -1,0 +1,132 @@
+[
+ {
+  "code": "BIOCHEM 103",
+  "mentions": 2,
+  "reason": "no such course number"
+ },
+ {
+  "code": "MATH 123",
+  "mentions": 2,
+  "reason": "no such course number"
+ },
+ {
+  "code": "POLISCI 210",
+  "mentions": 2,
+  "reason": "no such course number"
+ },
+ {
+  "code": "POLISCI 300",
+  "mentions": 2,
+  "reason": "no such course number"
+ },
+ {
+  "code": "PSYCH 125",
+  "mentions": 2,
+  "reason": "no such course number"
+ },
+ {
+  "code": "ANAT 335",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "ART 250",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "ART 310",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "ARTS 250",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "ARTS 272",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "ASIAN 152",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "ASIAN 261",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "BIOCHEM 700",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "DS 365",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "GENETICS 113",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "INTEGSCI 101",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "MATH 700",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "NUTRISCI 100",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "NUTRISCI 101",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "NUTRISCI 110",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "NUTRISCI 300",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "NUTRISCI 331",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "PATH 311",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "POLISCI 220",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "PSYCH 220",
+  "mentions": 1,
+  "reason": "no such course number"
+ },
+ {
+  "code": "PSYCH 237",
+  "mentions": 1,
+  "reason": "no such course number"
+ }
+]
