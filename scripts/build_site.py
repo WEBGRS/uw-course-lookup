@@ -48,7 +48,10 @@ def export(db):
             FROM instructor_course_stats s JOIN instructors i ON i.id=s.instructor_id
             WHERE s.course_id=? AND s.graded>0
             ORDER BY s.teaching_now DESC, s.graded DESC""", (cid,))]
-        ins = [x for x in ins if x[5]] + [x for x in ins if not x[5]][:MAX_INSTR]
+        # Teaching now + every instructor with a real sample (so the spread is visible) + fill to MAX_INSTR
+        rest = [x for x in ins if not x[5]]
+        big = [x for x in rest if x[2] >= 30]
+        ins = [x for x in ins if x[5]] + big + [x for x in rest if x[2] < 30][:max(0, MAX_INSTR - len(big))]
         secs = db.execute("""SELECT type, section, instructors, status, enrolled, capacity, package_id
                              FROM current_sections WHERE course_id=?""", (cid,)).fetchall()
         lectures = {}

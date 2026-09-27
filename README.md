@@ -11,13 +11,18 @@ Grade history, instructor-by-instructor GPA, this term's sections and what stude
 
 - **Search** by code, title or instructor. Shorthand like `cs 577` or `stats 240` works, and the whole
   Fall 2026 catalog (~5,000 courses) is searchable as a fallback.
-- **Filter** by subject, level, breadth, minimum GPA, or "offered this term". **Sort** by GPA, share of
-  A's, grade trend, how much the instructor matters, Reddit activity or class size.
-- **Open a course** to see its grade distribution against the campus baseline, GPA by term since 2006,
-  every instructor's own GPA in that course (with who's teaching *this* term flagged), current sections
-  and seats, and the most recent r/UWMadison threads about it.
-- **Save and compare** courses side by side. Saved courses stay in your browser.
-- **Share** a course with a deep link (`#/c/COMP-SCI-577`). Filters live in the URL too.
+- **Lenses** give one-click views: high GPA with a big class, big intro courses, courses where the
+  instructor matters, grading getting harder or easier, open seats now, busy on Reddit.
+- **Filter** by subject, level, breadth, minimum GPA or "offered this term", and **sort** 10 ways.
+- **The grade band follows you.** The sticky A–F band at the top morphs into whichever course you hover
+  or select, with tick marks showing the all-course split, so every row is compared at a glance.
+- **Open a course** to see its grade distribution against the baseline, GPA by term since 2006, a dot plot
+  of every instructor's GPA in that course (this term's instructors outlined), current sections and seats,
+  and recent r/UWMadison threads. Step through courses with ← →.
+- **Save courses** to get a running plan (total credits, credit-weighted GPA, breadths covered) and
+  **compare** them side by side with overlaid GPA trends.
+- **English / 中文** toggle, light and dark themes, keyboard navigation (`/`, `j`/`k`, `Enter`, `s`),
+  and deep links (`#/c/COMP-SCI-577`, filters in the URL).
 
 <details><summary>Course detail (dark theme)</summary>
 

@@ -15,6 +15,9 @@ with sync_playwright() as p:
                           device_scale_factor=1.25)
         page.goto(URL + route)
         page.wait_for_timeout(900)
+        if not route:
+            page.hover(".row[data-id='MATH-234']")
+            page.wait_for_timeout(700)
         page.screenshot(path=str(OUT / name))
         page.close()
     b.close()

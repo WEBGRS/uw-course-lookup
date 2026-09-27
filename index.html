@@ -2,92 +2,123 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>UW Course Lookup</title>
-<meta name="description" content="Grade history, instructor-by-instructor GPA, current sections and student discussion for 220+ UW–Madison courses, in one page.">
+<meta name="description" content="Grade history, instructor-by-instructor GPA, current sections and student discussion for UW–Madison courses, in one page. English / 中文.">
 <meta property="og:title" content="UW Course Lookup">
-<meta property="og:description" content="Grade distributions, instructor GPA, Fall sections and r/UWMadison threads for UW–Madison courses.">
+<meta property="og:description" content="Grade distributions, instructor GPA, this term's sections and r/UWMadison threads for UW–Madison courses.">
 <meta property="og:image" content="https://webgrs.github.io/uw-course-lookup/docs/light.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23c5050c'/%3E%3Crect x='6' y='20' width='4' height='6' fill='%23fff'/%3E%3Crect x='12' y='12' width='4' height='14' fill='%23fff'/%3E%3Crect x='18' y='6' width='4' height='20' fill='%23fff'/%3E%3Crect x='24' y='16' width='3' height='10' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&family=Noto+Serif+SC:wght@600&display=swap" rel="stylesheet">
 <style>
 :root{color-scheme:light;
   --bg:#f3f4f2;--surface:#fff;--surface-2:#f8f9f7;--ink:#16181b;--ink-2:#4d535a;--ink-3:#737980;--line:#dfe2de;--line-2:#eceeea;
-  --brand:#c5050c;--link:#1c5cab;--focus:#2a78d6;--hover:#eef1ee;
+  --brand:#c5050c;--link:#1c5cab;--focus:#2a78d6;--hover:#eef1ee;--sel:#e6eefb;
   --gA:#1c5cab;--gAB:#3987e5;--gB:#9ec5f4;--gBC:#c9c8c1;--gC:#f2b08f;--gD:#e0703f;--gF:#b8321f;
-  --series:#2a78d6;--ref:#9a9d98;--ok:#16794a;--warn:#9a6700;--bad:#b4232a;--shadow:0 10px 30px rgba(20,24,28,.12)}
+  --series:#2a78d6;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;
+  --ref:#9a9d98;--ok:#16794a;--warn:#9a6700;--bad:#b4232a;--star:#d99a00;--shadow:0 10px 30px rgba(20,24,28,.12)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
   --bg:#111315;--surface:#1a1d20;--surface-2:#16181b;--ink:#eceeef;--ink-2:#b3b9bf;--ink-3:#8b9198;--line:#2c3035;--line-2:#23272b;
-  --brand:#ff5a5f;--link:#86b6ef;--focus:#5598e7;--hover:#22262a;
+  --brand:#ff5a5f;--link:#86b6ef;--focus:#5598e7;--hover:#22262a;--sel:#1d2a3b;
   --gA:#86b6ef;--gAB:#3987e5;--gB:#1f5596;--gBC:#55544f;--gC:#8f4a2b;--gD:#d4622f;--gF:#f07a6a;
-  --series:#5598e7;--ref:#6c7076;--ok:#4bd196;--warn:#e0b04a;--bad:#ff7b81;--shadow:0 10px 30px rgba(0,0,0,.5)}}
+  --series:#5598e7;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;
+  --ref:#6c7076;--ok:#4bd196;--warn:#e0b04a;--bad:#ff7b81;--star:#f0c040;--shadow:0 10px 30px rgba(0,0,0,.5)}}
 :root[data-theme="dark"]{color-scheme:dark;
   --bg:#111315;--surface:#1a1d20;--surface-2:#16181b;--ink:#eceeef;--ink-2:#b3b9bf;--ink-3:#8b9198;--line:#2c3035;--line-2:#23272b;
-  --brand:#ff5a5f;--link:#86b6ef;--focus:#5598e7;--hover:#22262a;
+  --brand:#ff5a5f;--link:#86b6ef;--focus:#5598e7;--hover:#22262a;--sel:#1d2a3b;
   --gA:#86b6ef;--gAB:#3987e5;--gB:#1f5596;--gBC:#55544f;--gC:#8f4a2b;--gD:#d4622f;--gF:#f07a6a;
-  --series:#5598e7;--ref:#6c7076;--ok:#4bd196;--warn:#e0b04a;--bad:#ff7b81;--shadow:0 10px 30px rgba(0,0,0,.5)}
+  --series:#5598e7;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;
+  --ref:#6c7076;--ok:#4bd196;--warn:#e0b04a;--bad:#ff7b81;--star:#f0c040;--shadow:0 10px 30px rgba(0,0,0,.5)}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-variant-numeric:tabular-nums}
+.serif{font-family:"Source Serif 4","Noto Serif SC",Georgia,serif;font-weight:600}
 a{color:var(--link)}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 button,select,input{font:inherit;color:inherit}
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
-@media(max-width:640px){.wrap{padding:0 16px}.search kbd{display:none}.scale-row .p{display:none}}
+@media(max-width:640px){.wrap{padding:0 16px}}
+[hidden]{display:none!important}
 
 /* Header */
-header{background:var(--surface);border-bottom:1px solid var(--line)}
-.top{display:flex;align-items:center;gap:14px;padding:18px 0 6px}
+header{background:var(--surface)}
+.top{display:flex;align-items:center;gap:14px;padding:18px 0 4px}
 .mark{width:34px;height:34px;border-radius:7px;background:var(--brand);display:flex;align-items:flex-end;padding:0 6px 7px;gap:2px;flex:none}
 .mark i{display:block;flex:1;background:#fff;border-radius:1px}
-h1{font:600 24px/1.15 "Source Serif 4",Georgia,serif;margin:0;letter-spacing:-.01em}
-.tagline{color:var(--ink-2);font-size:14px;margin:2px 0 0}
-.icon-btn{margin-left:auto;background:transparent;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--ink-2)}
+h1{font-size:24px;line-height:1.15;margin:0;letter-spacing:-.01em}
+.tagline{color:var(--ink-2);font-size:14px;margin:2px 0 0;max-width:70ch}
+.hbtns{margin-left:auto;display:flex;gap:6px;flex:none}
+.icon-btn{background:transparent;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--ink-2);font-size:13px;font-weight:600;line-height:1.2}
 .icon-btn:hover{background:var(--hover)}
-.scale{padding:14px 0 16px}
-.scale-row{display:flex;height:34px;border-radius:6px;overflow:hidden;gap:2px}
-.scale-row div{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;min-width:0;white-space:nowrap;overflow:hidden}
-.scale-cap{display:flex;justify-content:space-between;gap:12px;color:var(--ink-3);font-size:12.5px;margin-top:6px;flex-wrap:wrap}
-nav.tabs{display:flex;gap:4px;margin-top:2px}
+nav.tabs{display:flex;gap:4px;margin-top:6px}
 nav.tabs a{padding:10px 14px;text-decoration:none;color:var(--ink-2);font-weight:600;font-size:14px;border-bottom:2px solid transparent}
 nav.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--brand)}
-main{padding:18px 0 60px}
+
+/* Live grade band (sticky) */
+.band{position:sticky;top:0;z-index:10;background:var(--surface);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line);padding:10px 0 8px}
+.band-row{display:flex;height:30px;border-radius:6px;overflow:hidden;gap:2px;position:relative}
+.seg .p{margin-left:4px}
+.seg{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px;white-space:nowrap;overflow:hidden;transition:flex-grow .45s cubic-bezier(.2,.7,.2,1)}
+.ticks{position:relative;height:6px}
+.ticks i{position:absolute;top:0;width:2px;height:6px;margin-left:-1px;background:var(--ink);opacity:.55;transition:left .45s cubic-bezier(.2,.7,.2,1),opacity .2s}
+.band-cap{display:flex;justify-content:space-between;gap:12px;color:var(--ink-3);font-size:12.5px;flex-wrap:wrap;min-height:19px}
+.band-cap b{color:var(--ink)}
+.band-cap .l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+@media (prefers-reduced-motion:reduce){.seg,.ticks i{transition:none}}
+@media(max-width:640px){.band-row{height:24px}.seg .p{display:none}.band-cap .r{display:none}}
+main{padding:16px 0 60px}
+body.has-plan main{padding-bottom:120px}
 
 /* Toolbar */
 .toolbar{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
 @media(max-width:640px){.toolbar{grid-template-columns:1fr}}
-.search{position:relative}
-.search input{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px 11px 38px;font-size:15px}
+.search{position:relative;display:block}
+.search input{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 44px 11px 38px;font-size:15px}
 .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
 .search kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font:600 11px "Public Sans",sans-serif;color:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+@media(max-width:640px){.search kbd{display:none}}
 select,.chk{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13.5px}
+.lenses{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+@media(max-width:640px){.lenses{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-right:-16px;padding-right:16px}}
+.lenses::-webkit-scrollbar{display:none}
+.lens{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-2);display:inline-flex;gap:6px;align-items:center}
+.lens:hover{background:var(--hover)}
+.lens[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.lens small{font-weight:500;opacity:.7}
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px;align-items:center}
 .chk{display:inline-flex;gap:6px;align-items:center;cursor:pointer;user-select:none}
 .chk input{margin:0;accent-color:var(--brand)}
 .resline{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--ink-3);font-size:13px;margin:10px 2px 8px;flex-wrap:wrap}
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 12px;font-weight:600;font-size:13px;cursor:pointer;text-decoration:none;color:var(--ink);display:inline-flex;gap:6px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 12px;font-weight:600;font-size:13px;cursor:pointer;text-decoration:none;color:var(--ink);display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
 .btn:hover{background:var(--hover)}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .btn[disabled]{opacity:.5;cursor:default}
 .linkbtn{background:none;border:0;padding:0;color:var(--link);cursor:pointer;font-weight:600;font-size:13px}
+.keys{color:var(--ink-3);font-size:12px}
+.keys kbd{font:600 11px "Public Sans",sans-serif;border:1px solid var(--line);border-radius:4px;padding:0 5px;background:var(--surface)}
+@media(max-width:900px){.keys{display:none}}
 
-/* Course table */
+/* Course list */
 .list{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.row{display:grid;grid-template-columns:28px minmax(0,2.4fr) 52px 150px 58px 96px 82px 118px;gap:12px;align-items:center;padding:11px 14px;border-top:1px solid var(--line-2);cursor:pointer}
+.row{display:grid;grid-template-columns:26px minmax(0,1fr) 40px 230px 50px 84px 76px 116px;gap:14px;align-items:center;padding:11px 14px;border-top:1px solid var(--line-2);cursor:pointer;position:relative}
 .row:first-child{border-top:0}
 .row:hover{background:var(--hover)}
+.row:focus-visible{outline:0;background:var(--sel)}
+.row:focus-visible::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brand)}
 .row.head{cursor:default;background:var(--surface-2);font-size:12px;color:var(--ink-3);font-weight:600;padding:8px 14px}
 .row.head:hover{background:var(--surface-2)}
 .row.head button{background:none;border:0;padding:0;color:inherit;font-weight:600;cursor:pointer;text-align:left}
 .row.head button[aria-sort]{color:var(--ink)}
 .star{background:none;border:0;cursor:pointer;color:var(--ink-3);font-size:17px;line-height:1;padding:2px}
-.star[aria-pressed="true"]{color:#e0a100}
+.star[aria-pressed="true"]{color:var(--star)}
 .cname{min-width:0}
 .code{font-weight:700;letter-spacing:.005em}
 .alias{color:var(--ink-3);font-weight:500;font-size:12.5px}
 .title{color:var(--ink-2);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who{color:var(--ink-3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .num{text-align:right}
-.gpa{display:flex;flex-direction:column;gap:4px}
-.gpa b{font-size:15px}
-.strip{display:flex;height:7px;border-radius:3px;overflow:hidden;gap:1px;background:var(--line-2)}
+.gcell{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:center}
+.gcell b{font-size:15px}
+.strip{display:flex;height:10px;border-radius:3px;overflow:hidden;gap:1px;background:var(--line-2)}
 .strip i{display:block;height:100%}
 .muted{color:var(--ink-3)}
 .small{font-size:12.5px}
@@ -97,50 +128,60 @@ select,.chk{background:var(--surface);border:1px solid var(--line);border-radius
 .dot.open{background:var(--ok)}.dot.wait{background:var(--warn)}.dot.closed{background:var(--bad)}.dot.off{background:var(--line)}
 .up{color:var(--ok)}.down{color:var(--bad)}
 .more{text-align:center;padding:14px}
-@media(max-width:900px){
-  .row{grid-template-columns:26px minmax(0,1fr) 120px;grid-template-areas:"s n g" "s t t";row-gap:6px}
+.c-meta{display:none;font-size:12.5px;color:var(--ink-2)}
+@media(max-width:1000px){
+  .row{grid-template-columns:26px minmax(0,1fr) 170px;grid-template-areas:"s n g" "s t t";row-gap:6px}
   .row>.c-star{grid-area:s;align-self:start}.row>.cname{grid-area:n}.row>.c-gpa{grid-area:g}
-  .row>.c-meta{grid-area:t;display:flex!important;gap:14px;flex-wrap:wrap}
+  .row>.c-meta{grid-area:t;display:flex;gap:14px;flex-wrap:wrap}
   .row>.c-cr,.row>.c-pa,.row>.c-tr,.row>.c-talk,.row>.c-now{display:none}
   .row.head{display:none}
 }
-.c-meta{display:none;font-size:12.5px;color:var(--ink-2)}
+@media(max-width:520px){.row{grid-template-columns:24px minmax(0,1fr) 120px}.gcell{grid-template-columns:34px 1fr;gap:6px}}
+.empty{padding:28px 20px;text-align:center;color:var(--ink-2)}
 .catalog-hits{margin-top:18px}
 .catalog-hits h3{font-size:14px;margin:0 0 8px;color:var(--ink-2)}
 .cat-item{display:flex;justify-content:space-between;gap:10px;padding:9px 14px;border-top:1px solid var(--line-2);font-size:14px;align-items:center;flex-wrap:wrap}
 .cat-item:first-child{border-top:0}
 .cat-item .links{display:flex;gap:12px;font-size:13px}
 
+/* Plan bar */
+.plan{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(1140px,calc(100% - 24px));background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:10px 14px;display:flex;gap:14px;align-items:center;z-index:15;flex-wrap:wrap}
+.plan .facts{display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;flex:1;min-width:0;font-size:13.5px;color:var(--ink-2)}
+.plan .facts b{color:var(--ink);font-size:15px}
+.plan .acts{display:flex;gap:6px}
+@media(max-width:640px){.plan{bottom:0;border-radius:14px 14px 0 0;width:100%;padding:8px 12px;gap:8px}.plan .br,.plan .gp{display:none}.plan .facts{gap:10px;font-size:12.5px}.plan .facts b{font-size:14px}.plan .btn{padding:6px 10px}}
+
 /* Drawer */
-.scrim{position:fixed;inset:0;background:rgba(10,12,14,.35);opacity:0;pointer-events:none;transition:opacity .18s}
+.scrim{position:fixed;inset:0;background:rgba(10,12,14,.35);opacity:0;pointer-events:none;transition:opacity .18s;z-index:19}
 .scrim.on{opacity:1;pointer-events:auto}
-aside.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:var(--surface);box-shadow:var(--shadow);transform:translateX(102%);transition:transform .22s ease;overflow-y:auto;z-index:20;border-left:1px solid var(--line)}
+aside.drawer{position:fixed;top:0;right:0;bottom:0;width:min(660px,100%);background:var(--surface);box-shadow:var(--shadow);transform:translateX(102%);transition:transform .22s ease;overflow-y:auto;z-index:20;border-left:1px solid var(--line);overscroll-behavior:contain}
 aside.drawer.on{transform:none}
 @media (prefers-reduced-motion:reduce){aside.drawer,.scrim{transition:none}}
-.d-head{position:sticky;top:0;background:var(--surface);padding:16px 22px 12px;border-bottom:1px solid var(--line-2);z-index:2}
-.d-head .x{position:absolute;right:14px;top:14px}
-.d-code{font-weight:700;font-size:13.5px;color:var(--ink-2)}
-.d-title{font:600 23px/1.2 "Source Serif 4",Georgia,serif;margin:3px 40px 8px 0}
+.d-head{position:sticky;top:0;background:var(--surface);padding:14px 22px 12px;border-bottom:1px solid var(--line-2);z-index:2}
+.d-nav{position:absolute;right:14px;top:12px;display:flex;gap:6px;align-items:center}
+.d-nav .pos{font-size:12px;color:var(--ink-3);margin:0 4px}
+.d-code{font-weight:700;font-size:13.5px;color:var(--ink-2);margin-right:150px}
+.d-title{font-size:23px;line-height:1.2;margin:3px 0 8px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:2px 9px;color:var(--ink-2);background:var(--surface-2)}
-.d-body{padding:6px 22px 40px}
+.d-body{padding:4px 22px 40px}
 .d-sec{padding:16px 0;border-bottom:1px solid var(--line-2)}
 .d-sec:last-child{border-bottom:0}
-.d-sec h3{font-size:14px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.d-sec h3{font-size:14px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .d-sec h3 .muted{font-weight:500;font-size:12.5px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-@media(max-width:520px){.kpis{grid-template-columns:repeat(2,1fr)}}
-.kpi{background:var(--surface-2);border:1px solid var(--line-2);border-radius:9px;padding:8px 10px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface-2);border:1px solid var(--line-2);border-radius:9px;padding:8px 10px;min-width:0}
 .kpi b{display:block;font-size:19px;line-height:1.2}
 .kpi span{font-size:12px;color:var(--ink-3)}
 .linkrow{display:flex;flex-wrap:wrap;gap:8px}
 .desc{color:var(--ink-2);font-size:14px;margin:0 0 8px}
 .prq{font-size:13px;color:var(--ink-3);margin:0}
-.itable{width:100%;border-collapse:collapse;font-size:13.5px}
+.itable{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
 .itable td,.itable th{padding:6px 4px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:middle}
 .itable th{font-size:12px;color:var(--ink-3);font-weight:600}
 .itable td.r,.itable th.r{text-align:right}
-.bar{position:relative;height:8px;background:var(--line-2);border-radius:4px;min-width:60px}
+.bar{position:relative;height:8px;background:var(--line-2);border-radius:4px;min-width:50px}
 .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--series)}
 .badge{font-size:11px;font-weight:700;color:var(--ok);border:1px solid currentColor;border-radius:4px;padding:0 4px;margin-left:6px;white-space:nowrap}
 .threads{list-style:none;margin:0;padding:0}
@@ -149,11 +190,11 @@ aside.drawer.on{transform:none}
 .tone{font-size:12px;white-space:nowrap}
 
 /* Charts */
-svg text{fill:var(--ink-3);font:11.5px "Public Sans",sans-serif}
+svg text{fill:var(--ink-3);font:11.5px "Public Sans","PingFang SC","Microsoft YaHei",sans-serif}
 svg .lbl{fill:var(--ink-2);font-weight:600}
 svg .grid{stroke:var(--line-2)}
 svg .axis{stroke:var(--line)}
-.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12.5px;padding:6px 9px;border-radius:7px;z-index:50;max-width:260px;opacity:0;transition:opacity .08s;line-height:1.4}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12.5px;padding:6px 9px;border-radius:7px;z-index:50;max-width:280px;opacity:0;transition:opacity .08s;line-height:1.4}
 .tip.on{opacity:1}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--ink-3);margin-top:4px;flex-wrap:wrap}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
@@ -163,85 +204,106 @@ svg .axis{stroke:var(--line)}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px 14px;min-width:0}
 .panel.wide{grid-column:1/-1}
-.panel h2{font:600 19px/1.25 "Source Serif 4",Georgia,serif;margin:0 0 4px}
-.panel .lede{color:var(--ink-2);font-size:13.5px;margin:0 0 12px;max-width:72ch}
+.panel h2{font-size:19px;line-height:1.25;margin:0 0 4px}
+.panel .lede{color:var(--ink-2);font-size:13.5px;margin:0 0 12px;max-width:74ch}
 .panel table{width:100%;border-collapse:collapse;font-size:13.5px}
 .panel td,.panel th{padding:7px 6px;border-bottom:1px solid var(--line-2);text-align:left}
 .panel th{font-size:12px;color:var(--ink-3);font-weight:600}
 .panel td.r,.panel th.r{text-align:right}
-.panel tr[data-c]{cursor:pointer}.panel tr[data-c]:hover td{background:var(--hover)}
+.panel tr[data-c],.panel tr[data-subj]{cursor:pointer}.panel tr[data-c]:hover td,.panel tr[data-subj]:hover td{background:var(--hover)}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .stat b{display:block;font-size:24px;line-height:1.2}
 .stat span{font-size:12.5px;color:var(--ink-3)}
 .prose{max-width:74ch}
-.prose h2{font:600 20px/1.25 "Source Serif 4",Georgia,serif;margin:26px 0 8px}
+.prose h2{font-size:20px;line-height:1.25;margin:26px 0 8px}
 .prose p,.prose li{color:var(--ink-2)}
 .prose code{background:var(--surface-2);border:1px solid var(--line-2);border-radius:4px;padding:0 4px;font-size:13px}
-dialog{border:1px solid var(--line);border-radius:14px;padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);width:min(980px,96vw);max-height:90vh}
+
+/* Compare */
+dialog{border:1px solid var(--line);border-radius:14px;padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);width:min(1040px,96vw);max-height:92vh}
 dialog::backdrop{background:rgba(10,12,14,.4)}
-.cmp{overflow:auto;padding:18px 20px}
-.cmp table{border-collapse:collapse;width:100%;font-size:13.5px}
-.cmp th,.cmp td{padding:8px 10px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:top;min-width:150px}
+.cmp{overflow:auto;padding:18px 20px;max-height:92vh}
+.cmp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
+.cmp-head h2{font-size:20px;margin:0}
+.minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:14px}
+.mini{border:1px solid var(--line-2);border-radius:10px;padding:10px 12px 6px}
+.mini .h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.mini .h b{font-size:14px}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
+.cmp table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:10px}
+.cmp th,.cmp td{padding:8px 10px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:top;min-width:140px}
 .cmp th:first-child{min-width:110px;color:var(--ink-3);font-weight:600;font-size:12.5px}
 footer{color:var(--ink-3);font-size:12.5px;padding:24px 0 40px;border-top:1px solid var(--line)}
-[hidden]{display:none!important}
+footer p{margin:0 0 6px}
 </style></head><body>
 <header>
   <div class="wrap">
     <div class="top">
       <div class="mark" aria-hidden="true"><i style="height:6px"></i><i style="height:14px"></i><i style="height:20px"></i><i style="height:10px"></i></div>
       <div>
-        <h1>UW Course Lookup</h1>
-        <p class="tagline">Grade history, instructor-by-instructor GPA, this term's sections and what students say, for UW–Madison courses.</p>
+        <h1 class="serif">UW Course Lookup</h1>
+        <p class="tagline" data-t="tagline"></p>
       </div>
-      <button class="icon-btn" id="themeBtn" title="Switch light or dark theme" aria-label="Switch light or dark theme">◐</button>
+      <div class="hbtns">
+        <button class="icon-btn" id="langBtn" data-tt="langTip"></button>
+        <button class="icon-btn" id="themeBtn" data-tt="themeTip">◐</button>
+      </div>
     </div>
-    <div class="scale" id="scale" aria-label="Grade distribution across all tracked courses"></div>
     <nav class="tabs" aria-label="Sections">
-      <a href="#/courses" data-tab="courses">Courses</a>
-      <a href="#/insights" data-tab="insights">Insights</a>
-      <a href="#/about" data-tab="about">About the data</a>
+      <a href="#/courses" data-tab="courses" data-t="tabCourses"></a>
+      <a href="#/insights" data-tab="insights" data-t="tabInsights"></a>
+      <a href="#/about" data-tab="about" data-t="tabAbout"></a>
     </nav>
   </div>
 </header>
 
+<div class="band" id="band" aria-live="polite">
+  <div class="wrap">
+    <div class="band-row" id="bandRow"></div>
+    <div class="ticks" id="bandTicks"></div>
+    <div class="band-cap"><span class="l" id="bandL"></span><span class="r" id="bandR"></span></div>
+  </div>
+</div>
+
 <main class="wrap">
   <section id="v-courses">
     <div class="toolbar">
-      <label class="search"><span class="sr" hidden>Search</span>
+      <label class="search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="search" autocomplete="off" placeholder="Course, title or instructor, e.g. cs 577, calculus, Renault" aria-label="Search courses">
+        <input id="q" type="search" autocomplete="off" data-tp="searchPh" data-tt="searchPh">
         <kbd>/</kbd>
       </label>
-      <select id="sort" aria-label="Sort by">
-        <option value="m">Most discussed</option>
-        <option value="gpa">Highest GPA</option>
-        <option value="gpaL">Lowest GPA</option>
-        <option value="pa">Most A's</option>
-        <option value="tr">Rising grades</option>
-        <option value="sp">Instructor matters most</option>
-        <option value="rd">Most Reddit threads</option>
-        <option value="en">Largest this term</option>
-        <option value="code">Course number</option>
+      <select id="sort" data-tt="sortBy">
+        <option value="m" data-t="s_m"></option>
+        <option value="gpa" data-t="s_gpa"></option>
+        <option value="gpaL" data-t="s_gpaL"></option>
+        <option value="pa" data-t="s_pa"></option>
+        <option value="tr" data-t="s_tr"></option>
+        <option value="tl" data-t="s_tl"></option>
+        <option value="sp" data-t="s_sp"></option>
+        <option value="rd" data-t="s_rd"></option>
+        <option value="en" data-t="s_en"></option>
+        <option value="code" data-t="s_code"></option>
       </select>
     </div>
+    <div class="lenses" id="lenses" role="group"></div>
     <div class="filters">
-      <select id="fSubj" aria-label="Subject"><option value="">All subjects</option></select>
-      <select id="fLvl" aria-label="Course level">
-        <option value="">Any level</option><option value="1">100s</option><option value="2">200s</option><option value="3">300s</option><option value="4">400s</option><option value="5">500+</option>
+      <select id="fSubj" data-tt="subject"><option value="" data-t="allSubj"></option></select>
+      <select id="fLvl" data-tt="level">
+        <option value="" data-t="anyLvl"></option><option value="1">100s</option><option value="2">200s</option><option value="3">300s</option><option value="4">400s</option><option value="5">500+</option>
       </select>
-      <select id="fBr" aria-label="Breadth"><option value="">Any breadth</option></select>
-      <select id="fGpa" aria-label="Minimum GPA">
-        <option value="">Any GPA</option><option value="3.8">GPA ≥ 3.8</option><option value="3.5">GPA ≥ 3.5</option><option value="3.2">GPA ≥ 3.2</option><option value="3">GPA ≥ 3.0</option>
+      <select id="fBr" data-tt="breadth"><option value="" data-t="anyBr"></option></select>
+      <select id="fGpa" data-tt="minGpa">
+        <option value="" data-t="anyGpa"></option><option value="3.8">GPA ≥ 3.8</option><option value="3.5">GPA ≥ 3.5</option><option value="3.2">GPA ≥ 3.2</option><option value="3">GPA ≥ 3.0</option>
       </select>
-      <label class="chk"><input type="checkbox" id="fNow"> <span id="fNowLbl">Offered this term</span></label>
-      <label class="chk"><input type="checkbox" id="fSaved"> Saved</label>
-      <button class="linkbtn" id="reset">Clear filters</button>
+      <label class="chk"><input type="checkbox" id="fNow"> <span id="fNowLbl"></span></label>
+      <label class="chk"><input type="checkbox" id="fSaved"> <span data-t="savedOnly"></span></label>
+      <button class="linkbtn" id="reset" data-t="clear"></button>
     </div>
-    <div class="resline"><span id="cnt"></span><button class="btn" id="cmpBtn" disabled>Compare saved</button></div>
+    <div class="resline"><span id="cnt"></span><span class="keys" id="keys"></span></div>
     <div class="list" id="list" role="table" aria-label="Courses"></div>
-    <div class="more" id="moreWrap" hidden><button class="btn" id="more">Show more</button></div>
+    <div class="more" id="moreWrap" hidden><button class="btn" id="more" data-t="more"></button></div>
     <div class="catalog-hits" id="catHits" hidden>
       <h3 id="catTitle"></h3>
       <div class="list" id="catList"></div>
@@ -251,30 +313,54 @@ footer{color:var(--ink-3);font-size:12.5px;padding:24px 0 40px;border-top:1px so
   <section id="v-insights" hidden></section>
 
   <section id="v-about" class="prose" hidden>
-    <h2>Where the numbers come from</h2>
-    <ul>
-      <li><b>Grades</b>: <a href="https://madgrades.com" target="_blank" rel="noopener">MadGrades</a>, which republishes UW–Madison's public grade reports by term, section and instructor. GPA counts letter grades only (A=4, AB=3.5, B=3, BC=2.5, C=2, D=1, F=0); S/U, credit and incomplete grades are left out.</li>
-      <li><b>Catalog and current sections</b>: the public <a href="https://public.enroll.wisc.edu" target="_blank" rel="noopener">Course Search &amp; Enroll</a> API. Credits, breadths, prerequisites and who teaches this term come from there. Seat numbers are a snapshot from the build date, so check Enroll before you plan around them.</li>
-      <li><b>Chat mentions</b>: how often a course code came up in a UW–Madison student group chat. Only aggregate counts were ever exported: no messages, names or ids.</li>
-      <li><b>Reddit</b>: public threads in <a href="https://www.reddit.com/r/UWMadison/" target="_blank" rel="noopener">r/UWMadison</a> that name the course, found by web search. Only the thread title and link are stored. Tone is a rough keyword score (words like "easy" vs "cooked").</li>
-      <li><b>Rate My Professors</b>: not copied. Each instructor has a link that searches RMP at UW–Madison.</li>
-    </ul>
-    <h2>How courses were checked</h2>
-    <p>Course codes pulled from chat are messy ("cs300", "comp sci 300", "stats 240"). Each one was matched against the real catalog, and codes that don't exist were dropped. That included a few that were really "comp sci" misread as nutrition science. Cross-listed courses such as COMP SCI 240 / MATH 240 were merged into one row.</p>
-    <h2>Reading the derived numbers</h2>
-    <ul>
-      <li><b>Recent GPA</b> uses the last six terms with grades.</li>
-      <li><b>Trend</b> is a weighted least-squares slope of term GPA since fall 2016, in GPA points per year.</li>
-      <li><b>Instructor spread</b> is the gap between the most and least generous instructor with at least 30 graded students in that course.</li>
-      <li><b>Adjusted GPA</b> (used for "Highest GPA" ranking) pulls small courses toward their subject's average, so a 12-student seminar with a 4.0 doesn't outrank a 900-student course with a 3.9.</li>
-    </ul>
-    <h2>Open data</h2>
-    <p>The full SQLite database (<code>data/uwcourses.db</code>) and the scripts that build it are in the <a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">GitHub repo</a>. The write-up of the analysis lives in <code>docs/ANALYSIS.md</code>.</p>
+    <div data-lang="en">
+      <h2 class="serif">Where the numbers come from</h2>
+      <ul>
+        <li><b>Grades</b>: <a href="https://madgrades.com" target="_blank" rel="noopener">MadGrades</a>, which republishes UW–Madison's public grade reports by term, section and instructor. GPA counts letter grades only (A=4, AB=3.5, B=3, BC=2.5, C=2, D=1, F=0); S/U, credit and incomplete grades are left out.</li>
+        <li><b>Catalog and current sections</b>: the public <a href="https://public.enroll.wisc.edu" target="_blank" rel="noopener">Course Search &amp; Enroll</a> API. Credits, breadths, prerequisites and who teaches this term come from there. Seat numbers are a snapshot from the build date, so check Enroll before you plan around them.</li>
+        <li><b>Chat mentions</b>: how often a course code came up in a UW–Madison student group chat. Only aggregate counts were ever exported: no messages, names or ids.</li>
+        <li><b>Reddit</b>: public threads in <a href="https://www.reddit.com/r/UWMadison/" target="_blank" rel="noopener">r/UWMadison</a> that name the course, found by web search. Only the thread title and link are stored. Tone is a rough keyword score (words like "easy" vs "cooked").</li>
+        <li><b>Rate My Professors</b>: not copied. Each instructor has a link that searches RMP at UW–Madison.</li>
+      </ul>
+      <h2 class="serif">How courses were checked</h2>
+      <p>Course codes pulled from chat are messy ("cs300", "comp sci 300", "stats 240"). Each one was matched against the real catalog, and codes that don't exist were dropped, including a few that were really "comp sci" misread as nutrition science. Cross-listed courses such as COMP SCI 240 / MATH 240 were merged into one row. The largest courses of the current term were added even if nobody mentioned them.</p>
+      <h2 class="serif">Reading the derived numbers</h2>
+      <ul>
+        <li><b>Recent GPA</b> uses the last six terms with grades.</li>
+        <li><b>Trend</b> is a weighted least-squares slope of term GPA since fall 2016, in GPA points per year.</li>
+        <li><b>Instructor spread</b> is the gap between the most and least generous instructor with at least 30 graded students in that course.</li>
+        <li><b>Adjusted GPA</b> (used for "Highest GPA") pulls small courses toward their subject's average, so a 12-student seminar with a 4.0 doesn't outrank a 900-student course with a 3.9.</li>
+      </ul>
+      <h2 class="serif">Open data</h2>
+      <p>The full SQLite database (<code>data/uwcourses.db</code>) and the scripts that build it are in the <a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">GitHub repo</a>. The analysis write-up lives in <code>docs/ANALYSIS.md</code>.</p>
+    </div>
+    <div data-lang="zh">
+      <h2 class="serif">数据从哪来</h2>
+      <ul>
+        <li><b>成绩</b>：来自 <a href="https://madgrades.com" target="_blank" rel="noopener">MadGrades</a>，它按学期、section 和老师公开 UW–Madison 的官方成绩报告。GPA 只算字母成绩（A=4、AB=3.5、B=3、BC=2.5、C=2、D=1、F=0），S/U、学分制和 Incomplete 不计入。</li>
+        <li><b>课程目录和本学期开课</b>：来自公开的 <a href="https://public.enroll.wisc.edu" target="_blank" rel="noopener">Course Search &amp; Enroll</a> 接口，学分、breadth、先修要求和本学期老师都从这里拿。座位数是建站当天的快照，选课前请以选课系统为准。</li>
+        <li><b>群聊提及</b>：某个课号在一个 UW–Madison 学生群里出现的次数。导出的只有汇总计数，没有任何消息内容、名字或 ID。</li>
+        <li><b>Reddit</b>：<a href="https://www.reddit.com/r/UWMadison/" target="_blank" rel="noopener">r/UWMadison</a> 里提到这门课的公开帖子，通过网页搜索找到。只保存帖子标题和链接。语气是粗略的关键词打分（比如 "easy" 和 "cooked"）。</li>
+        <li><b>Rate My Professors</b>：没有复制任何内容，每位老师旁边只放了一个跳到 RMP 搜索的链接。</li>
+      </ul>
+      <h2 class="serif">课程是怎么核对的</h2>
+      <p>群聊里的课号写法很乱（"cs300"、"comp sci 300"、"stats 240"）。每个课号都和真实的选课目录比对过，不存在的直接删掉，其中有几个其实是 "comp sci" 被误认成了营养学。交叉挂牌的课（比如 COMP SCI 240 / MATH 240）合并成一行。本学期人数最多的大课即使没人提过也一并收录。</p>
+      <h2 class="serif">衍生指标怎么看</h2>
+      <ul>
+        <li><b>近 6 学期 GPA</b>：只算最近六个有成绩的学期。</li>
+        <li><b>趋势</b>：2016 年秋以来每学期 GPA 的加权最小二乘斜率，单位是每年多少绩点。</li>
+        <li><b>老师差距</b>：同一门课里给分最松和最严的两位老师之间的 GPA 差（每位至少 30 个学生）。</li>
+        <li><b>调整后 GPA</b>（"GPA 最高"排序用的就是它）：把小班课往本学科平均值拉，免得 12 人的研讨课靠运气拿 4.0 排到 900 人、3.9 的大课前面。</li>
+      </ul>
+      <h2 class="serif">开放数据</h2>
+      <p>完整的 SQLite 数据库（<code>data/uwcourses.db</code>）和生成脚本都在 <a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">GitHub 仓库</a>里，分析报告在 <code>docs/ANALYSIS.md</code>。</p>
+    </div>
   </section>
 </main>
 
 <footer><div class="wrap" id="foot"></div></footer>
 
+<div class="plan" id="plan" hidden></div>
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle"></aside>
 <dialog id="cmp"></dialog>
@@ -286,30 +372,190 @@ footer{color:var(--ink-3);font-size:12.5px;padding:24px 0 40px;border-top:1px so
 "use strict";
 const D = window.UWCL, CAT = window.UWCL_CATALOG || [], C = D.courses, INS = D.insights || {};
 const BY = Object.fromEntries(C.map(c => [c.id, c]));
-const G = ["A","AB","B","BC","C","D","F"], GV = ["--gA","--gAB","--gB","--gBC","--gC","--gD","--gF"];
-const PAGE = 60;
+const G = ["A","AB","B","BC","C","D","F"], GV = ["--gA","--gAB","--gB","--gBC","--gC","--gD","--gF"], LIGHT = new Set([2, 3, 4]);
+const PAGE = 60, TERM = +D.meta.term;
+const FIRST = Math.min(...C.filter(c => c.terms.length).map(c => c.terms[0][0]));
 const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const f2 = v => v == null ? "–" : v.toFixed(2);
 const pct = v => v == null ? "–" : Math.round(v * 100) + "%";
-const TERM = +D.meta.term;
-function termLabel(t){ const y = 2000 + Math.floor(t / 10) % 100; return ({2:"Fall " + (y - 1), 4:"Spring " + y, 6:"Summer " + y})[t % 10] || t; }
-function termShort(t){ const y = 2000 + Math.floor(t / 10) % 100; return ({2:"F" + String(y - 1).slice(2), 4:"S" + String(y).slice(2), 6:"Su" + String(y).slice(2)})[t % 10] || t; }
-function termYear(t){ const y = 2000 + Math.floor(t / 10) % 100; return ({2:y - 1 + .7, 4:y + .1, 6:y + .45})[t % 10] || y; }
+const fmt = n => (n ?? 0).toLocaleString();
 const store = {
   get(k, d){ try { const v = localStorage.getItem("uwcl." + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v){ try { localStorage.setItem("uwcl." + k, JSON.stringify(v)); } catch {} }
 };
-let saved = new Set(store.get("saved", []));
+
+/* ── i18n ─────────────────────────────────────────────── */
+let LANG = store.get("lang", null) || ((navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "en");
+const BRZ = {"Humanities":"人文","Literature":"文学","Social Science":"社会科学","Natural Science":"自然科学","Biological Science":"生物科学","Physical Science":"物理科学","Ethnic Studies":"族裔研究"};
+const TX = {
+  en: {
+    tagline: "Grade history, instructor-by-instructor GPA, this term's sections and what students say, for UW–Madison courses.",
+    langTip: "切换到中文", langBtn: "中文", themeTip: "Switch light or dark theme",
+    tabCourses: "Courses", tabInsights: "Insights", tabAbout: "About the data",
+    searchPh: "Course, title or instructor, e.g. cs 577, calculus, Renault", sortBy: "Sort by",
+    s_m: "Most discussed", s_gpa: "Highest GPA", s_gpaL: "Lowest GPA", s_pa: "Most A's", s_tr: "Grades rising", s_tl: "Grades falling",
+    s_sp: "Instructor matters most", s_rd: "Most Reddit threads", s_en: "Largest this term", s_code: "Course number",
+    subject: "Subject", level: "Course level", breadth: "Breadth", minGpa: "Minimum GPA",
+    allSubj: "All subjects", anyLvl: "Any level", anyBr: "Any breadth", anyGpa: "Any GPA", savedOnly: "Saved", clear: "Clear filters",
+    offered: t => "Offered " + t, esOpt: "Ethnic Studies", geOpt: "Comm A/B or QR",
+    lens_: "All courses", lens_easy: "High GPA, big class", lens_intro: "Big intro courses", lens_instr: "Instructor matters",
+    lens_harder: "Getting harder", lens_easier: "Getting easier", lens_open: "Open seats now", lens_reddit: "Busy on Reddit",
+    lt_easy: "Adjusted GPA 3.7+ with 500+ graded students", lt_intro: "Below 300-level with 250+ students this term",
+    lt_instr: "Instructors differ by 0.6+ GPA points", lt_harder: "GPA falling 0.03+ per year since 2016", lt_easier: "GPA rising 0.03+ per year since 2016",
+    lt_open: "At least one enrollment option open (snapshot)", lt_reddit: "8+ r/UWMadison threads",
+    count: (n, all) => n + " of " + all + " courses", more: "Show more",
+    keys: "<kbd>/</kbd> search · <kbd>j</kbd> <kbd>k</kbd> move · <kbd>Enter</kbd> open · <kbd>s</kbd> save",
+    colCourse: "Course", colCr: "Cr", colGpa: "GPA · grades", colA: "A's", colTr: "Trend", colTalk: "Talk",
+    open: "Open", wait: "Waitlist", full: "Full", notTerm: "Not this term", teachingNow: t => t + ": ",
+    chat: n => n + " chat", reddit: n => n + " Reddit",
+    empty: "No tracked course matches. Try fewer filters, or check the catalog matches below.",
+    catTitle: t => "Also in the " + t + " catalog (no grade data here yet)", enroll: "Enroll",
+    bandAll: (n, g, f, gpa) => "<b>All " + n + " courses</b> · " + g + " letter grades since " + f + " · average GPA " + gpa,
+    bandCourse: (code, title, gpa, n) => "<b>" + code + "</b> " + title + " · GPA " + gpa + " · " + n + " grades",
+    bandNoData: code => "<b>" + code + "</b> · no letter-grade history",
+    bandR: "Ticks mark the all-course split",
+    save: "☆ Save", saved: "★ Saved", mg: "MadGrades", cse: "Course Search & Enroll", guide: "Guide", searchReddit: "Search Reddit",
+    copy: "Copy link", copied: "Copied", prev: "Previous course", next: "Next course", close: "Close",
+    credits: c => c + " credits", usually: s => "Usually " + s.toLowerCase(), alsoAs: "also", req: "Requisites:",
+    kGpa: "GPA, all terms", kRecent: "Last 6 terms", kA: "Got an A", kDF: "Got a D or F", kNow: t => "Enrolled " + t,
+    snapshot: d => "snapshot " + d,
+    nowLine: (en, lec, open, pk, wait) => (en ? "about " + fmt(en) + " students enrolled, " : "") + lec + " lecture section" + (lec === 1 ? "" : "s") + ", " + open + " of " + pk + " enrollment options open" + (wait ? ", " + wait + " waitlisted" : "") + ".",
+    teaching: "Teaching: ", pastHere: g => "(past GPA here " + g + ")", noHist: "(no grade history in this course)",
+    notOffered: last => "Not offered this term" + (last ? "; last taught " + last : "") + ".",
+    grades: "Grades", studentsRange: (n, a, b) => fmt(n) + " students, " + a + " – " + b,
+    thisCourse: "This course", allTracked: n => "All " + n + " tracked courses",
+    byTerm: "GPA by fall and spring term", since2016: "since 2016", trackedAvg: g => "all-course avg " + g,
+    noGrades: "MadGrades has no letter-grade history for this course.",
+    instructors: "Instructors", spread: s => "spread " + s + " GPA points",
+    instrLegend: t => "Dot size = students taught · outlined = teaching " + t + " · dashed = course average",
+    thName: "Name", thGpa: "GPA", thA: "A's", thN: "Students", thLast: "Last",
+    thin: "Fewer than 30 students is a thin sample, so weigh those GPAs lightly.", showAll: n => "Show all " + n, showFewer: "Show fewer",
+    say: "What students say",
+    sayEnroll: "Added because it is one of the largest courses this term; it never came up in the group chat",
+    sayChat: (m, p, n) => "Mentioned <b>" + m + "</b> time" + (m === 1 ? "" : "s") + " in a UW student group chat" + (p || n ? " (" + p + " positive, " + n + " negative)" : ""),
+    sayReddit: (n, tone) => ". Found <b>" + n + "</b> r/UWMadison thread" + (n === 1 ? "" : "s") + (tone ? ", tone " + tone : "") + ".",
+    tonePos: "mostly positive", toneNeg: "mostly negative", toneMix: "mixed",
+    planSaved: n => "<b>" + n + "</b> saved", planCr: c => "<b>" + c + "</b> credits", planGpa: g => "credit-weighted GPA <b>" + g + "</b>",
+    planBr: b => "breadth: " + b, showSaved: "Show saved", compare: "Compare", clearSaved: "Clear",
+    cmpTitle: "Compare saved courses", cmpTrend: "GPA by fall and spring term", cmpCap: n => "Showing the first " + n + " saved courses in the chart.",
+    rTitle: "Title", rCr: "Credits", rGpa: "GPA", rRecent: "recent", rA: "A's", rDF: "D or F", rTr: "Trend", rSp: "Instructor spread", rBr: "Breadth", rTalk: "Talk",
+    st_courses: (a, b) => a + " from student chat, " + b + " large courses added", st_grades: "letter grades analysed", st_instr: "instructors",
+    st_reddit: "r/UWMadison threads", st_now: t => "offered " + t, st_rej: "chat codes rejected as not real courses",
+    p1: "Popular doesn't mean easy", p1l: r => "Each dot is a course. How much students talk about a course says almost nothing about how it grades (" + r + "). The busiest courses are mostly required intro sequences, and those land on both sides of the average (dashed line). Click a dot to open the course.",
+    xMent: "Chat mentions (log scale)", yGpa: "Course GPA",
+    p2: "The instructor can matter more than the course", p2l: "Same course number, same catalog description, and a gap of more than a full letter grade between instructors. Check who is teaching before you judge a course by its average.",
+    most: "Most generous instructor", least: "Least generous instructor",
+    p3: "Do peer signals track grades?", p3l: "Spearman rank correlation with a permutation test. Reddit is the one peer signal that tracks grades: courses whose threads sound upbeat really do grade higher. Chat volume and chat sentiment do not. Both tone scores come from keyword matching, so treat them as rough.",
+    c1: "Chat mentions vs GPA", c2: "Chat sentiment vs GPA", c3: "Reddit tone vs GPA", c4: "Chat vs Reddit volume", c5: "Course number vs GPA",
+    thSignal: "Signal", thResult: "Result", thReading: "Reading",
+    none: "no relationship", weak: "weak", moderate: "moderate", strong: "strong", positive: " positive", negative: " negative", ns: ", not significant", nodata: "not enough data",
+    p4: "GPA by course level", p4l: "The 200s and 300s grade hardest. That is where the gateway math, chemistry and economics courses sit. Grad-level courses grade easiest.",
+    wStudents: "Weighted by students", medCourse: "Median course", lvlTip: (l, g, m, n) => "<b>" + l + "</b>: weighted GPA " + g + ", median course " + m + " (" + n + " courses)",
+    p5: "Grades over time, all tracked courses", p5l: "GPA across every tracked course by fall and spring term, weighted by students. Grades have crept up by roughly a third of a letter since 2006, and the spring 2020 spike is the pandemic term, when many students switched courses to pass/fail. Summer terms are left out.",
+    pandemic: "Spring 2020: pandemic grading",
+    p6: "Grading got easier", p6l: "Steepest upward GPA slope since fall 2016.", p7: "Grading got harder", p7l: "Steepest downward slope over the same window.",
+    p8: "Popular and tough", p8l: "Courses mentioned at least 8 times, lowest GPA first.",
+    p9: "High GPA, rarely discussed", p9l: "At least 300 graded students and three or fewer chat mentions, ranked by adjusted GPA.",
+    p10: "By subject", p10l: "Subjects with at least three tracked courses, most discussed first. Click one to filter the course list.",
+    thCourse: "Course", thPerYr: "Per year", thSubj: "Subject", thCourses: "Courses", thMent: "Mentions",
+    foot: d => "Built " + d + " from MadGrades, UW Course Search &amp; Enroll, r/UWMadison and anonymized chat counts. Not affiliated with UW–Madison.",
+    src: "Source and data on GitHub",
+  },
+  zh: {
+    tagline: "UW–Madison 课程的历年给分、每位老师的 GPA、本学期开课情况和同学评价，一页看全。",
+    langTip: "Switch to English", langBtn: "EN", themeTip: "切换深浅色",
+    tabCourses: "课程", tabInsights: "数据洞察", tabAbout: "数据说明",
+    searchPh: "课号、课名或老师，例如 cs 577、calculus、Renault", sortBy: "排序",
+    s_m: "讨论最多", s_gpa: "GPA 最高", s_gpaL: "GPA 最低", s_pa: "拿 A 比例最高", s_tr: "给分变松", s_tl: "给分变严",
+    s_sp: "最看老师", s_rd: "Reddit 帖最多", s_en: "本学期人数最多", s_code: "按课号",
+    subject: "学科", level: "课程级别", breadth: "Breadth", minGpa: "最低 GPA",
+    allSubj: "全部学科", anyLvl: "全部级别", anyBr: "全部 breadth", anyGpa: "不限 GPA", savedOnly: "已收藏", clear: "清除筛选",
+    offered: t => t + " 开课", esOpt: "族裔研究 (Ethnic Studies)", geOpt: "Comm A/B 或 QR",
+    lens_: "全部课程", lens_easy: "高分大课", lens_intro: "大型入门课", lens_instr: "看老师的课",
+    lens_harder: "越来越难", lens_easier: "越来越松", lens_open: "现在有空位", lens_reddit: "Reddit 热议",
+    lt_easy: "调整后 GPA ≥ 3.7，累计 500 人以上", lt_intro: "300 级以下、本学期 250 人以上", lt_instr: "不同老师给分相差 0.6 以上",
+    lt_harder: "2016 年以来 GPA 每年降 0.03 以上", lt_easier: "2016 年以来 GPA 每年升 0.03 以上", lt_open: "至少一个选课组合开放（快照）", lt_reddit: "r/UWMadison 帖子 8 个以上",
+    count: (n, all) => "共 " + all + " 门，显示 " + n + " 门", more: "显示更多",
+    keys: "<kbd>/</kbd> 搜索 · <kbd>j</kbd> <kbd>k</kbd> 上下移动 · <kbd>Enter</kbd> 打开 · <kbd>s</kbd> 收藏",
+    colCourse: "课程", colCr: "学分", colGpa: "GPA · 分布", colA: "A 比例", colTr: "趋势", colTalk: "讨论",
+    open: "有空位", wait: "候补", full: "已满", notTerm: "本学期不开", teachingNow: t => t + "：",
+    chat: n => "群聊 " + n, reddit: n => "Reddit " + n,
+    empty: "没有符合条件的课。试着减少筛选条件，或者看看下面目录里的匹配。",
+    catTitle: t => t + " 目录里的其他课（暂无成绩数据）", enroll: "选课系统",
+    bandAll: (n, g, f, gpa) => "<b>全部 " + n + " 门课</b> · " + f + " 以来 " + g + " 个字母成绩 · 平均 GPA " + gpa,
+    bandCourse: (code, title, gpa, n) => "<b>" + code + "</b> " + title + " · GPA " + gpa + " · " + n + " 个成绩",
+    bandNoData: code => "<b>" + code + "</b> · 没有字母成绩记录",
+    bandR: "刻度线 = 全部课程的分布",
+    save: "☆ 收藏", saved: "★ 已收藏", mg: "MadGrades", cse: "选课系统", guide: "课程目录", searchReddit: "搜 Reddit",
+    copy: "复制链接", copied: "已复制", prev: "上一门", next: "下一门", close: "关闭",
+    credits: c => c + " 学分", usually: s => "通常开课：" + s.toLowerCase(), alsoAs: "同", req: "先修要求：",
+    kGpa: "历年 GPA", kRecent: "近 6 学期", kA: "拿 A", kDF: "拿 D 或 F", kNow: t => t + " 人数",
+    snapshot: d => d + " 快照",
+    nowLine: (en, lec, open, pk, wait) => (en ? "约 " + fmt(en) + " 人已注册，" : "") + lec + " 个 lecture，" + pk + " 个选课组合中 " + open + " 个开放" + (wait ? "，" + wait + " 个候补" : "") + "。",
+    teaching: "授课：", pastHere: g => "（本课历史 GPA " + g + "）", noHist: "（本课无历史成绩）",
+    notOffered: last => "本学期不开" + (last ? "，上次开课是 " + last : "") + "。",
+    grades: "成绩", studentsRange: (n, a, b) => fmt(n) + " 名学生，" + a + " – " + b,
+    thisCourse: "本课", allTracked: n => "全部 " + n + " 门课",
+    byTerm: "每学期 GPA（秋季和春季）", since2016: "自 2016 年", trackedAvg: g => "全部课程平均 " + g,
+    noGrades: "MadGrades 没有这门课的字母成绩记录。",
+    instructors: "老师", spread: s => "最大差距 " + s + " 绩点",
+    instrLegend: t => "点越大学生越多 · 描边 = " + t + " 在教 · 虚线 = 课程平均",
+    thName: "姓名", thGpa: "GPA", thA: "A 比例", thN: "学生数", thLast: "最近",
+    thin: "少于 30 个学生的样本太小，GPA 仅供参考。", showAll: n => "显示全部 " + n + " 位", showFewer: "收起",
+    say: "同学怎么说",
+    sayEnroll: "这门课是本学期人数最多的课之一，所以收录进来；群聊里没人提过",
+    sayChat: (m, p, n) => "在 UW 学生群里被提到 <b>" + m + "</b> 次" + (p || n ? "（正面 " + p + "，负面 " + n + "）" : ""),
+    sayReddit: (n, tone) => "。r/UWMadison 上找到 <b>" + n + "</b> 个帖子" + (tone ? "，整体" + tone : "") + "。",
+    tonePos: "偏正面", toneNeg: "偏负面", toneMix: "褒贬不一",
+    planSaved: n => "已收藏 <b>" + n + "</b> 门", planCr: c => "共 <b>" + c + "</b> 学分", planGpa: g => "按学分加权 GPA <b>" + g + "</b>",
+    planBr: b => "覆盖：" + b, showSaved: "只看收藏", compare: "对比", clearSaved: "清空",
+    cmpTitle: "对比收藏的课程", cmpTrend: "每学期 GPA（秋季和春季）", cmpCap: n => "图里只画前 " + n + " 门收藏。",
+    rTitle: "课名", rCr: "学分", rGpa: "GPA", rRecent: "近期", rA: "A 比例", rDF: "D 或 F", rTr: "趋势", rSp: "老师差距", rBr: "Breadth", rTalk: "讨论",
+    st_courses: (a, b) => "群聊来源 " + a + " 门，另补 " + b + " 门大课", st_grades: "个字母成绩", st_instr: "位老师",
+    st_reddit: "个 r/UWMadison 帖子", st_now: t => t + " 开课", st_rej: "个群聊课号被判定为不存在",
+    p1: "热门不等于好过", p1l: r => "每个点是一门课。群聊里讨论得多不多，几乎说明不了给分松紧（" + r + "）。讨论最多的大多是必修入门课，平均线（虚线）上下都有。点一个点可以打开那门课。",
+    xMent: "群聊提及次数（对数刻度）", yGpa: "课程 GPA",
+    p2: "老师比课本身更关键", p2l: "同一个课号、同一份课程描述，不同老师之间能差出一个字母等级以上。别只看课程平均分，先看这学期谁教。",
+    most: "给分最松的老师", least: "给分最严的老师",
+    p3: "同学的评价靠谱吗？", p3l: "Spearman 秩相关加置换检验。唯一和给分对得上的是 Reddit：帖子语气越正面，那门课的 GPA 确实越高。群聊的热度和情绪都对不上。两种语气分数都来自关键词匹配，只能粗看。",
+    c1: "群聊提及 vs GPA", c2: "群聊情绪 vs GPA", c3: "Reddit 语气 vs GPA", c4: "群聊热度 vs Reddit 热度", c5: "课号级别 vs GPA",
+    thSignal: "信号", thResult: "结果", thReading: "解读",
+    none: "无关", weak: "弱", moderate: "中等", strong: "强", positive: "正相关", negative: "负相关", ns: "，不显著", nodata: "数据不足",
+    p4: "不同级别的课给分", p4l: "200 和 300 级给分最严，数学、化学、经济的门槛课都在这一段；研究生级别的课最松。",
+    wStudents: "按学生数加权", medCourse: "中位数课程", lvlTip: (l, g, m, n) => "<b>" + l + "</b>：加权 GPA " + g + "，中位数课程 " + m + "（" + n + " 门课）",
+    p5: "历年给分变化（全部课程）", p5l: "所有课程按秋、春学期、以学生数加权的 GPA。2006 年以来整体涨了大约三分之一个字母等级；2020 年春季的尖峰是疫情学期，很多人把课改成了 pass/fail。暑期学期不计。",
+    pandemic: "2020 春：疫情评分",
+    p6: "给分变松", p6l: "2016 年秋以来 GPA 上升最快的课。", p7: "给分变严", p7l: "同一时间段 GPA 下降最快的课。",
+    p8: "热门但难", p8l: "群聊提到 8 次以上、GPA 最低的课。",
+    p9: "高分但很少有人提", p9l: "累计 300 人以上、群聊提到不超过 3 次，按调整后 GPA 排序。",
+    p10: "按学科", p10l: "至少有 3 门课的学科，按讨论量排序。点一行可以筛选课程列表。",
+    thCourse: "课程", thPerYr: "每年", thSubj: "学科", thCourses: "课程数", thMent: "提及",
+    foot: d => d + " 构建，数据来自 MadGrades、UW Course Search &amp; Enroll、r/UWMadison 和匿名化的群聊计数。与 UW–Madison 官方无关。",
+    src: "GitHub 上的源码和数据",
+  }
+};
+function t(k, ...a){ const v = TX[LANG][k] ?? TX.en[k]; return typeof v === "function" ? v(...a) : (v ?? k); }
+function termLabel(tc){ const y = 2000 + Math.floor(tc / 10) % 100, s = tc % 10;
+  if (LANG === "zh") return ({2:(y - 1) + " 秋", 4:y + " 春", 6:y + " 夏"})[s] || tc;
+  return ({2:"Fall " + (y - 1), 4:"Spring " + y, 6:"Summer " + y})[s] || tc; }
+function termShort(tc){ const y = 2000 + Math.floor(tc / 10) % 100; return ({2:"F" + String(y - 1).slice(2), 4:"S" + String(y).slice(2), 6:"Su" + String(y).slice(2)})[tc % 10] || tc; }
+function termYear(tc){ const y = 2000 + Math.floor(tc / 10) % 100; return ({2:y - 1 + .7, 4:y + .1, 6:y + .45})[tc % 10] || y; }
+const brName = b => LANG === "zh" ? (BRZ[b] || b) : b;
+const LVZ = {"Elementary":"初级","Intermediate":"中级","Advanced":"高级"};
+const lvlName = l => LANG === "zh" && l ? l.split(", ").map(x => LVZ[x] || x).join("、") : l;
+
+/* ── Links ────────────────────────────────────────────── */
 const mgUrl = c => c.mg ? "https://madgrades.com/courses/" + c.mg : "https://madgrades.com/search?query=" + encodeURIComponent(c.code);
 const enrollUrl = code => "https://public.enroll.wisc.edu/search?term=" + TERM + "&keywords=" + encodeURIComponent(code);
 const guideUrl = code => "https://guide.wisc.edu/search/?P=" + encodeURIComponent(code);
 const rmpUrl = n => "https://www.ratemyprofessors.com/search/professors/18418?q=" + encodeURIComponent(n);
 const redditUrl = c => "https://www.reddit.com/r/UWMadison/search/?q=" + encodeURIComponent('"' + c.code + '"');
 
-/* Theme */
+/* ── Theme ────────────────────────────────────────────── */
 (function(){
-  const t = store.get("theme", null); if (t) document.documentElement.dataset.theme = t;
+  const th = store.get("theme", null); if (th) document.documentElement.dataset.theme = th;
   $("#themeBtn").onclick = () => {
     const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     const nx = cur === "dark" ? "light" : "dark";
@@ -317,54 +563,70 @@ const redditUrl = c => "https://www.reddit.com/r/UWMadison/search/?q=" + encodeU
   };
 })();
 
-/* Tooltip */
+/* ── Tooltip ──────────────────────────────────────────── */
 const tip = $("#tip");
-function showTip(e, html){ tip.innerHTML = html; tip.classList.add("on"); moveTip(e); }
 function moveTip(e){ const w = tip.offsetWidth, h = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14;
   if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + h > innerHeight - 8) y = e.clientY - h - 14; tip.style.left = x + "px"; tip.style.top = y + "px"; }
 function hideTip(){ tip.classList.remove("on"); }
-function bindTips(root){
-  root.querySelectorAll("[data-tip]").forEach(el => {
-    el.addEventListener("pointerenter", e => showTip(e, el.dataset.tip));
-    el.addEventListener("pointermove", moveTip);
-    el.addEventListener("pointerleave", hideTip);
-  });
-}
+document.addEventListener("pointerover", e => { const el = e.target.closest("[data-tip]"); if (el){ tip.innerHTML = el.dataset.tip; tip.classList.add("on"); moveTip(e); } });
+document.addEventListener("pointermove", e => { if (tip.classList.contains("on")) moveTip(e); });
+document.addEventListener("pointerout", e => { const el = e.target.closest("[data-tip]"); if (el && !el.contains(e.relatedTarget)) hideTip(); });
 
-/* Grade strip */
+/* ── Grade strip ──────────────────────────────────────── */
 function strip(dist, h){
-  if (!dist) return '<div class="strip" style="height:' + (h || 7) + 'px"></div>';
+  if (!dist) return `<div class="strip" style="height:${h || 10}px"></div>`;
   const tot = dist.reduce((a, b) => a + b, 0) || 1;
-  return '<div class="strip" style="height:' + (h || 7) + 'px" data-tip="' + esc(G.map((g, i) => g + " " + (dist[i] / tot * 100).toFixed(1) + "%").join(" · ")) + '">' +
-    dist.map((v, i) => v ? '<i style="width:' + (v / tot * 100) + '%;background:var(' + GV[i] + ')"></i>' : "").join("") + "</div>";
+  const tipTxt = G.map((g, i) => g + " " + (dist[i] / tot * 100).toFixed(1) + "%").join(" · ");
+  return `<div class="strip" style="height:${h || 10}px" data-tip="${esc(tipTxt)}">` +
+    dist.map((v, i) => v ? `<i style="width:${v / tot * 100}%;background:var(${GV[i]})"></i>` : "").join("") + "</div>";
 }
 
-/* Header scale */
-(function(){
-  const d = D.meta.campusDist, tot = d.reduce((a, b) => a + b, 0);
-  const light = new Set([2, 3, 4]);
-  $("#scale").innerHTML = '<div class="scale-row">' + d.map((v, i) => {
-    const p = v / tot * 100;
-    return '<div style="flex:' + v + ';background:var(' + GV[i] + ');color:' + (light.has(i) ? "var(--ink)" : "#fff") + '" data-tip="' + G[i] + ": " + p.toFixed(1) + '% of letter grades">' + (p > 4 ? G[i] + '<span class="p">&nbsp;' + Math.round(p) + "%</span>" : p > 1.5 ? G[i] : "") + "</div>";
-  }).join("") + '</div><div class="scale-cap"><span>Letter grades across the ' + C.length + " courses here, " + tot.toLocaleString() + ' grades since ' + termLabel(Math.min(...C.filter(c => c.terms.length).map(c => c.terms[0][0]))) + '. Average GPA ' + (INS.campus_gpa ? INS.campus_gpa.toFixed(2) : "–") + '.</span><span>UW grades on A, AB, B, BC, C, D, F</span></div>';
-  bindTips($("#scale"));
-})();
+/* ── Live band ────────────────────────────────────────── */
+$("#bandRow").innerHTML = G.map((g, i) => `<div class="seg" style="background:var(${GV[i]});color:${LIGHT.has(i) ? "var(--ink)" : "#fff"}"><span class="g"></span><span class="p"></span></div>`).join("");
+$("#bandTicks").innerHTML = G.slice(0, 6).map(() => "<i></i>").join("");
+const SEGS = $$("#bandRow .seg"), TICKS = $$("#bandTicks i");
+const CD = D.meta.campusDist, CT = CD.reduce((a, b) => a + b, 0);
+let bandCourse;
+function setBand(c){
+  if (c === bandCourse) return;
+  bandCourse = c;
+  const d = c && c.dist ? c.dist : CD, tot = d.reduce((a, b) => a + b, 0) || 1;
+  SEGS.forEach((el, i) => {
+    const p = d[i] / tot * 100;
+    el.style.flexGrow = Math.max(d[i] / tot * 1000, .001);
+    el.querySelector(".g").textContent = p >= 2.2 ? G[i] : "";
+    el.querySelector(".p").textContent = p >= 7 ? " " + Math.round(p) + "%" : "";
+    el.dataset.tip = `<b>${G[i]}</b>: ${p.toFixed(1)}%` + (c && c.dist ? ` · ${t("allTracked", C.length)} ${(CD[i] / CT * 100).toFixed(1)}%` : "");
+  });
+  let acc = 0;
+  TICKS.forEach((el, i) => { acc += CD[i] / CT; el.style.left = (acc * 100) + "%"; el.style.opacity = c && c.dist ? .55 : 0; });
+  $("#bandL").innerHTML = !c ? t("bandAll", C.length, fmt(CT), termLabel(FIRST), f2(INS.campus_gpa))
+    : c.dist ? t("bandCourse", esc(c.code), esc(c.t), f2(c.gpa), fmt(c.n)) : t("bandNoData", esc(c.code));
+  $("#bandR").textContent = c && c.dist ? t("bandR") : "UW: A · AB · B · BC · C · D · F";
+}
 
-/* Filters */
+/* ── Filters, lenses, list ────────────────────────────── */
 const subjects = [...new Set(C.map(c => c.sa))].sort();
-$("#fSubj").insertAdjacentHTML("beforeend", subjects.map(s => '<option>' + esc(s) + "</option>").join(""));
 const breadths = [...new Set(C.flatMap(c => c.br))].sort();
-$("#fBr").insertAdjacentHTML("beforeend", breadths.map(s => '<option>' + esc(s) + "</option>").concat(['<option value="__es">Ethnic Studies</option>', '<option value="__ge">Comm A/B or QR</option>']).join(""));
-$("#fNowLbl").textContent = "Offered " + termLabel(TERM);
-
-let shown = PAGE;
-const st = { q:"", sort:"m", subj:"", lvl:"", br:"", gpa:"", now:false, sv:false };
+const LENSES = [
+  ["", null, null],
+  ["easy", c => c.gs != null && c.gs >= 3.7 && c.n >= 500, "gpa"],
+  ["intro", c => c.num < 300 && (c.en || 0) >= 250, "en"],
+  ["instr", c => c.sp != null && c.sp >= .6, "sp"],
+  ["harder", c => c.tr != null && c.tr <= -.03, "tl"],
+  ["easier", c => c.tr != null && c.tr >= .03, "tr"],
+  ["open", c => !!(c.now && c.now.open > 0), null],
+  ["reddit", c => c.rdn >= 8, "rd"],
+];
+const LENS_N = Object.fromEntries(LENSES.map(([k, f]) => [k, f ? C.filter(f).length : C.length]));
+let shown = PAGE, lastRows = [];
+const st = { q:"", sort:"m", subj:"", lvl:"", br:"", gpa:"", now:false, sv:false, lens:"" };
 function readFilters(){
   st.q = $("#q").value.trim().toLowerCase(); st.sort = $("#sort").value; st.subj = $("#fSubj").value; st.lvl = $("#fLvl").value;
   st.br = $("#fBr").value; st.gpa = $("#fGpa").value; st.now = $("#fNow").checked; st.sv = $("#fSaved").checked;
 }
 function norm(s){ return s.toLowerCase().replace(/[^a-z0-9]/g, ""); }
-const SHORT = {"cs":"compsci","compsci":"compsci","stats":"stat","econ":"econ","ece":"ece","polisci":"polisci","psych":"psych","bio":"biology","nutrisci":"nutrsci"};
+const SHORT = {"cs":"compsci","compsci":"compsci","stats":"stat","ece":"ece","polisci":"polisci","psych":"psych","bio":"biology","nutrisci":"nutrsci","ee":"ece","me":"me"};
 function qMatch(c, q){
   if (!q) return true;
   const nq = norm(q), expanded = nq.replace(/^([a-z]+)/, m => SHORT[m] || m);
@@ -374,94 +636,155 @@ function qMatch(c, q){
   if (/^[a-z&\s]+\d{2,3}$/.test(q)) return false;  // looks like a course code: code match only
   return q.split(/\s+/).every(w => hay.includes(w));
 }
+const nz = (v, d) => v == null ? d : v;
+const SORTS = {
+  m: (a, b) => b.m - a.m || b.rdn - a.rdn || nz(b.en, 0) - nz(a.en, 0),
+  gpa: (a, b) => nz(b.gs, -1) - nz(a.gs, -1), gpaL: (a, b) => nz(a.gs, 9) - nz(b.gs, 9),
+  pa: (a, b) => nz(b.pa, -1) - nz(a.pa, -1),
+  tr: (a, b) => nz(b.tr, -9) - nz(a.tr, -9), tl: (a, b) => nz(a.tr, 9) - nz(b.tr, 9),
+  sp: (a, b) => nz(b.sp, -1) - nz(a.sp, -1), rd: (a, b) => b.rdn - a.rdn || b.m - a.m,
+  en: (a, b) => nz(b.en, -1) - nz(a.en, -1), code: (a, b) => a.code.localeCompare(b.code, "en", {numeric:true}),
+};
 function filtered(){
-  const out = C.filter(c => qMatch(c, st.q)
+  const lens = (LENSES.find(l => l[0] === st.lens) || LENSES[0])[1];
+  return C.filter(c => qMatch(c, st.q)
+    && (!lens || lens(c))
     && (!st.subj || c.sa === st.subj)
     && (!st.lvl || (st.lvl === "5" ? c.num >= 500 : Math.floor(c.num / 100) == st.lvl))
     && (!st.br || (st.br === "__es" ? c.es : st.br === "__ge" ? !!c.ge : c.br.includes(st.br)))
     && (!st.gpa || (c.gpa != null && c.gpa >= +st.gpa))
     && (!st.now || c.now)
-    && (!st.sv || saved.has(c.id)));
-  const nz = (v, d) => v == null ? d : v;
-  const cmp = {
-    m: (a, b) => b.m - a.m || b.rdn - a.rdn || nz(b.en, 0) - nz(a.en, 0),
-    gpa: (a, b) => nz(b.gs, -1) - nz(a.gs, -1),
-    gpaL: (a, b) => nz(a.gs, 9) - nz(b.gs, 9),
-    pa: (a, b) => nz(b.pa, -1) - nz(a.pa, -1),
-    tr: (a, b) => nz(b.tr, -9) - nz(a.tr, -9),
-    sp: (a, b) => nz(b.sp, -1) - nz(a.sp, -1),
-    rd: (a, b) => b.rdn - a.rdn || b.m - a.m,
-    en: (a, b) => nz(b.en, -1) - nz(a.en, -1),
-    code: (a, b) => a.code.localeCompare(b.code, "en", {numeric:true}),
-  }[st.sort];
-  return out.sort(cmp);
+    && (!st.sv || saved.has(c.id))).sort(SORTS[st.sort] || SORTS.m);
 }
 function spark(terms){
-  const t = terms.filter(x => x[2] >= 10 && x[0] % 10 !== 6).slice(-12);
-  if (t.length < 3) return '<span class="muted small">–</span>';
-  const ys = t.map(x => x[1]), lo = Math.min(...ys) - .05, hi = Math.max(...ys) + .05, W = 60, H = 18;
-  const pts = t.map((x, i) => (i / (t.length - 1) * W).toFixed(1) + "," + (H - (x[1] - lo) / (hi - lo) * H).toFixed(1)).join(" ");
-  return '<svg width="' + W + '" height="' + H + '" aria-hidden="true" style="overflow:visible"><polyline points="' + pts + '" fill="none" stroke="var(--series)" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  const tt = terms.filter(x => x[2] >= 10 && x[0] % 10 !== 6).slice(-12);
+  if (tt.length < 3) return '<span class="muted small">–</span>';
+  const ys = tt.map(x => x[1]), lo = Math.min(...ys) - .05, hi = Math.max(...ys) + .05, W = 60, H = 18;
+  const pts = tt.map((x, i) => (i / (tt.length - 1) * W).toFixed(1) + "," + (H - (x[1] - lo) / (hi - lo) * H).toFixed(1)).join(" ");
+  return `<svg width="${W}" height="${H}" aria-hidden="true" style="overflow:visible"><polyline points="${pts}" fill="none" stroke="var(--series)" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 }
-function trendTxt(v){ if (v == null) return ""; const cls = v > .01 ? "up" : v < -.01 ? "down" : "muted"; return '<span class="' + cls + ' small">' + (v > 0 ? "+" : "") + v.toFixed(2) + "/yr</span>"; }
+function trendTxt(v){ if (v == null) return ""; const cls = v > .01 ? "up" : v < -.01 ? "down" : "muted"; return `<span class="${cls} small">${v > 0 ? "+" : ""}${v.toFixed(2)}${LANG === "zh" ? "/年" : "/yr"}</span>`; }
+function statusOf(c){ return !c.now ? ["off", t("notTerm")] : c.now.open ? ["open", t("open")] : c.now.wait ? ["wait", t("wait")] : ["closed", t("full")]; }
 function nowTxt(c, bare){
-  if (!c.now) return '<span class="status"><span class="dot off"></span>Not this term</span>';
-  const s = c.now.open ? ["open", "Open"] : c.now.wait ? ["wait", "Waitlist"] : ["closed", "Full"];
-  return '<span class="status"><span class="dot ' + s[0] + '"></span>' + s[1] + (c.en && !bare ? '<span class="muted small">· ' + c.en.toLocaleString() + "</span>" : "") + '</span>';
+  const [cls, lbl] = statusOf(c);
+  return `<span class="status"><span class="dot ${cls}"></span>${lbl}${c.now && c.en && !bare ? `<span class="muted small">· ${fmt(c.en)}</span>` : ""}</span>`;
 }
 function talkTxt(c){
-  const parts = [c.m ? c.m + " chat" : "", c.rdn ? c.rdn + " Reddit" : ""].filter(Boolean);
-  return '<div class="talk">' + (parts.join("<br>") || '<span class="muted">–</span>') + "</div>";
+  const parts = [c.m ? t("chat", c.m) : "", c.rdn ? t("reddit", c.rdn) : ""].filter(Boolean);
+  return `<div class="talk">${parts.join("<br>") || '<span class="muted">–</span>'}</div>`;
 }
-const COLS = [["", ""], ["code", "Course"], ["", "Cr"], ["gpa", "GPA · grades"], ["pa", "A's"], ["tr", "Trend"], ["m", "Talk"], ["", termLabel(TERM)]];
+const lastName = n => n.split(/\s+/).slice(-1)[0];
+function whoLine(c){
+  if (!c.now || !c.now.who.length) return "";
+  const w = c.now.who.map(lastName), more = w.length > 3 ? " +" + (w.length - 3) : "";
+  return `<div class="who">${t("teachingNow", termShort(TERM))}${esc(w.slice(0, 3).join(", "))}${more}</div>`;
+}
+function renderLenses(){
+  $("#lenses").innerHTML = LENSES.map(([k]) => `<button class="lens" data-lens="${k}" aria-pressed="${st.lens === k}"${k ? ` title="${esc(t("lt_" + k))}"` : ""}>${esc(t("lens_" + k))} <small>${LENS_N[k]}</small></button>`).join("");
+}
 function render(){
   readFilters();
-  const rows = filtered();
-  $("#cnt").textContent = rows.length + " of " + C.length + " courses";
-  const head = '<div class="row head" role="row">' + COLS.map(([k, l], i) =>
-    '<div role="columnheader" class="' + (i === 2 || i === 4 ? "num" : "") + '">' + (k ? '<button data-sort="' + k + '"' + (st.sort === k ? ' aria-sort="descending"' : "") + ">" + l + "</button>" : esc(l)) + "</div>").join("") + "</div>";
-  $("#list").innerHTML = head + (rows.length ? rows.slice(0, shown).map(c =>
-    '<div class="row" role="row" tabindex="0" data-id="' + c.id + '">' +
-      '<div class="c-star"><button class="star" data-star="' + c.id + '" aria-pressed="' + saved.has(c.id) + '" aria-label="Save ' + esc(c.code) + '">' + (saved.has(c.id) ? "★" : "☆") + "</button></div>" +
-      '<div class="cname"><div><span class="code">' + esc(c.code) + "</span>" + (c.al.length ? ' <span class="alias">= ' + esc(c.al.join(", ")) + "</span>" : "") + '</div><div class="title">' + esc(c.t) + "</div></div>" +
-      '<div class="c-cr num small">' + esc(c.cr || "–") + "</div>" +
-      '<div class="c-gpa gpa"><b>' + f2(c.gpa) + "</b>" + strip(c.dist) + "</div>" +
-      '<div class="c-pa num">' + pct(c.pa) + "</div>" +
-      '<div class="c-tr">' + spark(c.terms) + "<br>" + trendTxt(c.tr) + "</div>" +
-      '<div class="c-talk">' + talkTxt(c) + "</div>" +
-      '<div class="c-now">' + nowTxt(c) + "</div>" +
-      '<div class="c-meta"><span>' + esc(c.cr || "?") + " cr</span><span>A's " + pct(c.pa) + "</span><span>" + c.m + " chat · " + c.rdn + " Reddit</span>" + nowTxt(c) + "</div>" +
-    "</div>").join("") : '<div class="row" style="cursor:default"><div></div><div class="muted">No tracked course matches. Try fewer filters, or see the catalog matches below.</div></div>');
+  const rows = lastRows = filtered();
+  $("#cnt").textContent = t("count", rows.length, C.length);
+  const COLS = [["", ""], ["code", t("colCourse")], ["", t("colCr")], ["gpa", t("colGpa")], ["pa", t("colA")], ["tr", t("colTr")], ["m", t("colTalk")], ["", termLabel(TERM)]];
+  const head = `<div class="row head" role="row">` + COLS.map(([k, l], i) =>
+    `<div role="columnheader" class="${i === 2 || i === 4 ? "num" : ""}">${k ? `<button data-sort="${k}"${st.sort === k ? ' aria-sort="descending"' : ""}>${esc(l)}</button>` : esc(l)}</div>`).join("") + "</div>";
+  $("#list").innerHTML = head + (rows.length ? rows.slice(0, shown).map(c => `
+    <div class="row" role="row" tabindex="0" data-id="${c.id}">
+      <div class="c-star"><button class="star" data-star="${c.id}" aria-pressed="${saved.has(c.id)}" aria-label="${esc(t("save"))} ${esc(c.code)}">${saved.has(c.id) ? "★" : "☆"}</button></div>
+      <div class="cname"><div><span class="code">${esc(c.code)}</span>${c.al.length ? ` <span class="alias">= ${esc(c.al.join(", "))}</span>` : ""}</div><div class="title">${esc(c.t)}</div>${whoLine(c)}</div>
+      <div class="c-cr num small">${esc(c.cr || "–")}</div>
+      <div class="c-gpa gcell"><b>${f2(c.gpa)}</b>${strip(c.dist)}</div>
+      <div class="c-pa num">${pct(c.pa)}</div>
+      <div class="c-tr">${spark(c.terms)}<br>${trendTxt(c.tr)}</div>
+      <div class="c-talk">${talkTxt(c)}</div>
+      <div class="c-now">${nowTxt(c)}</div>
+      <div class="c-meta"><span>${esc(c.cr || "?")} cr</span><span>A ${pct(c.pa)}</span>${trendTxt(c.tr)}<span>${[c.m ? t("chat", c.m) : "", c.rdn ? t("reddit", c.rdn) : ""].filter(Boolean).join(" · ")}</span>${nowTxt(c)}</div>
+    </div>`).join("") : `<div class="empty">${esc(t("empty"))}</div>`);
   $("#moreWrap").hidden = rows.length <= shown;
-  bindTips($("#list"));
-  renderCatalog(rows);
-  $("#cmpBtn").disabled = saved.size < 2;
-  $("#cmpBtn").textContent = "Compare saved (" + saved.size + ")";
+  renderCatalog();
+  renderPlan();
 }
-function renderCatalog(rows){
+function renderCatalog(){
   const q = st.q;
   if (q.length < 2){ $("#catHits").hidden = true; return; }
   const known = new Set(C.flatMap(c => [c.code, ...c.al]));
   const nq = norm(q).replace(/^([a-z]+)/, m => SHORT[m] || m);
   const hits = CAT.filter(([code, title]) => !known.has(code) && (norm(code).includes(nq) || title.toLowerCase().includes(q))).slice(0, 12);
   $("#catHits").hidden = !hits.length;
-  $("#catTitle").textContent = "Also in the " + termLabel(TERM) + " catalog (no grade data here yet)";
-  $("#catList").innerHTML = hits.map(([code, title, cr]) => '<div class="cat-item"><span><b>' + esc(code) + "</b> " + esc(title) + ' <span class="muted small">' + esc(cr) + ' cr</span></span><span class="links"><a target="_blank" rel="noopener" href="https://madgrades.com/search?query=' + encodeURIComponent(code) + '">MadGrades</a><a target="_blank" rel="noopener" href="' + enrollUrl(code) + '">Enroll</a></span></div>').join("");
+  $("#catTitle").textContent = t("catTitle", termLabel(TERM));
+  $("#catList").innerHTML = hits.map(([code, title, cr]) => `<div class="cat-item"><span><b>${esc(code)}</b> ${esc(title)} <span class="muted small">${esc(cr)} cr</span></span><span class="links"><a target="_blank" rel="noopener" href="https://madgrades.com/search?query=${encodeURIComponent(code)}">MadGrades</a><a target="_blank" rel="noopener" href="${enrollUrl(code)}">${esc(t("enroll"))}</a></span></div>`).join("");
 }
-["#q", "#sort", "#fSubj", "#fLvl", "#fBr", "#fGpa", "#fNow", "#fSaved"].forEach(s => $(s).addEventListener(s === "#q" ? "input" : "change", () => { shown = PAGE; render(); syncQuery(); }));
-$("#reset").onclick = () => { ["#q", "#fSubj", "#fLvl", "#fBr", "#fGpa"].forEach(s => $(s).value = ""); $("#fNow").checked = $("#fSaved").checked = false; $("#sort").value = "m"; render(); syncQuery(); };
+function onFilter(){ shown = PAGE; render(); syncQuery(); }
+["#q", "#sort", "#fSubj", "#fLvl", "#fBr", "#fGpa", "#fNow", "#fSaved"].forEach(s => $(s).addEventListener(s === "#q" ? "input" : "change", onFilter));
+$("#lenses").addEventListener("click", e => {
+  const b = e.target.closest("[data-lens]"); if (!b) return;
+  st.lens = st.lens === b.dataset.lens ? "" : b.dataset.lens;
+  const l = LENSES.find(x => x[0] === st.lens);
+  if (l && l[2]) $("#sort").value = l[2]; else if (!st.lens) $("#sort").value = "m";
+  renderLenses(); onFilter();
+});
+$("#reset").onclick = () => { ["#q", "#fSubj", "#fLvl", "#fBr", "#fGpa"].forEach(s => $(s).value = ""); $("#fNow").checked = $("#fSaved").checked = false; $("#sort").value = "m"; st.lens = ""; renderLenses(); onFilter(); };
 $("#more").onclick = () => { shown += PAGE; render(); };
-$("#list").addEventListener("click", e => {
+const list = $("#list");
+list.addEventListener("click", e => {
   const s = e.target.closest("[data-star]"); if (s){ toggleSave(s.dataset.star); e.stopPropagation(); return; }
-  const h = e.target.closest("[data-sort]"); if (h){ $("#sort").value = h.dataset.sort === "gpa" && st.sort === "gpa" ? "gpaL" : h.dataset.sort; render(); syncQuery(); return; }
+  const h = e.target.closest("[data-sort]"); if (h){ $("#sort").value = h.dataset.sort === "gpa" && st.sort === "gpa" ? "gpaL" : h.dataset.sort; onFilter(); return; }
   const r = e.target.closest(".row[data-id]"); if (r) location.hash = "#/c/" + r.dataset.id;
 });
-$("#list").addEventListener("keydown", e => { const r = e.target.closest(".row[data-id]"); if (r && (e.key === "Enter" || e.key === " ") && !e.target.closest("button")){ e.preventDefault(); location.hash = "#/c/" + r.dataset.id; } });
+list.addEventListener("pointerover", e => { const r = e.target.closest(".row[data-id]"); if (r) setBand(BY[r.dataset.id]); });
+list.addEventListener("pointerleave", () => setBand(cur || focusedCourse()));
+list.addEventListener("focusin", e => { const r = e.target.closest(".row[data-id]"); if (r) setBand(BY[r.dataset.id]); });
+list.addEventListener("focusout", e => { if (!list.contains(e.relatedTarget)) setBand(cur); });
+function focusedCourse(){ const r = document.activeElement && document.activeElement.closest && document.activeElement.closest(".row[data-id]"); return r ? BY[r.dataset.id] : null; }
+function moveSel(d){
+  const rows = $$("#list .row[data-id]"); if (!rows.length) return;
+  const i = rows.indexOf(document.activeElement.closest ? document.activeElement.closest(".row[data-id]") : null);
+  const n = rows[Math.min(rows.length - 1, Math.max(0, i < 0 ? 0 : i + d))];
+  n.focus(); n.scrollIntoView({block: "nearest"});
+}
 document.addEventListener("keydown", e => {
-  if (e.key === "/" && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){ e.preventDefault(); location.hash = "#/courses"; $("#q").focus(); }
-  if (e.key === "Escape" && $("#drawer").classList.contains("on")) closeDrawer();
+  const typing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
+  if ($("#cmp").open) return;
+  if ($("#drawer").classList.contains("on")){
+    if (e.key === "Escape") closeDrawer();
+    else if (!typing && (e.key === "ArrowRight" || e.key === "ArrowLeft")) stepCourse(e.key === "ArrowRight" ? 1 : -1);
+    else if (!typing && e.key === "s" && cur) toggleSave(cur.id);
+    return;
+  }
+  if (typing){ if (e.key === "ArrowDown" && document.activeElement.id === "q"){ e.preventDefault(); moveSel(0); } return; }
+  if (e.key === "/"){ e.preventDefault(); location.hash = "#/courses"; $("#q").focus(); }
+  else if (lastTab === "courses" && (e.key === "j" || e.key === "ArrowDown")){ e.preventDefault(); moveSel(1); }
+  else if (lastTab === "courses" && (e.key === "k" || e.key === "ArrowUp")){ e.preventDefault(); moveSel(-1); }
+  else if (e.key === "Enter" || e.key === " "){ const r = focusedCourse(); if (r && !e.target.closest("button")){ e.preventDefault(); location.hash = "#/c/" + r.id; } }
+  else if (e.key === "s"){ const r = focusedCourse(); if (r) toggleSave(r.id); }
 });
-function toggleSave(id){ saved.has(id) ? saved.delete(id) : saved.add(id); store.set("saved", [...saved]); render(); if (cur) openDrawer(cur.id, true); }
+
+/* ── Saved plan ───────────────────────────────────────── */
+let saved = new Set(store.get("saved", []).filter(id => BY[id]));
+function toggleSave(id){
+  saved.has(id) ? saved.delete(id) : saved.add(id); store.set("saved", [...saved]);
+  const focusId = focusedCourse() && focusedCourse().id;
+  render();
+  if (focusId){ const r = list.querySelector(`.row[data-id="${CSS.escape(focusId)}"]`); if (r) r.focus(); }
+  if (cur) openDrawer(cur.id, true);
+}
+const crMin = c => parseFloat(c.cr) || 0;
+function renderPlan(){
+  const L = [...saved].map(id => BY[id]).filter(Boolean), plan = $("#plan");
+  plan.hidden = !L.length; document.body.classList.toggle("has-plan", !!L.length);
+  if (!L.length) return;
+  const cr = L.reduce((a, c) => a + crMin(c), 0);
+  const gw = L.filter(c => c.gpa != null && crMin(c)), gpa = gw.length ? gw.reduce((a, c) => a + c.gpa * crMin(c), 0) / gw.reduce((a, c) => a + crMin(c), 0) : null;
+  const br = [...new Set(L.flatMap(c => c.br))].map(brName);
+  plan.innerHTML = `<div class="facts"><span>${t("planSaved", L.length)}</span><span>${t("planCr", cr % 1 ? cr.toFixed(1) : cr)}</span>${gpa != null ? `<span class="gp">${t("planGpa", gpa.toFixed(2))}</span>` : ""}${br.length ? `<span class="br">${esc(t("planBr", br.join(", ")))}</span>` : ""}</div>
+    <div class="acts"><button class="btn" id="pShow">${esc(t("showSaved"))}</button><button class="btn primary" id="pCmp"${L.length < 2 ? " disabled" : ""}>${esc(t("compare"))}</button><button class="btn" id="pClear">${esc(t("clearSaved"))}</button></div>`;
+  $("#pShow").onclick = () => { $("#fSaved").checked = !$("#fSaved").checked; location.hash = "#/courses"; onFilter(); };
+  $("#pCmp").onclick = openCompare;
+  $("#pClear").onclick = () => { saved.clear(); store.set("saved", []); $("#fSaved").checked = false; render(); };
+}
+
+/* ── URL state ────────────────────────────────────────── */
 function syncQuery(){
   const p = new URLSearchParams();
   for (const [k, v] of Object.entries(st)) if (v && k !== "sv") p.set(k, v === true ? "1" : v);
@@ -473,242 +796,318 @@ function syncQuery(){
   const map = {q:"#q", sort:"#sort", subj:"#fSubj", lvl:"#fLvl", br:"#fBr", gpa:"#fGpa"};
   for (const [k, s] of Object.entries(map)) if (p.get(k)) $(s).value = p.get(k);
   if (p.get("now")) $("#fNow").checked = true;
+  if (p.get("lens") && LENSES.some(l => l[0] === p.get("lens"))) st.lens = p.get("lens");
 })();
 
-/* Charts */
+/* ── Charts ───────────────────────────────────────────── */
 function distChart(c){
-  const d = c.dist, tot = d.reduce((a, b) => a + b, 0), cd = D.meta.campusDist, ct = cd.reduce((a, b) => a + b, 0);
-  const W = 560, H = 170, L = 8, R = 8, T = 18, B = 24, bw = (W - L - R) / 7;
-  const mx = Math.max(...d.map(v => v / tot), ...cd.map(v => v / ct));
+  const d = c.dist, tot = d.reduce((a, b) => a + b, 0);
+  const W = 580, H = 170, L = 8, R = 8, T = 18, B = 24, bw = (W - L - R) / 7;
+  const mx = Math.max(...d.map(v => v / tot), ...CD.map(v => v / CT));
   const y = v => T + (H - T - B) * (1 - v / mx);
-  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Grade distribution of ' + esc(c.code) + '">';
-  s += '<line class="axis" x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '"/>';
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(c.code)} grade distribution"><line class="axis" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}"/>`;
   d.forEach((v, i) => {
-    const p = v / tot, cp = cd[i] / ct, x = L + i * bw + 5, w = bw - 10, top = y(p), h = Math.max(H - B - top, 0);
-    s += '<g data-tip="<b>' + G[i] + "</b>: " + (p * 100).toFixed(1) + "% (" + v.toLocaleString() + " students)<br>All tracked courses: " + (cp * 100).toFixed(1) + '%">';
-    s += '<rect x="' + (x - 4) + '" y="' + T + '" width="' + (w + 8) + '" height="' + (H - B - T) + '" fill="transparent"/>';
-    s += '<path d="M' + x + "," + (H - B) + "V" + (top + Math.min(4, h)) + "q0,-4 4,-4h" + (w - 8) + "q4,0 4,4V" + (H - B) + 'Z" fill="var(' + GV[i] + ')"/>';
-    s += '<line x1="' + (x - 3) + '" x2="' + (x + w + 3) + '" y1="' + y(cp) + '" y2="' + y(cp) + '" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 2" opacity=".55"/>';
-    s += '<text x="' + (x + w / 2) + '" y="' + (top - 5) + '" text-anchor="middle" class="lbl">' + Math.round(p * 100) + "%</text>";
-    s += '<text x="' + (x + w / 2) + '" y="' + (H - 7) + '" text-anchor="middle">' + G[i] + "</text></g>";
+    const p = v / tot, cp = CD[i] / CT, x = L + i * bw + 5, w = bw - 10, top = y(p), h = Math.max(H - B - top, 0);
+    s += `<g data-tip="<b>${G[i]}</b>: ${(p * 100).toFixed(1)}% (${fmt(v)})<br>${esc(t("allTracked", C.length))}: ${(cp * 100).toFixed(1)}%">
+      <rect x="${x - 4}" y="${T}" width="${w + 8}" height="${H - B - T}" fill="transparent"/>
+      <path d="M${x},${H - B}V${top + Math.min(4, h)}q0,-4 4,-4h${w - 8}q4,0 4,4V${H - B}Z" fill="var(${GV[i]})"/>
+      <line x1="${x - 3}" x2="${x + w + 3}" y1="${y(cp)}" y2="${y(cp)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 2" opacity=".55"/>
+      <text x="${x + w / 2}" y="${top - 5}" text-anchor="middle" class="lbl">${Math.round(p * 100)}%</text>
+      <text x="${x + w / 2}" y="${H - 7}" text-anchor="middle">${G[i]}</text></g>`;
   });
-  return s + '</svg><div class="legend"><span><i style="background:var(--gA)"></i>This course</span><span><i style="background:none;border-top:2px dashed var(--ink);opacity:.55;height:0;vertical-align:3px"></i>All ' + C.length + ' tracked courses</span></div>';
+  return s + `</svg><div class="legend"><span><i style="background:var(--gA)"></i>${esc(t("thisCourse"))}</span><span><i style="background:none;border-top:2px dashed var(--ink);opacity:.55;height:0;vertical-align:3px"></i>${esc(t("allTracked", C.length))}</span></div>`;
 }
-function lineChart(points, opt){
-  // points: [{x, y, n, label}]
-  const W = opt.w || 560, H = opt.h || 180, L = 36, R = 12, T = 12, B = 26;
-  const xs = points.map(p => p.x), ys = points.map(p => p.y).concat(opt.ref != null ? [opt.ref] : []);
+function miniDist(c, color){
+  const W = 220, H = 78, T = 12, B = 16, bw = W / 7;
+  if (!c.dist) return `<p class="muted small">${esc(t("noGrades"))}</p>`;
+  const tot = c.dist.reduce((a, b) => a + b, 0), mx = Math.max(...c.dist) / tot;
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(c.code)}">`;
+  c.dist.forEach((v, i) => { const p = v / tot, h = (H - T - B) * p / mx, x = i * bw + 3;
+    s += `<g data-tip="<b>${G[i]}</b> ${(p * 100).toFixed(1)}%"><rect x="${x}" y="${H - B - h}" width="${bw - 6}" height="${Math.max(h, .5)}" rx="2" fill="var(${GV[i]})"/><text x="${x + (bw - 6) / 2}" y="${H - 3}" text-anchor="middle">${G[i]}</text>${p === mx ? `<text class="lbl" x="${x + (bw - 6) / 2}" y="${H - B - h - 3}" text-anchor="middle">${Math.round(p * 100)}%</text>` : ""}</g>`; });
+  return s + "</svg>";
+}
+function lineChart(series, opt){
+  // series: [{name, color, points:[{x,y,label}]}]
+  const W = opt.w || 580, H = opt.h || 180, L = 36, R = opt.endLabels ? 90 : 12, T = 12, B = 26;
+  const all = series.flatMap(s => s.points), xs = all.map(p => p.x), ys = all.map(p => p.y).concat(opt.ref != null ? [opt.ref] : []);
   const x0 = Math.min(...xs), x1 = Math.max(...xs);
   let y0 = Math.floor((Math.min(...ys) - .05) * 10) / 10, y1 = Math.ceil((Math.max(...ys) + .05) * 10) / 10;
   if (y1 - y0 < .4){ const m = (y0 + y1) / 2; y0 = m - .2; y1 = m + .2; }
   const X = v => L + (W - L - R) * (x1 === x0 ? .5 : (v - x0) / (x1 - x0)), Y = v => T + (H - T - B) * (1 - (v - y0) / (y1 - y0));
-  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="' + esc(opt.label) + '">';
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(opt.label)}">`;
   const step = (y1 - y0) > 1 ? .5 : (y1 - y0) > .5 ? .2 : .1;
-  for (let v = Math.ceil(y0 / step) * step; v <= y1 + 1e-9; v += step) s += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + v.toFixed(1) + "</text>";
-  for (let yr = Math.ceil(x0); yr <= x1; yr += (x1 - x0 > 10 ? 4 : x1 - x0 > 5 ? 2 : 1)) s += '<text x="' + X(yr) + '" y="' + (H - 8) + '" text-anchor="middle">' + yr + "</text>";
-  if (opt.ref != null) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(opt.ref) + '" y2="' + Y(opt.ref) + '" stroke="var(--ref)" stroke-dasharray="4 3"/><text x="' + (W - R) + '" y="' + (Y(opt.ref) - 5) + '" text-anchor="end">' + esc(opt.refLabel) + "</text>";
-  s += '<polyline points="' + points.map(p => X(p.x).toFixed(1) + "," + Y(p.y).toFixed(1)).join(" ") + '" fill="none" stroke="var(--series)" stroke-width="2" stroke-linejoin="round"/>';
-  (opt.notes || []).forEach(n => { const p = points.find(q => Math.abs(q.x - n.x) < .01); if (p) s += '<text class="lbl" x="' + (X(p.x) + 8) + '" y="' + (Y(p.y) + 4) + '">' + esc(n.text) + "</text>"; });
-  points.forEach(p => { s += '<g data-tip="' + esc(p.label) + '"><circle cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="9" fill="transparent"/><circle cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="3.5" fill="var(--series)" stroke="var(--surface)" stroke-width="1.5"/></g>'; });
+  for (let v = Math.ceil(y0 / step) * step; v <= y1 + 1e-9; v += step) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${v.toFixed(1)}</text>`;
+  for (let yr = Math.ceil(x0); yr <= x1; yr += (x1 - x0 > 10 ? 4 : x1 - x0 > 5 ? 2 : 1)) s += `<text x="${X(yr)}" y="${H - 8}" text-anchor="middle">${yr}</text>`;
+  if (opt.ref != null) s += `<line x1="${L}" x2="${W - R}" y1="${Y(opt.ref)}" y2="${Y(opt.ref)}" stroke="var(--ref)" stroke-dasharray="4 3"/><text x="${W - R}" y="${Y(opt.ref) - 5}" text-anchor="end">${esc(opt.refLabel)}</text>`;
+  series.forEach(se => {
+    s += `<polyline points="${se.points.map(p => X(p.x).toFixed(1) + "," + Y(p.y).toFixed(1)).join(" ")}" fill="none" stroke="${se.color}" stroke-width="2" stroke-linejoin="round"/>`;
+    se.points.forEach(p => { s += `<g data-tip="${esc(p.label)}"><circle cx="${X(p.x)}" cy="${Y(p.y)}" r="9" fill="transparent"/><circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3.5" fill="${se.color}" stroke="var(--surface)" stroke-width="1.5"/></g>`; });
+  });
+  if (opt.endLabels){  // end labels, pushed apart vertically so they never overlap
+    const ends = series.filter(se => se.points.length).map(se => { const p = se.points[se.points.length - 1]; return {name: se.name, x: X(p.x), y: Y(p.y)}; }).sort((a, b) => a.y - b.y);
+    for (let i = 1; i < ends.length; i++) ends[i].y = Math.max(ends[i].y, ends[i - 1].y + 14);
+    const over = ends.length ? ends[ends.length - 1].y - (H - B) : 0;
+    if (over > 0) ends.forEach(e => e.y -= over);
+    ends.forEach(e => { s += `<text class="lbl" x="${e.x + 8}" y="${e.y + 4}">${esc(e.name)}</text>`; });
+  }
+  (opt.notes || []).forEach(n => { const p = series[0].points.find(q => Math.abs(q.x - n.x) < .01); if (p) s += `<text class="lbl" x="${X(p.x) + 8}" y="${Y(p.y) + 4}">${esc(n.text)}</text>`; });
   return s + "</svg>";
 }
+function instrChart(c){
+  const pts = c.ins.filter(i => i[1] != null && i[2] >= 10);
+  if (pts.length < 2) return "";
+  const W = 580, H = 178, L = 12, R = 12, T = 26, B = 24, lanes = 5;
+  const lo = Math.min(2.5, Math.floor(Math.min(...pts.map(i => i[1])) * 2) / 2), hi = 4.0;
+  const X = v => L + (W - L - R) * (v - lo) / (hi - lo), maxN = Math.max(...pts.map(i => i[2]));
+  const rOf = n => 3 + 8 * Math.sqrt(n / maxN);
+  const laneEnd = Array(lanes).fill(-1e9), placed = [];
+  pts.slice().sort((a, b) => a[1] - b[1]).forEach(i => {
+    const x = X(i[1]), r = rOf(i[2]);
+    let lane = laneEnd.findIndex(e => x - r > e + 2); if (lane < 0) lane = laneEnd.indexOf(Math.min(...laneEnd));
+    laneEnd[lane] = x + r; placed.push({i, x, r, y: T + 6 + (H - T - B - 12) * (lane + .5) / lanes});
+  });
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(c.code)} instructor GPA">`;
+  for (let v = Math.ceil(lo * 2) / 2; v <= hi + 1e-9; v += .5) s += `<line class="grid" x1="${X(v)}" x2="${X(v)}" y1="${T - 6}" y2="${H - B}"/><text x="${X(v)}" y="${H - 8}" text-anchor="middle">${v.toFixed(1)}</text>`;
+  if (c.gpa != null) s += `<line x1="${X(c.gpa)}" x2="${X(c.gpa)}" y1="${T - 8}" y2="${H - B}" stroke="var(--ink)" stroke-dasharray="3 3" opacity=".6"/><text x="${X(c.gpa)}" y="${T - 9}" text-anchor="middle" class="lbl">${f2(c.gpa)}</text>`;
+  placed.sort((a, b) => b.r - a.r).forEach(({i, x, r, y}) => {
+    s += `<g data-tip="<b>${esc(i[0])}</b><br>GPA ${f2(i[1])} · A ${pct(i[3])} · ${fmt(i[2])} ${LANG === "zh" ? "名学生" : "students"} · ${termShort(i[4])}">
+      <circle cx="${x}" cy="${y}" r="${r}" fill="var(--series)" fill-opacity="${i[5] ? .9 : .32}" stroke="${i[5] ? "var(--ink)" : "var(--surface)"}" stroke-width="${i[5] ? 2 : 1}"/></g>`;
+  });
+  let prevX = -1e9, flip = false;  // alternate above/below when names crowd
+  placed.filter(p => p.i[5]).sort((a, b) => a.x - b.x).forEach(({i, x, r, y}) => {
+    flip = x - prevX < 70 ? !flip : false; prevX = x;
+    s += `<text class="lbl" x="${x}" y="${flip ? y + r + 12 : y - r - 4}" text-anchor="middle">${esc(lastName(i[0]))}</text>`;
+  });
+  return s + `</svg><div class="legend"><span>${esc(t("instrLegend", termShort(TERM)))}</span></div>`;
+}
 
-/* Drawer */
-let cur = null, lastFocus = null;
+/* ── Drawer ───────────────────────────────────────────── */
+let cur = null, lastFocus = null, showAllIns = false;
+function navList(){ return lastRows.includes(cur) ? lastRows : C; }
+function stepCourse(d){ const L = navList(), i = L.indexOf(cur); location.hash = "#/c/" + L[(i + d + L.length) % L.length].id; }
 function openDrawer(id, keepScroll){
   const c = BY[id];
-  if (!c){ $("#q").value = id.replace(/-/g, " "); show("courses"); render(); return; }
+  if (!c){ $("#q").value = id.replace(/-/g, " "); show("courses"); onFilter(); return; }
+  const dr = $("#drawer"), wasOpen = dr.classList.contains("on");
+  if (!wasOpen) lastFocus = document.activeElement;
+  if (cur !== c) showAllIns = false;
   cur = c;
-  const dr = $("#drawer"), top = keepScroll ? dr.scrollTop : 0;
-  if (!keepScroll) lastFocus = document.activeElement;
-  const chips = [c.cr && c.cr + " credits", c.lvl, ...c.br, c.ge, c.es && "Ethnic Studies", c.typ && c.typ !== "Not Applicable" && "Usually " + c.typ.toLowerCase()].filter(Boolean);
-  const nowIns = c.ins.filter(i => i[5]);
-  let h = '<div class="d-head"><button class="icon-btn x" id="dClose" aria-label="Close">✕</button>' +
-    '<div class="d-code">' + esc(c.code) + (c.al.length ? " · also " + esc(c.al.join(", ")) : "") + " · " + esc(c.sn) + "</div>" +
-    '<h2 class="d-title" id="dTitle">' + esc(c.t) + '</h2><div class="chips">' + chips.map(x => '<span class="chip">' + esc(x) + "</span>").join("") + "</div></div>";
-  h += '<div class="d-body">';
-  h += '<div class="d-sec"><div class="linkrow">' +
-    '<button class="btn" data-star="' + c.id + '" aria-pressed="' + saved.has(c.id) + '">' + (saved.has(c.id) ? "★ Saved" : "☆ Save") + "</button>" +
-    '<a class="btn" target="_blank" rel="noopener" href="' + mgUrl(c) + '">MadGrades</a>' +
-    '<a class="btn" target="_blank" rel="noopener" href="' + enrollUrl(c.code) + '">Course Search &amp; Enroll</a>' +
-    '<a class="btn" target="_blank" rel="noopener" href="' + guideUrl(c.code) + '">Guide</a>' +
-    '<a class="btn" target="_blank" rel="noopener" href="' + redditUrl(c) + '">Search Reddit</a>' +
-    '<button class="btn" id="dShare">Copy link</button></div></div>';
-  if (c.d || c.prq) h += '<div class="d-sec">' + (c.d ? '<p class="desc">' + esc(c.d) + "</p>" : "") + (c.prq ? '<p class="prq"><b>Requisites:</b> ' + esc(c.prq) + "</p>" : "") + "</div>";
-  // This term
-  h += '<div class="d-sec"><h3>' + termLabel(TERM) + (c.now ? ' <span class="muted">snapshot ' + esc(D.meta.built_at.slice(0, 10)) + "</span>" : "") + "</h3>";
+  const top = keepScroll ? dr.scrollTop : 0, L = navList(), pos = L.indexOf(c) + 1;
+  const chips = [c.cr && t("credits", c.cr), lvlName(c.lvl), ...c.br.map(brName), c.ge, c.es && brName("Ethnic Studies"), c.typ && c.typ !== "Not Applicable" && t("usually", c.typ)].filter(Boolean);
+  let h = `<div class="d-head">
+    <div class="d-nav"><button class="icon-btn" id="dPrev" aria-label="${esc(t("prev"))}" title="${esc(t("prev"))} (←)">‹</button><span class="pos">${pos} / ${L.length}</span><button class="icon-btn" id="dNext" aria-label="${esc(t("next"))}" title="${esc(t("next"))} (→)">›</button><button class="icon-btn" id="dClose" aria-label="${esc(t("close"))}">✕</button></div>
+    <div class="d-code">${esc(c.code)}${c.al.length ? " · " + esc(t("alsoAs")) + " " + esc(c.al.join(", ")) : ""} · ${esc(c.sn)}</div>
+    <h2 class="d-title serif" id="dTitle">${esc(c.t)}</h2>
+    <div class="chips">${chips.map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div></div><div class="d-body">`;
+  h += `<div class="d-sec"><div class="linkrow">
+    <button class="btn${saved.has(c.id) ? " primary" : ""}" id="dSave" aria-pressed="${saved.has(c.id)}">${esc(saved.has(c.id) ? t("saved") : t("save"))}</button>
+    <a class="btn" target="_blank" rel="noopener" href="${mgUrl(c)}">${esc(t("mg"))}</a>
+    <a class="btn" target="_blank" rel="noopener" href="${enrollUrl(c.code)}">${esc(t("cse"))}</a>
+    <a class="btn" target="_blank" rel="noopener" href="${guideUrl(c.code)}">${esc(t("guide"))}</a>
+    <a class="btn" target="_blank" rel="noopener" href="${redditUrl(c)}">${esc(t("searchReddit"))}</a>
+    <button class="btn" id="dShare">${esc(t("copy"))}</button></div></div>`;
+  if (c.dist) h += `<div class="d-sec"><div class="kpis">
+    <div class="kpi"><b>${f2(c.gpa)}</b><span>${esc(t("kGpa"))}</span></div><div class="kpi"><b>${f2(c.gr)}</b><span>${esc(t("kRecent"))}</span></div>
+    <div class="kpi"><b>${pct(c.pa)}</b><span>${esc(t("kA"))}</span></div><div class="kpi"><b>${c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"}</b><span>${esc(t("kDF"))}</span></div>
+    <div class="kpi"><b>${c.now && c.en ? fmt(c.en) : "–"}</b><span>${esc(t("kNow", termShort(TERM)))}</span></div></div></div>`;
+  if (c.d || c.prq) h += `<div class="d-sec">${c.d ? `<p class="desc">${esc(c.d)}</p>` : ""}${c.prq ? `<p class="prq"><b>${esc(t("req"))}</b> ${esc(c.prq)}</p>` : ""}</div>`;
+  h += `<div class="d-sec"><h3>${esc(termLabel(TERM))}${c.now ? ` <span class="muted">${esc(t("snapshot", D.meta.built_at.slice(0, 10)))}</span>` : ""}</h3>`;
   if (c.now){
-    h += "<p style='margin:0 0 6px'>" + nowTxt(c, true) + " &nbsp;" + (c.en ? "about " + c.en.toLocaleString() + " students enrolled, " : "") + c.now.lec + " lecture section" + (c.now.lec === 1 ? "" : "s") + ", " + c.now.open + " of " + c.now.pk + " enrollment options open" + (c.now.wait ? ", " + c.now.wait + " waitlisted" : "") + ".</p>";
-    if (c.now.who.length) h += '<p class="small" style="margin:0;color:var(--ink-2)">Teaching: ' + c.now.who.map(n => {
+    h += `<p style="margin:0 0 6px">${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, c.now.lec, c.now.open, c.now.pk, c.now.wait))}</p>`;
+    if (c.now.who.length) h += `<p class="small" style="margin:0;color:var(--ink-2)">${esc(t("teaching"))}` + c.now.who.map(n => {
       const m = c.ins.find(i => i[5] && sameName(i[0], n));
-      return esc(n) + (m ? ' <span class="muted">(past GPA here ' + f2(m[1]) + ")</span>" : ' <span class="muted">(no grade history in this course)</span>');
+      return esc(n) + ` <span class="muted">${esc(m ? t("pastHere", f2(m[1])) : t("noHist"))}</span>`;
     }).join(", ") + "</p>";
-  } else h += '<p class="muted" style="margin:0">Not offered this term' + (c.last ? "; last taught " + termLabel(c.last) : "") + ".</p>";
+  } else h += `<p class="muted" style="margin:0">${esc(t("notOffered", c.last ? termLabel(c.last) : ""))}</p>`;
   h += "</div>";
-  // Grades
   if (c.dist){
-    h += '<div class="d-sec"><h3>Grades <span class="muted">' + c.n.toLocaleString() + " students, " + termLabel(c.terms[0][0]) + " – " + termLabel(c.terms[c.terms.length - 1][0]) + "</span></h3>";
-    h += '<div class="kpis"><div class="kpi"><b>' + f2(c.gpa) + '</b><span>GPA, all terms</span></div><div class="kpi"><b>' + f2(c.gr) + '</b><span>Last 6 terms</span></div><div class="kpi"><b>' + pct(c.pa) + '</b><span>Got an A</span></div><div class="kpi"><b>' + (c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%") + '</b><span>Got a D or F</span></div></div>';
-    h += distChart(c);
-    const pts = c.terms.filter(t => t[2] >= 10 && t[0] % 10 !== 6).map(t => ({x: termYear(t[0]), y: t[1], label: "<b>" + termLabel(t[0]) + "</b><br>GPA " + t[1].toFixed(2) + " · " + t[2] + " students"}));
+    h += `<div class="d-sec"><h3>${esc(t("grades"))} <span class="muted">${esc(t("studentsRange", c.n, termLabel(c.terms[0][0]), termLabel(c.terms[c.terms.length - 1][0])))}</span></h3>${distChart(c)}`;
+    const pts = c.terms.filter(x => x[2] >= 10 && x[0] % 10 !== 6).map(x => ({x: termYear(x[0]), y: x[1], label: `<b>${termLabel(x[0])}</b><br>GPA ${x[1].toFixed(2)} · ${fmt(x[2])}`}));
     if (pts.length >= 3){
-      h += '<h3 style="margin-top:16px">GPA by fall and spring term ' + (c.tr != null ? '<span class="muted">' + trendTxt(c.tr) + " since 2016</span>" : "") + "</h3>";
-      h += lineChart(pts, {label: "GPA by term for " + c.code, ref: INS.campus_gpa, refLabel: "tracked-course avg " + (INS.campus_gpa || 0).toFixed(2)});
+      h += `<h3 style="margin-top:16px">${esc(t("byTerm"))} ${c.tr != null ? `<span class="muted">${trendTxt(c.tr)} ${esc(t("since2016"))}</span>` : ""}</h3>`;
+      h += lineChart([{name: c.code, color: "var(--series)", points: pts}], {label: c.code, ref: INS.campus_gpa, refLabel: t("trackedAvg", f2(INS.campus_gpa))});
     }
     h += "</div>";
-  } else h += '<div class="d-sec"><h3>Grades</h3><p class="muted">MadGrades has no letter-grade history for this course.</p></div>';
-  // Instructors
+  } else h += `<div class="d-sec"><h3>${esc(t("grades"))}</h3><p class="muted">${esc(t("noGrades"))}</p></div>`;
   if (c.ins.length){
-    const mxN = Math.max(...c.ins.map(i => i[2]));
-    h += '<div class="d-sec"><h3>Instructors <span class="muted">' + (c.sp != null ? "spread " + c.sp.toFixed(2) + " GPA points" : "") + "</span></h3>";
-    h += '<table class="itable"><thead><tr><th>Name</th><th class="r">GPA</th><th class="r">A\'s</th><th>Students</th><th class="r">Last</th><th></th></tr></thead><tbody>' +
-      c.ins.map(i => '<tr><td>' + esc(i[0]) + (i[5] ? '<span class="badge">' + termShort(TERM) + "</span>" : "") + '</td><td class="r"><b>' + f2(i[1]) + '</b></td><td class="r">' + pct(i[3]) + '</td><td><div class="bar" data-tip="' + i[2].toLocaleString() + ' graded students"><i style="width:' + (i[2] / mxN * 100) + '%"></i></div></td><td class="r small muted">' + termShort(i[4]) + '</td><td class="small"><a target="_blank" rel="noopener" href="' + rmpUrl(i[0]) + '">RMP</a></td></tr>').join("") +
-      "</tbody></table>" + (c.ins.length && c.ins.some(i => i[2] < 30) ? '<p class="small muted" style="margin:8px 0 0">Fewer than 30 students is a thin sample, so weigh those GPAs lightly.</p>' : "") + "</div>";
+    const mxN = Math.max(...c.ins.map(i => i[2])), LIM = 8, rows = showAllIns ? c.ins : c.ins.slice(0, LIM);
+    h += `<div class="d-sec"><h3>${esc(t("instructors"))} <span class="muted">${c.sp != null ? esc(t("spread", c.sp.toFixed(2))) : ""}</span></h3>${instrChart(c)}`;
+    h += `<table class="itable"><thead><tr><th>${esc(t("thName"))}</th><th class="r">${esc(t("thGpa"))}</th><th class="r">${esc(t("thA"))}</th><th>${esc(t("thN"))}</th><th class="r">${esc(t("thLast"))}</th><th></th></tr></thead><tbody>` +
+      rows.map(i => `<tr><td>${esc(i[0])}${i[5] ? `<span class="badge">${termShort(TERM)}</span>` : ""}</td><td class="r"><b>${f2(i[1])}</b></td><td class="r">${pct(i[3])}</td><td><div class="bar" data-tip="${fmt(i[2])}"><i style="width:${i[2] / mxN * 100}%"></i></div></td><td class="r small muted">${termShort(i[4])}</td><td class="small"><a target="_blank" rel="noopener" href="${rmpUrl(i[0])}">RMP</a></td></tr>`).join("") + "</tbody></table>";
+    if (c.ins.length > LIM) h += `<p style="margin:8px 0 0"><button class="linkbtn" id="dAllIns">${esc(showAllIns ? t("showFewer") : t("showAll", c.ins.length))}</button></p>`;
+    if (c.ins.some(i => i[2] < 30)) h += `<p class="small muted" style="margin:8px 0 0">${esc(t("thin"))}</p>`;
+    h += "</div>";
   }
-  // Talk
-  h += '<div class="d-sec"><h3>What students say</h3>';
-  h += '<p class="small" style="margin:0 0 10px;color:var(--ink-2)">' + (c.src === "enrollment" ? "Added because it is one of the largest courses this term; it never came up in the group chat" : "Mentioned <b>" + c.m + "</b> time" + (c.m === 1 ? "" : "s") + " in a UW student group chat" + (c.pos || c.neg ? " (" + c.pos + " positive, " + c.neg + " negative)" : "")) + ". Found <b>" + c.rdn + "</b> r/UWMadison thread" + (c.rdn === 1 ? "" : "s") + (c.rdt != null ? ", tone " + (c.rdt > .15 ? "mostly positive" : c.rdt < -.15 ? "mostly negative" : "mixed") : "") + ".</p>";
-  if (c.rd.length) h += '<ul class="threads">' + c.rd.map(t => '<li><a target="_blank" rel="noopener" href="' + esc(t[1]) + '">' + esc(t[0]) + '</a><span class="tone ' + (t[3] > 0 ? "up" : t[3] < 0 ? "down" : "muted") + '">' + (t[3] > 0 ? "+ " : t[3] < 0 ? "− " : "") + (t[2] || "") + "</span></li>").join("") + "</ul>";
+  const tone = c.rdt == null ? "" : c.rdt > .15 ? t("tonePos") : c.rdt < -.15 ? t("toneNeg") : t("toneMix");
+  h += `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
+  if (c.rd.length) h += `<ul class="threads">` + c.rd.map(x => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${x[3] > 0 ? "+ " : x[3] < 0 ? "− " : ""}${x[2] || ""}</span></li>`).join("") + "</ul>";
   h += "</div></div>";
   dr.innerHTML = h; dr.scrollTop = top;
-  bindTips(dr);
   $("#dClose").onclick = closeDrawer;
-  dr.querySelector("[data-star]").onclick = () => toggleSave(c.id);
-  $("#dShare").onclick = () => { const u = location.origin + location.pathname + "#/c/" + c.id; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => $("#dShare").textContent = "Copied", () => prompt("Copy this link", u)); };
+  $("#dPrev").onclick = () => stepCourse(-1); $("#dNext").onclick = () => stepCourse(1);
+  $("#dSave").onclick = () => toggleSave(c.id);
+  if ($("#dAllIns")) $("#dAllIns").onclick = () => { showAllIns = !showAllIns; openDrawer(c.id, true); };
+  $("#dShare").onclick = () => { const u = location.origin + location.pathname + "#/c/" + c.id; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => $("#dShare").textContent = t("copied"), () => prompt(t("copy"), u)); };
   dr.classList.add("on"); $("#scrim").classList.add("on");
-  if (!keepScroll) $("#dClose").focus();
+  if (!wasOpen) $("#dClose").focus();
+  setBand(c);
   document.title = c.code + " · UW Course Lookup";
 }
 function sameName(a, b){ const pa = a.toUpperCase().split(/\s+/), pb = b.toUpperCase().split(/\s+/); return pa[0] === pb[0] && pa[pa.length - 1] === pb[pb.length - 1]; }
 function closeDrawer(){
-  $("#drawer").classList.remove("on"); $("#scrim").classList.remove("on"); cur = null; hideTip();
+  $("#drawer").classList.remove("on"); $("#scrim").classList.remove("on"); cur = null; hideTip(); setBand(null);
   document.title = "UW Course Lookup";
   if (location.hash.startsWith("#/c/")) history.replaceState(null, "", location.pathname + location.search + "#/" + (lastTab || "courses"));
-  if (lastFocus) lastFocus.focus();
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
 }
 $("#scrim").onclick = closeDrawer;
 
-/* Compare */
-$("#cmpBtn").onclick = () => {
-  const list = [...saved].map(id => BY[id]).filter(Boolean);
+/* ── Compare ──────────────────────────────────────────── */
+const SERIES = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)"];
+function openCompare(){
+  const L = [...saved].map(id => BY[id]).filter(Boolean);
+  if (L.length < 2) return;
+  const inChart = L.slice(0, 4);
+  const series = inChart.map((c, i) => ({name: c.code, color: SERIES[i], points: c.terms.filter(x => x[2] >= 10 && x[0] % 10 !== 6 && termYear(x[0]) >= 2012).map(x => ({x: termYear(x[0]), y: x[1], label: `<b>${esc(c.code)}</b> · ${termLabel(x[0])}<br>GPA ${x[1].toFixed(2)} · ${fmt(x[2])}`}))})).filter(s => s.points.length >= 2);
   const rows = [
-    ["Title", c => esc(c.t)], ["Credits", c => esc(c.cr || "–")], ["GPA", c => "<b>" + f2(c.gpa) + "</b> <span class='muted small'>recent " + f2(c.gr) + "</span>"],
-    ["Grades", c => strip(c.dist, 10)], ["A's", c => pct(c.pa)], ["D or F", c => c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"],
-    ["Trend", c => trendTxt(c.tr) || "–"], ["Instructor spread", c => c.sp == null ? "–" : c.sp.toFixed(2)],
-    [termLabel(TERM), c => nowTxt(c) + (c.now && c.now.who.length ? "<div class='small muted'>" + esc(c.now.who.slice(0, 4).join(", ")) + "</div>" : "")],
-    ["Breadth", c => esc(c.br.join(", ") || "–")], ["Talk", c => c.m + " chat · " + c.rdn + " Reddit"],
+    [t("rTitle"), c => esc(c.t)], [t("rCr"), c => esc(c.cr || "–")], [t("rGpa"), c => `<b>${f2(c.gpa)}</b> <span class="muted small">${esc(t("rRecent"))} ${f2(c.gr)}</span>`],
+    [t("rA"), c => pct(c.pa)], [t("rDF"), c => c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"],
+    [t("rTr"), c => trendTxt(c.tr) || "–"], [t("rSp"), c => c.sp == null ? "–" : c.sp.toFixed(2)],
+    [termLabel(TERM), c => nowTxt(c) + (c.now && c.now.who.length ? `<div class="small muted">${esc(c.now.who.slice(0, 4).join(", "))}</div>` : "")],
+    [t("rBr"), c => esc(c.br.map(brName).join(", ") || "–")], [t("rTalk"), c => [t("chat", c.m), t("reddit", c.rdn)].join(" · ")],
   ];
-  $("#cmp").innerHTML = '<div class="cmp"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h2 style="font:600 20px \'Source Serif 4\',serif;margin:0">Compare saved courses</h2><button class="icon-btn" id="cmpClose" aria-label="Close">✕</button></div><table><thead><tr><th></th>' +
-    list.map(c => '<th><a href="#/c/' + c.id + '" data-close>' + esc(c.code) + "</a></th>").join("") + "</tr></thead><tbody>" +
-    rows.map(([l, f]) => "<tr><th>" + l + "</th>" + list.map(c => "<td>" + f(c) + "</td>").join("") + "</tr>").join("") + "</tbody></table></div>";
-  bindTips($("#cmp"));
+  const dot = c => { const i = inChart.indexOf(c); return i >= 0 ? `<span class="swatch" style="background:${SERIES[i]}"></span>` : ""; };
+  $("#cmp").innerHTML = `<div class="cmp"><div class="cmp-head"><h2 class="serif">${esc(t("cmpTitle"))}</h2><button class="icon-btn" id="cmpClose" aria-label="${esc(t("close"))}">✕</button></div>
+    <div class="minis">${L.map(c => `<div class="mini"><div class="h"><b>${dot(c)}${esc(c.code)}</b><span class="small muted">GPA ${f2(c.gpa)}</span></div>${miniDist(c)}</div>`).join("")}</div>
+    ${series.length ? `<h3 style="font-size:14px;margin:6px 0">${esc(t("cmpTrend"))}</h3>` + lineChart(series, {w: 980, h: 220, label: t("cmpTrend"), endLabels: true}) +
+      `<div class="legend">${series.map(s => `<span><i style="background:${s.color};border-radius:50%"></i>${esc(s.name)}</span>`).join("")}</div>` + (L.length > 4 ? `<p class="small muted">${esc(t("cmpCap", 4))}</p>` : "") : ""}
+    <table><thead><tr><th></th>${L.map(c => `<th>${dot(c)}<a href="#/c/${c.id}" data-close>${esc(c.code)}</a></th>`).join("")}</tr></thead><tbody>
+    ${rows.map(([l, f]) => `<tr><th>${esc(l)}</th>${L.map(c => `<td>${f(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   $("#cmp").showModal();
   $("#cmpClose").onclick = () => $("#cmp").close();
   $("#cmp").querySelectorAll("[data-close]").forEach(a => a.onclick = () => $("#cmp").close());
-};
+}
 
-/* Insights */
+/* ── Insights ─────────────────────────────────────────── */
 function rhoTxt(r){ return r ? "ρ " + (r.rho > 0 ? "+" : "") + r.rho.toFixed(2) + ", p " + (r.p < .001 ? "< .001" : r.p.toFixed(3)) + ", n " + r.n : "–"; }
-function rhoRead(r){ if (!r) return "not enough data"; const a = Math.abs(r.rho); const s = r.p < .05 ? "" : ", not significant"; return (a < .1 ? "no relationship" : a < .3 ? "weak" : a < .5 ? "moderate" : "strong") + (a >= .1 ? (r.rho > 0 ? " positive" : " negative") : "") + s; }
+function rhoRead(r){ if (!r) return t("nodata"); const a = Math.abs(r.rho); return (a < .1 ? t("none") : (a < .3 ? t("weak") : a < .5 ? t("moderate") : t("strong")) + (r.rho > 0 ? t("positive") : t("negative"))) + (r.p < .05 ? "" : t("ns")); }
 function scatter(){
   const pts = C.filter(c => c.gpa != null && c.n >= 50 && c.src === "chat");
   const W = 1080, H = 380, L = 46, R = 16, T = 14, B = 36;
-  const lx = v => Math.log10(v), X = v => L + (W - L - R) * (lx(v) - 0) / (lx(80) - 0);
+  const X = v => L + (W - L - R) * Math.log10(v) / Math.log10(80);
   const y0 = 2.4, y1 = 4.0, Y = v => T + (H - T - B) * (1 - (Math.max(v, y0) - y0) / (y1 - y0));
-  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Chat mentions versus GPA for each course">';
-  for (let v = 2.4; v <= 4.0001; v += .4) s += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + v.toFixed(1) + "</text>";
-  [1, 2, 5, 10, 20, 50].forEach(v => s += '<line class="grid" x1="' + X(v) + '" x2="' + X(v) + '" y1="' + T + '" y2="' + (H - B) + '"/><text x="' + X(v) + '" y="' + (H - 16) + '" text-anchor="middle">' + v + "</text>");
-  s += '<text x="' + ((W + L) / 2) + '" y="' + (H - 1) + '" text-anchor="middle">Chat mentions (log scale)</text><text x="12" y="' + ((H - B) / 2) + '" transform="rotate(-90 12 ' + ((H - B) / 2) + ')" text-anchor="middle">Course GPA</text>';
-  if (INS.campus_gpa) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(INS.campus_gpa) + '" y2="' + Y(INS.campus_gpa) + '" stroke="var(--ref)" stroke-dasharray="4 3"/>';
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(t("xMent"))} / ${esc(t("yGpa"))}">`;
+  for (let v = 2.4; v <= 4.0001; v += .4) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${v.toFixed(1)}</text>`;
+  [1, 2, 5, 10, 20, 50].forEach(v => s += `<line class="grid" x1="${X(v)}" x2="${X(v)}" y1="${T}" y2="${H - B}"/><text x="${X(v)}" y="${H - 16}" text-anchor="middle">${v}</text>`);
+  s += `<text x="${(W + L) / 2}" y="${H - 1}" text-anchor="middle">${esc(t("xMent"))}</text><text x="12" y="${(H - B) / 2}" transform="rotate(-90 12 ${(H - B) / 2})" text-anchor="middle">${esc(t("yGpa"))}</text>`;
+  if (INS.campus_gpa) s += `<line x1="${L}" x2="${W - R}" y1="${Y(INS.campus_gpa)}" y2="${Y(INS.campus_gpa)}" stroke="var(--ref)" stroke-dasharray="4 3"/>`;
   const jit = c => ((c.num * 7919) % 100) / 100 * .5 - .25;
   const labeled = new Set(pts.slice().sort((a, b) => b.m - a.m).slice(0, 7).map(c => c.id).concat(pts.slice().sort((a, b) => a.gpa - b.gpa).slice(0, 3).map(c => c.id)));
   pts.forEach(c => {
-    const x = X(Math.max(1, c.m) * Math.pow(10, jit(c) * .08)), y = Y(c.gpa);
-    s += '<g data-c="' + c.id + '" style="cursor:pointer" data-tip="<b>' + esc(c.code) + "</b> " + esc(c.t) + "<br>GPA " + c.gpa.toFixed(2) + " · " + c.m + " mentions · " + c.n.toLocaleString() + ' students"><circle cx="' + x + '" cy="' + y + '" r="10" fill="transparent"/><circle cx="' + x + '" cy="' + y + '" r="4.5" fill="var(--series)" fill-opacity=".72" stroke="var(--surface)" stroke-width="1.5"/>' +
-      (labeled.has(c.id) ? '<text class="lbl" x="' + (x > W - 140 ? x - 8 : x + 8) + '" y="' + (y + 4) + '"' + (x > W - 140 ? ' text-anchor="end"' : "") + ">" + esc(c.code) + "</text>" : "") + "</g>";
+    const x = X(Math.max(1, c.m) * Math.pow(10, jit(c) * .08)), y = Y(c.gpa), right = x > W - 140;
+    s += `<g data-c="${c.id}" style="cursor:pointer" data-tip="<b>${esc(c.code)}</b> ${esc(c.t)}<br>GPA ${c.gpa.toFixed(2)} · ${esc(t("chat", c.m))} · ${fmt(c.n)}"><circle cx="${x}" cy="${y}" r="10" fill="transparent"/><circle cx="${x}" cy="${y}" r="4.5" fill="var(--series)" fill-opacity=".72" stroke="var(--surface)" stroke-width="1.5"/>` +
+      (labeled.has(c.id) ? `<text class="lbl" x="${right ? x - 8 : x + 8}" y="${y + 4}"${right ? ' text-anchor="end"' : ""}>${esc(c.code)}</text>` : "") + "</g>";
   });
   return s + "</svg>";
 }
-function dotPlot(rows, key, lo, hi, label){
-  const W = 520, rowH = 30, L = 70, R = 60, H = rows.length * rowH + 26, X = v => L + (W - L - R) * (v - lo) / (hi - lo);
-  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="' + esc(label) + '">';
-  for (let v = lo; v <= hi + 1e-9; v += .2) s += '<line class="grid" x1="' + X(v) + '" x2="' + X(v) + '" y1="4" y2="' + (H - 22) + '"/><text x="' + X(v) + '" y="' + (H - 6) + '" text-anchor="middle">' + v.toFixed(1) + "</text>";
-  rows.forEach((r, i) => { const y = 16 + i * rowH;
-    s += '<g data-tip="<b>' + esc(r.level) + "</b>: weighted GPA " + r.gpa.toFixed(2) + ", median course " + r.median_course_gpa.toFixed(2) + " (" + r.courses + ' courses)"><rect x="0" y="' + (y - 13) + '" width="' + W + '" height="' + rowH + '" fill="transparent"/><text class="lbl" x="0" y="' + (y + 4) + '">' + esc(r.level) + '</text><line x1="' + X(Math.min(r.gpa, r.median_course_gpa)) + '" x2="' + X(Math.max(r.gpa, r.median_course_gpa)) + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-width="3"/>' +
-      '<circle cx="' + X(r.median_course_gpa) + '" cy="' + y + '" r="5" fill="var(--surface)" stroke="var(--series)" stroke-width="2"/><circle cx="' + X(r.gpa) + '" cy="' + y + '" r="5.5" fill="var(--series)"/><text x="' + (W - R + 8) + '" y="' + (y + 4) + '">' + r.gpa.toFixed(2) + "</text></g>"; });
-  return s + '</svg><div class="legend"><span><i style="background:var(--series);border-radius:50%"></i>Weighted by students</span><span><i style="border:2px solid var(--series);border-radius:50%;background:none"></i>Median course</span></div>';
+function dotPlot(rows, lo, hi){
+  const W = 520, rowH = 30, L = 76, R = 60, H = rows.length * rowH + 26, X = v => L + (W - L - R) * (v - lo) / (hi - lo);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(t("p4"))}">`;
+  for (let v = lo; v <= hi + 1e-9; v += .2) s += `<line class="grid" x1="${X(v)}" x2="${X(v)}" y1="4" y2="${H - 22}"/><text x="${X(v)}" y="${H - 6}" text-anchor="middle">${v.toFixed(1)}</text>`;
+  rows.forEach((r, i) => { const y = 16 + i * rowH, lvl = LANG === "zh" && r.level === "Under 100" ? "100 以下" : r.level;
+    s += `<g data-tip="${esc(t("lvlTip", lvl, r.gpa.toFixed(2), r.median_course_gpa.toFixed(2), r.courses))}"><rect x="0" y="${y - 13}" width="${W}" height="${rowH}" fill="transparent"/><text class="lbl" x="0" y="${y + 4}">${esc(lvl)}</text>
+      <line x1="${X(Math.min(r.gpa, r.median_course_gpa))}" x2="${X(Math.max(r.gpa, r.median_course_gpa))}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="3"/>
+      <circle cx="${X(r.median_course_gpa)}" cy="${y}" r="5" fill="var(--surface)" stroke="var(--series)" stroke-width="2"/><circle cx="${X(r.gpa)}" cy="${y}" r="5.5" fill="var(--series)"/><text x="${W - R + 8}" y="${y + 4}">${r.gpa.toFixed(2)}</text></g>`; });
+  return s + `</svg><div class="legend"><span><i style="background:var(--series);border-radius:50%"></i>${esc(t("wStudents"))}</span><span><i style="border:2px solid var(--series);border-radius:50%;background:none"></i>${esc(t("medCourse"))}</span></div>`;
 }
 function dumbbell(rows){
   const W = 1080, rowH = 32, L = 110, R = 16, H = rows.length * rowH + 28, lo = 1.8, hi = 4.0, X = v => L + (W - L - R) * (v - lo) / (hi - lo);
-  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Lowest and highest instructor GPA within the same course">';
-  for (let v = 2.0; v <= 4.0001; v += .5) s += '<line class="grid" x1="' + X(v) + '" x2="' + X(v) + '" y1="4" y2="' + (H - 22) + '"/><text x="' + X(v) + '" y="' + (H - 6) + '" text-anchor="middle">' + v.toFixed(1) + "</text>";
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(t("p2"))}">`;
+  for (let v = 2.0; v <= 4.0001; v += .5) s += `<line class="grid" x1="${X(v)}" x2="${X(v)}" y1="4" y2="${H - 22}"/><text x="${X(v)}" y="${H - 6}" text-anchor="middle">${v.toFixed(1)}</text>`;
   rows.forEach((r, i) => { const y = 18 + i * rowH, id = r.code.replace(/ /g, "-");
-    s += '<g data-c="' + id + '" style="cursor:pointer"><rect x="0" y="' + (y - 14) + '" width="' + W + '" height="' + rowH + '" fill="transparent"/><text class="lbl" x="0" y="' + (y + 4) + '">' + esc(r.code) + '</text>' +
-      '<line x1="' + X(r.low.gpa) + '" x2="' + X(r.high.gpa) + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>' +
-      '<g data-tip="<b>' + esc(r.low.name) + "</b><br>GPA " + r.low.gpa.toFixed(2) + " · " + r.low.n + ' students"><circle cx="' + X(r.low.gpa) + '" cy="' + y + '" r="9" fill="transparent"/><circle cx="' + X(r.low.gpa) + '" cy="' + y + '" r="5.5" fill="var(--gF)"/></g>' +
-      '<g data-tip="<b>' + esc(r.high.name) + "</b><br>GPA " + r.high.gpa.toFixed(2) + " · " + r.high.n + ' students"><circle cx="' + X(r.high.gpa) + '" cy="' + y + '" r="9" fill="transparent"/><circle cx="' + X(r.high.gpa) + '" cy="' + y + '" r="5.5" fill="var(--gA)"/></g>' +
-      '<text x="' + ((X(r.low.gpa) + X(r.high.gpa)) / 2) + '" y="' + (y - 8) + '" text-anchor="middle">' + r.spread.toFixed(2) + "</text></g>"; });
-  return s + '</svg><div class="legend"><span><i style="background:var(--gA);border-radius:50%"></i>Most generous instructor</span><span><i style="background:var(--gF);border-radius:50%"></i>Least generous instructor</span></div>';
+    s += `<g data-c="${id}" style="cursor:pointer"><rect x="0" y="${y - 14}" width="${W}" height="${rowH}" fill="transparent"/><text class="lbl" x="0" y="${y + 4}">${esc(r.code)}</text>
+      <line x1="${X(r.low.gpa)}" x2="${X(r.high.gpa)}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>
+      <g data-tip="<b>${esc(r.low.name)}</b><br>GPA ${r.low.gpa.toFixed(2)} · ${fmt(r.low.n)}"><circle cx="${X(r.low.gpa)}" cy="${y}" r="9" fill="transparent"/><circle cx="${X(r.low.gpa)}" cy="${y}" r="5.5" fill="var(--gF)"/></g>
+      <g data-tip="<b>${esc(r.high.name)}</b><br>GPA ${r.high.gpa.toFixed(2)} · ${fmt(r.high.n)}"><circle cx="${X(r.high.gpa)}" cy="${y}" r="9" fill="transparent"/><circle cx="${X(r.high.gpa)}" cy="${y}" r="5.5" fill="var(--gA)"/></g>
+      <text x="${(X(r.low.gpa) + X(r.high.gpa)) / 2}" y="${y - 8}" text-anchor="middle">${r.spread.toFixed(2)}</text></g>`; });
+  return s + `</svg><div class="legend"><span><i style="background:var(--gA);border-radius:50%"></i>${esc(t("most"))}</span><span><i style="background:var(--gF);border-radius:50%"></i>${esc(t("least"))}</span></div>`;
 }
 function courseTable(rows, cols){
-  return "<table><thead><tr>" + cols.map(c => "<th" + (c[2] ? ' class="r"' : "") + ">" + c[0] + "</th>").join("") + "</tr></thead><tbody>" +
-    rows.map(r => '<tr data-c="' + r.code.replace(/ /g, "-") + '">' + cols.map(c => "<td" + (c[2] ? ' class="r"' : "") + ">" + c[1](r) + "</td>").join("") + "</tr>").join("") + "</tbody></table>";
+  return `<table><thead><tr>${cols.map(c => `<th${c[2] ? ' class="r"' : ""}>${esc(c[0])}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(r => `<tr data-c="${r.code.replace(/ /g, "-")}">${cols.map(c => `<td${c[2] ? ' class="r"' : ""}>${c[1](r)}</td>`).join("")}</tr>`).join("") + "</tbody></table>";
 }
-let insDone = false;
+const panel = (title, lede, body, wide) => `<div class="panel${wide ? " wide" : ""}"><h2 class="serif">${esc(title)}</h2><p class="lede">${esc(lede)}</p>${body}</div>`;
+let insLang = null;
 function renderInsights(){
-  if (insDone) return; insDone = true;
+  if (insLang === LANG) return; insLang = LANG;
   const k = INS.counts || {}, cr = INS.correlations || {};
-  let h = '<div class="stats">' + [
-    [k.courses, k.from_chat + " from student chat, " + k.from_enrollment + " large courses added"], [(k.graded_students || 0).toLocaleString(), "letter grades analysed"],
-    [(k.instructors || 0).toLocaleString(), "instructors"], [k.reddit_threads, "r/UWMadison threads"],
-    [k.offered_now, "offered " + termLabel(TERM)], [k.rejected_seed_codes, "chat codes rejected as not real courses"]].map(([v, l]) => '<div class="stat"><b>' + v + "</b><span>" + l + "</span></div>").join("") + "</div>";
-  h += '<div class="grid2">';
-  h += '<div class="panel wide"><h2>Popular doesn\'t mean easy</h2><p class="lede">Each dot is a course. How much students talk about a course says almost nothing about how it grades (' + rhoTxt(cr.mentions_vs_gpa) + '). The busiest courses are mostly required intro sequences, and those land on both sides of the average (dashed line). Click a dot to open the course.</p>' + scatter() + "</div>";
-  h += '<div class="panel wide"><h2>The instructor can matter more than the course</h2><p class="lede">Same course number, same catalog description, and a gap of more than a full letter grade between instructors. Check who is teaching before you judge a course by its average.</p>' + dumbbell((INS.instructor_spread || []).slice(0, 10)) + "</div>";
-  h += '<div class="panel"><h2>Do peer signals track grades?</h2><p class="lede">Spearman rank correlation with a permutation test. Reddit is the one peer signal that tracks grades: courses whose threads sound upbeat really do grade higher. Chat volume and chat sentiment do not. Both tone scores come from keyword matching, so treat them as rough.</p><table><thead><tr><th>Signal</th><th>Result</th><th>Reading</th></tr></thead><tbody>' +
-    [["Chat mentions vs GPA", cr.mentions_vs_gpa], ["Chat sentiment vs GPA", cr.chat_sentiment_vs_gpa], ["Reddit tone vs GPA", cr.reddit_tone_vs_gpa], ["Chat vs Reddit volume", cr.chat_vs_reddit_volume], ["Course number vs GPA", cr.course_level_vs_gpa]]
-      .map(([l, r]) => "<tr><td>" + l + '</td><td class="small">' + rhoTxt(r) + '</td><td class="small">' + rhoRead(r) + "</td></tr>").join("") + "</tbody></table></div>";
-  h += '<div class="panel"><h2>GPA by course level</h2><p class="lede">The 200s and 300s grade hardest. That is where the gateway math, chemistry and economics courses sit. Grad-level courses grade easiest.</p>' + dotPlot(INS.by_level || [], "gpa", 2.8, 3.8, "GPA by course level") + "</div>";
-  if ((INS.campus_trend || []).length > 4){
-    h += '<div class="panel wide"><h2>Grades over time, all tracked courses</h2><p class="lede">GPA across every tracked course by fall and spring term, weighted by students. Grades have crept up by roughly a third of a letter since 2006, and the spring 2020 spike is the pandemic term, when many students switched courses to pass/fail. Summer terms are left out.</p>' +
-      lineChart(INS.campus_trend.map(t => ({x: termYear(t.term), y: t.gpa, label: "<b>" + t.label + "</b><br>GPA " + t.gpa.toFixed(3) + " · " + t.graded.toLocaleString() + " grades"})), {w: 1080, h: 240, label: "GPA over time across tracked courses", notes: [{x: termYear(1204), text: "Spring 2020: pandemic grading"}]}) + "</div>";
-  }
-  const tcols = [["Course", r => "<b>" + esc(r.code) + '</b> <span class="muted small">' + esc(r.title) + "</span>"], ["GPA", r => f2(r.gpa), 1], ["Per year", r => trendTxt(r.trend), 1]];
-  h += '<div class="panel"><h2>Grading got easier</h2><p class="lede">Steepest upward GPA slope since fall 2016.</p>' + courseTable(INS.rising || [], tcols) + "</div>";
-  h += '<div class="panel"><h2>Grading got harder</h2><p class="lede">Steepest downward slope over the same window.</p>' + courseTable(INS.falling || [], tcols) + "</div>";
-  h += '<div class="panel"><h2>Popular and tough</h2><p class="lede">Courses mentioned at least 8 times, lowest GPA first.</p>' + courseTable(INS.popular_and_tough || [], [tcols[0], ["GPA", r => f2(r.gpa), 1], ["D or F", r => (r.pct_df * 100).toFixed(1) + "%", 1]]) + "</div>";
-  h += '<div class="panel"><h2>High GPA, rarely discussed</h2><p class="lede">At least 300 graded students and three or fewer chat mentions, ranked by adjusted GPA.</p>' + courseTable(INS.quiet_high_gpa || [], [tcols[0], ["GPA", r => f2(r.gpa), 1], ["Students", r => r.graded.toLocaleString(), 1]]) + "</div>";
-  h += '<div class="panel wide"><h2>By subject</h2><p class="lede">Subjects with at least three tracked courses, most discussed first.</p><table><thead><tr><th>Subject</th><th class="r">Courses</th><th class="r">Mentions</th><th class="r">GPA</th></tr></thead><tbody>' +
-    (INS.by_subject || []).map(s => '<tr style="cursor:pointer" data-subj="' + esc(s.subject) + '"><td><b>' + esc(s.subject) + '</b></td><td class="r">' + s.courses + '</td><td class="r">' + s.mentions + '</td><td class="r">' + f2(s.gpa) + "</td></tr>").join("") + "</tbody></table></div>";
-  h += "</div>";
-  const v = $("#v-insights"); v.innerHTML = h; bindTips(v);
-  v.addEventListener("click", e => {
-    const c = e.target.closest("[data-c]"); if (c && BY[c.dataset.c]){ location.hash = "#/c/" + c.dataset.c; return; }
-    const s = e.target.closest("[data-subj]"); if (s){ $("#fSubj").value = s.dataset.subj; location.hash = "#/courses"; render(); syncQuery(); }
-  });
+  let h = `<div class="stats">` + [
+    [k.courses, t("st_courses", k.from_chat, k.from_enrollment)], [fmt(k.graded_students), t("st_grades")],
+    [fmt(k.instructors), t("st_instr")], [k.reddit_threads, t("st_reddit")],
+    [k.offered_now, t("st_now", termLabel(TERM))], [k.rejected_seed_codes, t("st_rej")]].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${esc(l)}</span></div>`).join("") + "</div><div class=\"grid2\">";
+  h += panel(t("p1"), t("p1l", rhoTxt(cr.mentions_vs_gpa)), scatter(), true);
+  h += panel(t("p2"), t("p2l"), dumbbell((INS.instructor_spread || []).slice(0, 10)), true);
+  h += panel(t("p3"), t("p3l"), `<table><thead><tr><th>${esc(t("thSignal"))}</th><th>${esc(t("thResult"))}</th><th>${esc(t("thReading"))}</th></tr></thead><tbody>` +
+    [["c1", cr.mentions_vs_gpa], ["c2", cr.chat_sentiment_vs_gpa], ["c3", cr.reddit_tone_vs_gpa], ["c4", cr.chat_vs_reddit_volume], ["c5", cr.course_level_vs_gpa]]
+      .map(([l, r]) => `<tr><td>${esc(t(l))}</td><td class="small">${rhoTxt(r)}</td><td class="small">${esc(rhoRead(r))}</td></tr>`).join("") + "</tbody></table>");
+  h += panel(t("p4"), t("p4l"), dotPlot(INS.by_level || [], 2.8, 4.0));
+  if ((INS.campus_trend || []).length > 4)
+    h += panel(t("p5"), t("p5l"), lineChart([{name: "", color: "var(--series)", points: INS.campus_trend.map(x => ({x: termYear(x.term), y: x.gpa, label: `<b>${termLabel(x.term)}</b><br>GPA ${x.gpa.toFixed(3)} · ${fmt(x.graded)}`}))}], {w: 1080, h: 240, label: t("p5"), notes: [{x: termYear(1204), text: t("pandemic")}]}), true);
+  const tcols = [[t("thCourse"), r => `<b>${esc(r.code)}</b> <span class="muted small">${esc(r.title)}</span>`], ["GPA", r => f2(r.gpa), 1], [t("thPerYr"), r => trendTxt(r.trend), 1]];
+  h += panel(t("p6"), t("p6l"), courseTable(INS.rising || [], tcols));
+  h += panel(t("p7"), t("p7l"), courseTable(INS.falling || [], tcols));
+  h += panel(t("p8"), t("p8l"), courseTable(INS.popular_and_tough || [], [tcols[0], ["GPA", r => f2(r.gpa), 1], [t("rDF"), r => (r.pct_df * 100).toFixed(1) + "%", 1]]));
+  h += panel(t("p9"), t("p9l"), courseTable(INS.quiet_high_gpa || [], [tcols[0], ["GPA", r => f2(r.gpa), 1], [t("thN"), r => fmt(r.graded), 1]]));
+  h += panel(t("p10"), t("p10l"), `<table><thead><tr><th>${esc(t("thSubj"))}</th><th class="r">${esc(t("thCourses"))}</th><th class="r">${esc(t("thMent"))}</th><th class="r">GPA</th></tr></thead><tbody>` +
+    (INS.by_subject || []).map(s => `<tr data-subj="${esc(s.subject)}"><td><b>${esc(s.subject)}</b></td><td class="r">${s.courses}</td><td class="r">${s.mentions}</td><td class="r">${f2(s.gpa)}</td></tr>`).join("") + "</tbody></table>", true);
+  $("#v-insights").innerHTML = h + "</div>";
 }
+$("#v-insights").addEventListener("click", e => {
+  const c = e.target.closest("[data-c]"); if (c && BY[c.dataset.c]){ location.hash = "#/c/" + c.dataset.c; return; }
+  const s = e.target.closest("[data-subj]"); if (s){ $("#fSubj").value = s.dataset.subj; location.hash = "#/courses"; onFilter(); }
+});
+$("#v-insights").addEventListener("pointerover", e => { const g = e.target.closest("[data-c]"); if (g && BY[g.dataset.c]) setBand(BY[g.dataset.c]); });
+$("#v-insights").addEventListener("pointerleave", () => setBand(cur));
 
-/* Router */
+/* ── Language ─────────────────────────────────────────── */
+function applyLang(){
+  document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
+  $$("[data-t]").forEach(el => el.innerHTML = esc(t(el.dataset.t)));
+  $$("[data-tp]").forEach(el => el.placeholder = t(el.dataset.tp));
+  $$("[data-tt]").forEach(el => { el.title = t(el.dataset.tt); el.setAttribute("aria-label", t(el.dataset.tt)); });
+  $$("[data-lang]").forEach(el => el.hidden = el.dataset.lang !== LANG);
+  $("#langBtn").textContent = t("langBtn");
+  $("#fNowLbl").textContent = t("offered", termLabel(TERM));
+  const keepSubj = $("#fSubj").value, keepBr = $("#fBr").value;
+  $("#fSubj").innerHTML = `<option value="">${esc(t("allSubj"))}</option>` + subjects.map(s => `<option>${esc(s)}</option>`).join("");
+  $("#fBr").innerHTML = `<option value="">${esc(t("anyBr"))}</option>` + breadths.map(s => `<option value="${esc(s)}">${esc(brName(s))}</option>`).join("") + `<option value="__es">${esc(t("esOpt"))}</option><option value="__ge">${esc(t("geOpt"))}</option>`;
+  $("#fSubj").value = keepSubj; $("#fBr").value = keepBr;
+  $("#keys").innerHTML = t("keys");
+  $("#foot").innerHTML = `<p>${t("foot", esc(D.meta.built_at.slice(0, 10)))} <a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">${esc(t("src"))}</a>.</p>`;
+  const bc = bandCourse; bandCourse = undefined; setBand(bc || null);
+  renderLenses(); render();
+  if (lastTab === "insights") renderInsights();
+  if (cur) openDrawer(cur.id, true);
+}
+$("#langBtn").onclick = () => { LANG = LANG === "zh" ? "en" : "zh"; store.set("lang", LANG); applyLang(); };
+
+/* ── Router ───────────────────────────────────────────── */
 let lastTab = "courses";
 function route(){
   const h = location.hash || "#/courses";
   const m = h.match(/^#\/c\/(.+)$/);
-  if (m){ if (!document.querySelector("section:not([hidden])")) show(lastTab); openDrawer(decodeURIComponent(m[1])); return; }
-  if ($("#drawer").classList.contains("on")){ $("#drawer").classList.remove("on"); $("#scrim").classList.remove("on"); cur = null; }
-  const tab = (h.match(/^#\/(courses|insights|about)/) || [, "courses"])[1];
-  show(tab);
+  if (m){ openDrawer(decodeURIComponent(m[1])); return; }
+  if ($("#drawer").classList.contains("on")){ $("#drawer").classList.remove("on"); $("#scrim").classList.remove("on"); cur = null; setBand(null); }
+  show((h.match(/^#\/(courses|insights|about)/) || [, "courses"])[1]);
 }
 function show(tab){
   lastTab = tab;
-  for (const t of ["courses", "insights", "about"]) $("#v-" + t).hidden = t !== tab;
-  document.querySelectorAll("nav.tabs a").forEach(a => a.dataset.tab === tab ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  for (const x of ["courses", "insights", "about"]) $("#v-" + x).hidden = x !== tab;
+  $$("nav.tabs a").forEach(a => a.dataset.tab === tab ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   if (tab === "insights") renderInsights();
 }
 addEventListener("hashchange", route);
-
-$("#foot").innerHTML = "Built " + esc(D.meta.built_at.slice(0, 10)) + " from MadGrades, UW Course Search &amp; Enroll, r/UWMadison and anonymized chat counts. Not affiliated with UW–Madison. " +
-  '<a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">Source and data on GitHub</a>.';
-render();
+applyLang();
 route();
 </script>
 </body></html>

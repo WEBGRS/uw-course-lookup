@@ -38,11 +38,28 @@ if (!hit.includes("COMP-SCI-300")) problems.push('"cs 300" did not find COMP SCI
 
 // Every sort keeps the list non-empty
 await page.fill("#q", "");
-for (const v of ["gpa", "gpaL", "pa", "tr", "sp", "rd", "en", "code", "m"]) {
+for (const v of ["gpa", "gpaL", "pa", "tr", "tl", "sp", "rd", "en", "code", "m"]) {
   await page.selectOption("#sort", v);
   const n = await page.$$eval(".row[data-id]", (r) => r.length);
   if (!n) problems.push(`sort ${v} emptied the list`);
 }
+
+// Lenses narrow the list and the band follows the hovered row
+await page.click('[data-lens="easy"]');
+const easy = await page.$$eval(".row[data-id]", (r) => r.length);
+if (!easy || easy >= s.rows) problems.push(`lens "easy" did not narrow the list (${easy})`);
+await page.click('[data-lens="easy"]');
+const before = await page.textContent("#bandL");
+await page.hover(".row[data-id]:nth-of-type(3)");
+await page.waitForTimeout(200);
+if ((await page.textContent("#bandL")) === before) problems.push("grade band did not follow the hovered row");
+
+// Chinese UI
+await page.click("#langBtn");
+const zh = await page.evaluate(() => ({ lang: document.documentElement.lang, tab: document.querySelector('[data-tab="courses"]').textContent }));
+console.log("zh", JSON.stringify(zh));
+if (zh.lang !== "zh-CN" || zh.tab !== "课程") problems.push("language toggle did not switch to Chinese");
+await page.click("#langBtn");
 
 // Course drawer renders charts and outbound links
 await page.goto(URL.split("#")[0] + "#/c/MATH-234");
@@ -55,7 +72,10 @@ const d = await page.evaluate(() => ({
   rmp: document.querySelector('#drawer a[href*="ratemyprofessors.com"]')?.href,
 }));
 console.log(JSON.stringify(d));
-if (d.charts < 2) problems.push("drawer is missing charts");
+if (d.charts < 3) problems.push("drawer is missing charts");
+await page.keyboard.press("ArrowRight");
+await page.waitForTimeout(200);
+if ((await page.evaluate(() => location.hash)) === "#/c/MATH-234") problems.push("ArrowRight did not move to the next course");
 if (!d.instructors) problems.push("drawer has no instructors");
 if (!d.mg || !d.rmp) problems.push("drawer is missing MadGrades or RMP links");
 
