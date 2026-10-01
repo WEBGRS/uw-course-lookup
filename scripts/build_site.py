@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Export data/uwcourses.db -> assets/data.js, render index.html.
+"""Export data/uwcourses.db -> worker/data.json (private, deployed to the cloud API), render index.html.
 
-Data ships as <script> files (not fetch) so the page also works from file://.
+The page itself carries no course data: it asks the API for pages of results. Chat-derived counts
+below K_ANON are withheld everywhere in the export.
 
 Usage:
     python scripts/build_site.py
@@ -15,7 +16,9 @@ ROOT = uwapi.ROOT
 DB = os.path.join(ROOT, "data", "uwcourses.db")
 INSIGHTS = os.path.join(ROOT, "data", "insights.json")
 TEMPLATE = os.path.join(os.path.dirname(__file__), "index.template.html")
-ASSETS = os.path.join(ROOT, "assets")
+WORKER_DATA = os.path.join(ROOT, "worker", "data.json")
+CONFIG = os.path.join(ROOT, "site.config.json")
+K_ANON = 3  # chat counts below this are never published per course
 MAX_INSTR = 14
 MAX_INSTR_CATALOG = 10
 MAX_THREADS = 8
@@ -32,6 +35,24 @@ def nice(name):
 
 def r3(v):
     return round(v, 3) if isinstance(v, float) else v
+
+
+def strip_low(o):
+    """Drop per-course chat counts below K_ANON from the aggregate lists."""
+    if isinstance(o, dict):
+        return {k: strip_low(v) for k, v in o.items() if not (k == "mentions" and isinstance(v, int) and v < K_ANON)}
+    if isinstance(o, list):
+        return [strip_low(v) for v in o]
+    return o
+
+
+def public_insights(ins, courses):
+    keep = {k: strip_low(v) for k, v in ins.items() if k != "by_subject"}
+    keep["by_subject"] = [{**r, "mentions": None if 0 < r["mentions"] < K_ANON else r["mentions"]}
+                          for r in ins.get("by_subject", [])]  # null = fewer than K_ANON
+    keep["scatter"] = [[c["id"], c["code"], c["t"], c["gpa"], c.get("m", 0), c["n"], c["num"]] for c in courses
+                       if c.get("src") == "chat" and c.get("gpa") is not None and c.get("n", 0) >= 50]
+    return keep
 
 
 def export(db):
@@ -83,11 +104,14 @@ def export(db):
         aliases = [a for (a,) in db.execute("SELECT alias FROM course_aliases WHERE course_id=? AND alias<>?",
                                              (cid, code))]
         cr = (f"{cmin:g}" if cmin == cmax else f"{cmin:g}–{cmax:g}") if cmin is not None else None
+        hidden = src == "chat" and (men or 0) < K_ANON
+        if hidden:
+            men = pos = neg = 0
         rec = {
             "id": code.replace(" ", "-"), "code": code, "al": aliases, "sa": subj.get(sc, (None,))[0],
             "sn": nice(subj.get(sc, (None, None))[1]), "num": num, "t": title, "d": desc, "cr": cr,
             "prq": prq, "br": json.loads(br or "[]"), "ge": ge, "es": es, "lvl": lvl, "typ": typ, "last": last,
-            "now": now_obj, "mg": uuid, "src": src, "en": enr, "m": men, "pos": pos, "neg": neg,
+            "now": now_obj, "mg": uuid, "src": src, "en": enr, "m": men, "ms": 1 if hidden else 0, "pos": pos, "neg": neg,
             "n": graded or 0, "gpa": r3(gpa), "gr": r3(gpa_r), "gs": r3(gpa_s), "pa": r3(pa), "pdf": r3(pdf),
             "tr": r3(tr), "sp": r3(sp), "dist": list(dist) if dist[0] is not None else None,
             "terms": terms, "ins": ins, "rd": rd[:MAX_THREADS], "rdn": rdn or 0, "rdt": r3(rdt)}
@@ -96,21 +120,27 @@ def export(db):
         out.append(rec)
     campus = db.execute("SELECT SUM(a),SUM(ab),SUM(b),SUM(bc),SUM(c),SUM(d),SUM(f) FROM grade_terms").fetchone()
     insights = json.load(open(INSIGHTS, encoding="utf-8")) if os.path.exists(INSIGHTS) else {}
-    return {"meta": {**meta, "campusDist": list(campus)}, "courses": out, "insights": insights}
+    insights = public_insights(insights, out)
+    meta = {**meta, "campusDist": list(campus), "campusGpa": insights.get("campus_gpa")}
+    return {"meta": meta, "courses": out, "insights": insights}
 
 
 def main():
     db = sqlite3.connect(DB)
     data = export(db)
-    os.makedirs(ASSETS, exist_ok=True)
+    ids = [c["id"] for c in data["courses"]]
+    assert len(ids) == len(set(ids)), "duplicate course ids"
+    os.makedirs(os.path.dirname(WORKER_DATA), exist_ok=True)
     js = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
-    open(os.path.join(ASSETS, "data.js"), "w", encoding="utf-8").write("window.UWCL=" + js + ";\n")
-    stale = os.path.join(ASSETS, "catalog.js")  # superseded: every catalog course is in data.js now
-    if os.path.exists(stale):
-        os.remove(stale)
-    html = open(TEMPLATE, encoding="utf-8").read().replace("__BUILT__", data["meta"]["built_at"][:10])
+    open(WORKER_DATA, "w", encoding="utf-8").write(js)
+    for stale in ("data.js", "catalog.js"):  # data no longer ships with the page
+        f = os.path.join(ROOT, "assets", stale)
+        if os.path.exists(f):
+            os.remove(f)
+    api = json.load(open(CONFIG, encoding="utf-8")).get("api", "") if os.path.exists(CONFIG) else ""
+    html = open(TEMPLATE, encoding="utf-8").read().replace("__BUILT__", data["meta"]["built_at"][:10]).replace("__API__", api)
     open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8").write(html)
-    print(f"{len(data['courses'])} courses ({len(js) // 1024} KB) -> assets/data.js, index.html")
+    print(f"{len(data['courses'])} courses ({len(js) // 1024} KB) -> worker/data.json, index.html (api: {api or 'same origin'})")
 
 
 if __name__ == "__main__":

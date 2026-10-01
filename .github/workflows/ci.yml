@@ -10,10 +10,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Unit + database tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Pipeline unit tests (database tests skip when the private data is absent)
         run: python -m unittest discover -s tests -v
-      - name: Site data parses
+      - name: API tests
+        run: cd worker && node --test "test/*.test.mjs"
+      - name: No private data in the repo
         run: |
-          node -e "global.window={};require('./assets/data.js');
-            const d=window.UWCL; if(!d||d.courses.length<4000) process.exit(1);
-            console.log(d.courses.length+' courses')"
+          for f in courses.json worker/data.json data/uwcourses.db assets/data.js; do
+            if [ -e "$f" ]; then echo "private file committed: $f"; exit 1; fi
+          done

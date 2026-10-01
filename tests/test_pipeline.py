@@ -178,6 +178,7 @@ class DatabaseTests(unittest.TestCase):
         for bad in ("author", "user", "username", "sender", "wxid", "message", "text", "body"):
             self.assertNotIn(bad, cols)
 
+    @unittest.skipUnless(os.path.exists(os.path.join(ROOT, "courses.json")), "private seed file not present")
     def test_seed_file_is_aggregate_only(self):
         with open(os.path.join(ROOT, "courses.json"), encoding="utf-8") as f:
             rows = json.load(f)

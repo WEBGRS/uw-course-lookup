@@ -373,16 +373,24 @@ footer p{margin:0 0 6px}
 <dialog id="cmp"></dialog>
 <div class="tip" id="tip" aria-hidden="true"></div>
 
-<script src="assets/data.js"></script>
+<script>window.UWCL_API = "";</script>
 <script>
 "use strict";
-const D = window.UWCL, C = D.courses, INS = D.insights || {};
-C.forEach(c => { c.al ||= []; c.br ||= []; c.ins ||= []; c.rd ||= []; c.terms ||= []; c.m ||= 0; c.pos ||= 0; c.neg ||= 0; c.rdn ||= 0; c.n ||= 0; c.es ||= 0; c.sn ??= ""; c.t ??= ""; });
-const BY = Object.fromEntries(C.map(c => [c.id, c]));
+// No course data ships with this page: everything comes from the API in pages.
+const API = (new URLSearchParams(location.search).get("api") || window.UWCL_API || "").replace(/\/$/, "");
+async function api(path, params){
+  const u = new URL(API + path, location.href);
+  if (params) u.search = new URLSearchParams(params).toString();
+  const r = await fetch(u, {headers: {Accept: "application/json"}});
+  if (!r.ok){ const e = new Error("HTTP " + r.status); e.status = r.status; throw e; }
+  return r.json();
+}
+let META = null, INS = {}, CD = [1, 1, 1, 1, 1, 1, 1], CT = 7, TERM = 0, FIRST = 2006;  // set by boot()
+const ROW = {}, DET = {};  // id -> list row / full record
+const rec = id => DET[id] || ROW[id];
+const fill = c => { c.al ||= []; c.br ||= []; c.ins ||= []; c.rd ||= []; c.terms ||= []; c.m ||= 0; c.pos ||= 0; c.neg ||= 0; c.rdn ||= 0; c.n ||= 0; c.es ||= 0; c.sn ??= ""; c.t ??= ""; return c; };
 const G = ["A","AB","B","BC","C","D","F"], GV = ["--gA","--gAB","--gB","--gBC","--gC","--gD","--gF"];
-const PAGE = 60, TERM = +D.meta.term;
 const MOB = () => matchMedia("(max-width:640px)").matches;
-const FIRST = Math.min(...C.filter(c => c.terms.length).map(c => c.terms[0][0]));
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
@@ -401,6 +409,8 @@ const TX = {
   en: {
     tagline: "Grade history, instructor-by-instructor GPA, this term's sections and what students say, for UW–Madison courses.",
     taglineS: "Grades, instructors, seats and student talk.", filters: n => n ? "Filters · " + n : "Filters",
+    loading: "Loading courses…", apiError: "Can't reach the course server.", retry: "Try again", chatFew: "chat <3",
+    sayChatFew: "Mentioned in a UW student group chat fewer than three times, so no count is shown.",
     enrolledN: n => fmt(n) + " enrolled", seatsAsOf: d => "Enrollment snapshot " + d, thLinks: "Links", courseDetails: "Course details",
     langTip: "切换到中文", langBtn: "中文", themeTip: "Switch light or dark theme",
     tabCourses: "Courses", tabInsights: "Insights", tabAbout: "About the data",
@@ -477,6 +487,8 @@ const TX = {
   zh: {
     tagline: "UW–Madison 课程的历年给分、每位老师的 GPA、本学期开课情况和同学评价，一页看全。",
     taglineS: "给分、老师、座位和同学评价。", filters: n => n ? "筛选 · " + n : "筛选",
+    loading: "正在加载课程…", apiError: "连不上课程服务器。", retry: "重试", chatFew: "群聊 <3",
+    sayChatFew: "在 UW 学生群里被提到不到 3 次，所以不显示具体次数。",
     enrolledN: n => fmt(n) + " 人已注册", seatsAsOf: d => d + " 选课快照", thLinks: "链接", courseDetails: "课程详情",
     langTip: "Switch to English", langBtn: "EN", themeTip: "切换深浅色",
     tabCourses: "课程", tabInsights: "数据洞察", tabAbout: "数据说明",
@@ -599,7 +611,6 @@ function strip(dist, h){
 $("#bandRow").innerHTML = G.map((g, i) => `<div class="seg" style="background:var(${GV[i]});color:var(--t${g})"><span class="g"></span><span class="p"></span></div>`).join("");
 $("#bandTicks").innerHTML = G.slice(0, 6).map(() => "<i></i>").join("");
 const SEGS = $$("#bandRow .seg"), TICKS = $$("#bandTicks i");
-const CD = D.meta.campusDist, CT = CD.reduce((a, b) => a + b, 0);
 let bandCourse;
 function setBand(c){
   if (c === bandCourse) return;
@@ -610,85 +621,39 @@ function setBand(c){
     el.style.flexGrow = Math.max(d[i] / tot * 1000, .001);
     el.querySelector(".g").textContent = p >= 2.2 ? G[i] : "";
     el.querySelector(".p").textContent = p >= 7 ? " " + Math.round(p) + "%" : "";
-    el.dataset.tip = `<b>${G[i]}</b>: ${p.toFixed(1)}%` + (c && c.dist ? ` · ${t("allTracked", C.length)} ${(CD[i] / CT * 100).toFixed(1)}%` : "");
+    el.dataset.tip = `<b>${G[i]}</b>: ${p.toFixed(1)}%` + (c && c.dist ? ` · ${t("allTracked", META.count)} ${(CD[i] / CT * 100).toFixed(1)}%` : "");
   });
   let acc = 0;
   TICKS.forEach((el, i) => { acc += CD[i] / CT; el.style.left = (acc * 100) + "%"; el.style.opacity = c && c.dist ? .55 : 0; });
-  $("#bandL").innerHTML = !c ? t("bandAll", C.length, fmt(CT), termLabel(FIRST), f2(INS.campus_gpa))
+  $("#bandL").innerHTML = !c ? t("bandAll", META.count, fmt(CT), termLabel(FIRST), f2(INS.campus_gpa))
     : c.dist ? t("bandCourse", esc(c.code), esc(c.t), f2(c.gpa), fmt(c.n)) : t("bandNoData", esc(c.code));
   $("#bandR").textContent = c && c.dist ? t("bandR") : "UW: A · AB · B · BC · C · D · F";
 }
 
 /* ── Filters, lenses, list ────────────────────────────── */
-const subjects = [...new Set(C.map(c => c.sa))].sort();
-const breadths = [...new Set(C.flatMap(c => c.br))].sort();
-const LENSES = [
-  ["", null, null],
-  ["easy", c => c.gs != null && c.gs >= 3.7 && c.n >= 500, "gpa"],
-  ["intro", c => c.num < 300 && (c.en || 0) >= 250, "en"],
-  ["instr", c => c.sp != null && c.sp >= .6, "sp"],
-  ["harder", c => c.tr != null && c.tr <= -.03, "tl"],
-  ["easier", c => c.tr != null && c.tr >= .03, "tr"],
-  ["open", c => !!(c.now && c.now.open > 0), null],
-  ["reddit", c => c.rdn >= 8, "rd"],
-];
-const LENS_N = Object.fromEntries(LENSES.map(([k, f]) => [k, f ? C.filter(f).length : C.length]));
-let shown = PAGE, lastRows = [];
+let subjects = [], breadths = [];
+const LENSES = [["", null], ["easy", "gpa"], ["intro", "en"], ["instr", "sp"], ["harder", "tl"], ["easier", "tr"], ["open", null], ["reddit", "rd"]];  // [lens, sort it implies]
+let lastRows = [], lastTotal = 0, loadState = "loading", seq = 0;
 const st = { q:"", sort:"m", subj:"", lvl:"", br:"", gpa:"", now:false, sv:false, lens:"" };
 function readFilters(){
   st.q = $("#q").value.trim().toLowerCase(); st.sort = $("#sort").value; st.subj = $("#fSubj").value; st.lvl = $("#fLvl").value;
   st.br = $("#fBr").value; st.gpa = $("#fGpa").value; st.now = $("#fNow").checked; st.sv = $("#fSaved").checked;
 }
-function norm(s){ return s.toLowerCase().replace(/[^a-z0-9]/g, ""); }
 const activeFilters = () => [st.subj, st.lvl, st.br, st.gpa].filter(Boolean).length + (st.now ? 1 : 0) + (st.sv ? 1 : 0);
 $("#fToggle").onclick = () => { const o = !$("#filters").classList.contains("open"); $("#filters").classList.toggle("open", o); $("#fToggle").setAttribute("aria-expanded", o); };
-const SHORT = {"cs":"compsci","compsci":"compsci","stats":"stat","ece":"ece","polisci":"polisci","psych":"psych","bio":"biology","nutrisci":"nutrsci","ee":"ece","me":"me"};
-const SUBJ_KEYS = [...new Set(C.flatMap(c => [c.code, ...c.al]).map(x => norm(x.replace(/\s*\d.*$/, ""))))];
-function codeLike(nq){  // "cs 5", "math 23", "ece" read as a course-code prefix, not as title words
-  const m = nq.match(/^([a-z]+)(\d{0,3})$/);
-  return !!m && (!!m[2] || m[1].length <= 3) && SUBJ_KEYS.some(k => k.startsWith(SHORT[m[1]] || m[1]));
+function queryParams(){
+  const p = {};
+  if (st.q) p.q = st.q;
+  if (st.sort !== "m") p.sort = st.sort;
+  for (const k of ["subj", "lvl", "br", "gpa", "lens"]) if (st[k]) p[k] = st[k];
+  if (st.now) p.now = "1";
+  if (st.sv) p.ids = [...saved].slice(0, 60).join(",") || "-";
+  return p;
 }
-function qMatch(c, q){
-  if (!q) return true;
-  const nq = norm(q), expanded = nq.replace(/^([a-z]+)/, m => SHORT[m] || m);
-  if (!nq) return true;
-  const codes = c._codes || (c._codes = [c.code, ...c.al].map(norm));
-  if (codeLike(nq)) return codes.some(x => x.startsWith(nq) || x.startsWith(expanded));
-  if (codes.some(x => x.includes(nq))) return true;
-  return wordsMatch(c, q.split(/\s+/).map(w => w.replace(/[^a-z0-9]/g, "")).filter(Boolean));
-}
-const toks = s => s.split(/[^a-z0-9]+/).filter(Boolean);
-function wordsMatch(c, ws){  // each word starts a word in the code/title, or in one instructor's name
-  const f = c._f || (c._f = [toks([c.code, ...c.al, c.t, c.sn].join(" ").toLowerCase()),
-    ...[...new Set([...c.ins.map(i => i[0]), ...(c.now ? c.now.who : [])])].map(n => toks(n.toLowerCase()))]);
-  const rest = ws.filter(w => !f[0].some(t => t.startsWith(w)));
-  return !rest.length || f.slice(1).some(p => rest.every(w => p.some(t => t.startsWith(w))));
-}
-const nz = (v, d) => v == null ? d : v;
-const SORTS = {
-  m: (a, b) => b.m - a.m || b.rdn - a.rdn || nz(b.en, 0) - nz(a.en, 0),
-  gpa: (a, b) => nz(b.gs, -1) - nz(a.gs, -1), gpaL: (a, b) => nz(a.gs, 9) - nz(b.gs, 9),
-  pa: (a, b) => nz(b.pa, -1) - nz(a.pa, -1),
-  tr: (a, b) => nz(b.tr, -9) - nz(a.tr, -9), tl: (a, b) => nz(a.tr, 9) - nz(b.tr, 9),
-  sp: (a, b) => nz(b.sp, -1) - nz(a.sp, -1), rd: (a, b) => b.rdn - a.rdn || b.m - a.m,
-  en: (a, b) => nz(b.en, -1) - nz(a.en, -1), code: (a, b) => a.code.localeCompare(b.code, "en", {numeric:true}),
-};
-function filtered(){
-  const lens = (LENSES.find(l => l[0] === st.lens) || LENSES[0])[1];
-  return C.filter(c => qMatch(c, st.q)
-    && (!lens || lens(c))
-    && (!st.subj || c.sa === st.subj)
-    && (!st.lvl || (st.lvl === "5" ? c.num >= 500 : Math.floor(c.num / 100) == st.lvl))
-    && (!st.br || (st.br === "__es" ? c.es : st.br === "__ge" ? !!c.ge : c.br.includes(st.br)))
-    && (!st.gpa || (c.gpa != null && c.gpa >= +st.gpa))
-    && (!st.now || c.now)
-    && (!st.sv || saved.has(c.id))).sort(SORTS[st.sort] || SORTS.m);
-}
-function spark(terms){
-  const tt = terms.filter(x => x[2] >= 10 && x[0] % 10 !== 6).slice(-12);
-  if (tt.length < 3) return '<span class="muted small">–</span>';
-  const ys = tt.map(x => x[1]), lo = Math.min(...ys) - .05, hi = Math.max(...ys) + .05, W = 60, H = 18;
-  const pts = tt.map((x, i) => (i / (tt.length - 1) * W).toFixed(1) + "," + (H - (x[1] - lo) / (hi - lo) * H).toFixed(1)).join(" ");
+function spark(ys){
+  if (!ys || ys.length < 3) return '<span class="muted small">–</span>';
+  const lo = Math.min(...ys) - .05, hi = Math.max(...ys) + .05, W = 60, H = 18;
+  const pts = ys.map((y, i) => (i / (ys.length - 1) * W).toFixed(1) + "," + (H - (y - lo) / (hi - lo) * H).toFixed(1)).join(" ");
   return `<svg width="${W}" height="${H}" aria-hidden="true" style="overflow:visible"><polyline points="${pts}" fill="none" stroke="var(--series)" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 }
 function trendTxt(v){ if (v == null) return ""; const cls = v > .01 ? "up" : v < -.01 ? "down" : "muted"; return `<span class="${cls} small">${v > 0 ? "+" : ""}${v.toFixed(2)}${LANG === "zh" ? "/年" : "/yr"}</span>`; }
@@ -697,8 +662,9 @@ function nowTxt(c, bare, long){
   const [cls, lbl] = statusOf(c), en = c.now && c.en && !bare ? c.en : 0;
   return `<span class="status"${en ? ` title="${esc(t("enrolledN", en))}"` : ""}><span class="dot ${cls}"></span>${lbl}${en ? `<span class="muted small">· ${long ? esc(t("enrolledN", en)) : fmt(en)}</span>` : ""}</span>`;
 }
+const talkParts = c => [c.m ? t("chat", c.m) : "", c.rdn ? t("reddit", c.rdn) : ""].filter(Boolean);
 function talkTxt(c){
-  const parts = [c.m ? t("chat", c.m) : "", c.rdn ? t("reddit", c.rdn) : ""].filter(Boolean);
+  const parts = talkParts(c);
   return `<div class="talk">${parts.join("<br>") || '<span class="muted">–</span>'}</div>`;
 }
 const lastName = n => n.split(/\s+/).slice(-1)[0];
@@ -708,53 +674,73 @@ function whoLine(c){
   return `<div class="who">${t("teachingNow", termShort(TERM))}${esc(w.slice(0, 3).join(", "))}${more}</div>`;
 }
 function renderLenses(){
-  $("#lenses").innerHTML = LENSES.map(([k]) => `<button class="lens" data-lens="${k}" aria-pressed="${st.lens === k}"${k ? ` title="${esc(t("lt_" + k))}"` : ""}>${esc(t("lens_" + k))} <small>${fmt(LENS_N[k])}</small></button>`).join("");
+  $("#lenses").innerHTML = LENSES.map(([k]) => `<button class="lens" data-lens="${k}" aria-pressed="${st.lens === k}"${k ? ` title="${esc(t("lt_" + k))}"` : ""}>${esc(t("lens_" + k))} <small>${fmt((META.lens || {})[k])}</small></button>`).join("");
 }
 function render(){
-  readFilters();
-  const rows = lastRows = filtered();
-  $("#cnt").textContent = t("count", rows.length, C.length);
+  const rows = lastRows;
+  $("#cnt").textContent = loadState === "ok" ? t("count", lastTotal, META.count) : "";
   const COLS = [["", ""], ["code", t("colCourse")], ["", t("colCr")], ["gpa", t("colGpa")], ["pa", t("colA")], ["tr", t("colTr")], ["m", t("colTalk")], ["", termLabel(TERM)]];
   const head = `<div class="row head">` + COLS.map(([k, l], i) =>
-    `<div class="${i === 2 || i === 4 ? "num" : ""}"${i === 7 ? ` title="${esc(t("seatsAsOf", D.meta.built_at.slice(0, 10)))}"` : ""}>${k ? `<button data-sort="${k}"${st.sort === k ? ' aria-current="true"' : ""}>${esc(l)}</button>` : esc(l)}</div>`).join("") + "</div>";
-  $("#list").innerHTML = head + (rows.length ? `<div class="rows" role="list" aria-label="${esc(t("tabCourses"))}">` + rows.slice(0, shown).map(c => `
+    `<div class="${i === 2 || i === 4 ? "num" : ""}"${i === 7 ? ` title="${esc(t("seatsAsOf", META.built_at.slice(0, 10)))}"` : ""}>${k ? `<button data-sort="${k}"${st.sort === k ? ' aria-current="true"' : ""}>${esc(l)}</button>` : esc(l)}</div>`).join("") + "</div>";
+  const body = loadState === "error" ? `<div class="empty">${esc(t("apiError"))} <button class="btn" id="retry">${esc(t("retry"))}</button></div>`
+    : loadState === "loading" && !rows.length ? `<div class="empty">${esc(t("loading"))}</div>`
+    : rows.length ? `<div class="rows" role="list" aria-label="${esc(t("tabCourses"))}">` + rows.map(c => `
     <div class="row" role="listitem" tabindex="0" data-id="${esc(c.id)}">
       <div class="c-star"><button class="star" data-star="${esc(c.id)}" aria-pressed="${saved.has(c.id)}" aria-label="${esc(t("save"))} ${esc(c.code)}">${saved.has(c.id) ? "★" : "☆"}</button></div>
       <div class="cname"><div><span class="code">${esc(c.code)}</span>${c.al.length ? ` <span class="alias">= ${esc(c.al.join(", "))}</span>` : ""}</div><div class="title">${esc(c.t)}</div>${whoLine(c)}</div>
       <div class="c-cr num small">${esc(c.cr || "–")}</div>
       <div class="c-gpa gcell"><b>${f2(c.gpa)}</b>${strip(c.dist)}</div>
       <div class="c-pa num">${pct(c.pa)}</div>
-      <div class="c-tr">${spark(c.terms)}<br>${trendTxt(c.tr)}</div>
+      <div class="c-tr">${spark(c.sk)}<br>${trendTxt(c.tr)}</div>
       <div class="c-talk">${talkTxt(c)}</div>
       <div class="c-now">${nowTxt(c)}</div>
-      <div class="c-meta"><span>${esc(c.cr || "?")} cr</span><span>A ${pct(c.pa)}</span>${trendTxt(c.tr)}<span>${[c.m ? t("chat", c.m) : "", c.rdn ? t("reddit", c.rdn) : ""].filter(Boolean).join(" · ")}</span>${nowTxt(c, false, true)}</div>
-    </div>`).join("") + "</div>" : `<div class="empty">${esc(t("empty"))}</div>`);
+      <div class="c-meta"><span>${esc(c.cr || "?")} cr</span><span>A ${pct(c.pa)}</span>${trendTxt(c.tr)}<span>${talkParts(c).join(" · ")}</span>${nowTxt(c, false, true)}</div>
+    </div>`).join("") + "</div>" : `<div class="empty">${esc(t("empty"))}</div>`;
+  $("#list").innerHTML = head + body;
+  $("#list").setAttribute("aria-busy", loadState === "loading");
   $("#fToggle").textContent = t("filters", activeFilters());
-  $("#moreWrap").hidden = rows.length <= shown;
+  $("#moreWrap").hidden = loadState !== "ok" || rows.length >= lastTotal;
   renderPlan();
 }
-function onFilter(){ shown = PAGE; render(); syncQuery(); }
-["#q", "#sort", "#fSubj", "#fLvl", "#fBr", "#fGpa", "#fNow", "#fSaved"].forEach(s => $(s).addEventListener(s === "#q" ? "input" : "change", onFilter));
+// Ask the server for the current filters; only the newest answer is used.
+async function refresh(append){
+  readFilters();
+  const my = ++seq, params = queryParams();
+  if (append) params.offset = lastRows.length;
+  else { loadState = "loading"; if (!lastRows.length) render(); }
+  let r;
+  try { r = await api("/api/courses", params); }
+  catch (e){ if (my === seq){ loadState = "error"; render(); } return; }
+  if (my !== seq) return;
+  r.rows.forEach(x => { ROW[x.id] = fill(x); });
+  lastRows = append ? lastRows.concat(r.rows) : r.rows; lastTotal = r.total; loadState = "ok";
+  render();
+}
+let typing;
+function onFilter(){ syncQuery(); refresh(); }
+$("#q").addEventListener("input", () => { syncQuery(); clearTimeout(typing); typing = setTimeout(refresh, 120); });
+["#sort", "#fSubj", "#fLvl", "#fBr", "#fGpa", "#fNow", "#fSaved"].forEach(s => $(s).addEventListener("change", onFilter));
 $("#lenses").addEventListener("click", e => {
   const b = e.target.closest("[data-lens]"); if (!b) return;
   st.lens = st.lens === b.dataset.lens ? "" : b.dataset.lens;
   const l = LENSES.find(x => x[0] === st.lens);
-  if (l && l[2]) $("#sort").value = l[2]; else if (!st.lens) $("#sort").value = "m";
+  if (l && l[1]) $("#sort").value = l[1]; else if (!st.lens) $("#sort").value = "m";
   renderLenses(); onFilter();
 });
 $("#reset").onclick = () => { ["#q", "#fSubj", "#fLvl", "#fBr", "#fGpa"].forEach(s => $(s).value = ""); $("#fNow").checked = $("#fSaved").checked = false; $("#sort").value = "m"; st.lens = ""; renderLenses(); onFilter(); };
-$("#more").onclick = () => { shown += PAGE; render(); };
+$("#more").onclick = () => refresh(true);
+$("#list").addEventListener("click", e => { if (e.target.closest("#retry")) refresh(); });
 const list = $("#list");
 list.addEventListener("click", e => {
   const s = e.target.closest("[data-star]"); if (s){ toggleSave(s.dataset.star); e.stopPropagation(); return; }
   const h = e.target.closest("[data-sort]"); if (h){ $("#sort").value = h.dataset.sort === "gpa" && st.sort === "gpa" ? "gpaL" : h.dataset.sort; onFilter(); return; }
   const r = e.target.closest(".row[data-id]"); if (r) openCourse(r.dataset.id);
 });
-list.addEventListener("pointerover", e => { if (e.pointerType !== "mouse") return; const r = e.target.closest(".row[data-id]"); if (r) setBand(BY[r.dataset.id]); });
+list.addEventListener("pointerover", e => { if (e.pointerType !== "mouse") return; const r = e.target.closest(".row[data-id]"); if (r) setBand(rec(r.dataset.id)); });
 list.addEventListener("pointerleave", () => setBand(cur || focusedCourse()));
-list.addEventListener("focusin", e => { const r = e.target.closest(".row[data-id]"); if (r) setBand(BY[r.dataset.id]); });
+list.addEventListener("focusin", e => { const r = e.target.closest(".row[data-id]"); if (r) setBand(rec(r.dataset.id)); });
 list.addEventListener("focusout", e => { if (!list.contains(e.relatedTarget)) setBand(cur); });
-function focusedCourse(){ const r = document.activeElement && document.activeElement.closest && document.activeElement.closest(".row[data-id]"); return r ? BY[r.dataset.id] : null; }
+function focusedCourse(){ const r = document.activeElement && document.activeElement.closest && document.activeElement.closest(".row[data-id]"); return r ? rec(r.dataset.id) : null; }
 function moveSel(d){
   const rows = $$("#list .row[data-id]"); if (!rows.length) return;
   const i = rows.indexOf(document.activeElement.closest ? document.activeElement.closest(".row[data-id]") : null);
@@ -780,17 +766,17 @@ document.addEventListener("keydown", e => {
 });
 
 /* ── Saved plan ───────────────────────────────────────── */
-let saved = new Set(store.get("saved", []).filter(id => BY[id]));
+let saved = new Set(store.get("saved", []).filter(id => typeof id === "string"));
 function toggleSave(id){
   saved.has(id) ? saved.delete(id) : saved.add(id); store.set("saved", [...saved]);
   const focusId = focusedCourse() && focusedCourse().id;
-  render();
+  if (st.sv) refresh(); else render();
   if (focusId){ const r = list.querySelector(`.row[data-id="${CSS.escape(focusId)}"]`); if (r) r.focus(); }
   if (cur) openDrawer(cur.id, true);
 }
 const crMin = c => parseFloat(c.cr) || 0;
 function renderPlan(){
-  const L = [...saved].map(id => BY[id]).filter(Boolean), plan = $("#plan");
+  const L = [...saved].map(rec).filter(Boolean), plan = $("#plan");
   plan.hidden = !L.length; document.body.classList.toggle("has-plan", !!L.length);
   if (!L.length) return;
   const cr = L.reduce((a, c) => a + crMin(c), 0);
@@ -800,7 +786,7 @@ function renderPlan(){
     <div class="acts"><button class="btn" id="pShow">${esc(t("showSaved"))}</button><button class="btn primary" id="pCmp"${L.length < 2 ? " disabled" : ""}>${esc(t("compare"))}</button><button class="btn" id="pClear">${esc(t("clearSaved"))}</button></div>`;
   $("#pShow").onclick = () => { $("#fSaved").checked = !$("#fSaved").checked; location.hash = "#/courses"; onFilter(); };
   $("#pCmp").onclick = openCompare;
-  $("#pClear").onclick = () => { saved.clear(); store.set("saved", []); $("#fSaved").checked = false; render(); };
+  $("#pClear").onclick = () => { saved.clear(); store.set("saved", []); $("#fSaved").checked = false; onFilter(); };
 }
 
 /* ── URL state ────────────────────────────────────────── */
@@ -810,13 +796,13 @@ function syncQuery(){
   if (st.sort === "m") p.delete("sort");
   history.replaceState(null, "", location.pathname + (p.toString() ? "?" + p : "") + location.hash);
 }
-(function loadQuery(){
+function loadQuery(){
   const p = new URLSearchParams(location.search);
   const map = {q:"#q", sort:"#sort", subj:"#fSubj", lvl:"#fLvl", br:"#fBr", gpa:"#fGpa"};
   for (const [k, s] of Object.entries(map)) if (p.get(k)) $(s).value = p.get(k);
   if (p.get("now")) $("#fNow").checked = true;
   if (p.get("lens") && LENSES.some(l => l[0] === p.get("lens"))) st.lens = p.get("lens");
-})();
+}
 
 /* ── Charts ───────────────────────────────────────────── */
 function distChart(c){
@@ -827,14 +813,14 @@ function distChart(c){
   let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(c.code)} grade distribution"><line class="axis" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}"/>`;
   d.forEach((v, i) => {
     const p = v / tot, cp = CD[i] / CT, x = L + i * bw + 5, w = bw - 10, top = y(p), h = Math.max(H - B - top, 0);
-    s += `<g data-tip="<b>${G[i]}</b>: ${(p * 100).toFixed(1)}% (${fmt(v)})<br>${esc(t("allTracked", C.length))}: ${(cp * 100).toFixed(1)}%">
+    s += `<g data-tip="<b>${G[i]}</b>: ${(p * 100).toFixed(1)}% (${fmt(v)})<br>${esc(t("allTracked", META.count))}: ${(cp * 100).toFixed(1)}%">
       <rect x="${x - 4}" y="${T}" width="${w + 8}" height="${H - B - T}" fill="transparent"/>
       <path d="M${x},${H - B}V${top + Math.min(4, h)}q0,-4 4,-4h${w - 8}q4,0 4,4V${H - B}Z" fill="var(${GV[i]})"/>
       <line x1="${x - 3}" x2="${x + w + 3}" y1="${y(cp)}" y2="${y(cp)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 2" opacity=".55"/>
       <text x="${x + w / 2}" y="${top - 5}" text-anchor="middle" class="lbl">${Math.round(p * 100)}%</text>
       <text x="${x + w / 2}" y="${H - 7}" text-anchor="middle">${G[i]}</text></g>`;
   });
-  return s + `</svg><div class="legend"><span><i style="background:var(--gA)"></i>${esc(t("thisCourse"))}</span><span><i style="background:none;border-top:2px dashed var(--ink);opacity:.55;height:0;vertical-align:3px"></i>${esc(t("allTracked", C.length))}</span></div>`;
+  return s + `</svg><div class="legend"><span><i style="background:var(--gA)"></i>${esc(t("thisCourse"))}</span><span><i style="background:none;border-top:2px dashed var(--ink);opacity:.55;height:0;vertical-align:3px"></i>${esc(t("allTracked", META.count))}</span></div>`;
 }
 function miniDist(c, color){
   const W = 220, H = 78, T = 12, B = 16, bw = W / 7;
@@ -904,22 +890,46 @@ function instrChart(c){
 
 /* ── Drawer ───────────────────────────────────────────── */
 let cur = null, lastFocus = null, lastFocusId = null, showAllIns = false;
-function navList(){ return lastRows.includes(cur) ? lastRows : C; }
+const detailReq = {};
+function loadDetail(id){
+  if (DET[id]) return Promise.resolve(DET[id]);
+  return (detailReq[id] ||= api("/api/course/" + encodeURIComponent(id)).then(c => (DET[id] = fill(c))).finally(() => { delete detailReq[id]; }));
+}
 const courseUrl = id => location.pathname + location.search + "#/c/" + id;
 function openCourse(id){ history.pushState({drawer: 1}, "", courseUrl(id)); route(); }
-function stepCourse(d){ const L = navList(), i = L.indexOf(cur); history.replaceState(history.state, "", courseUrl(L[(i + d + L.length) % L.length].id)); route(); }
+function stepCourse(d){
+  const L = lastRows, i = cur ? L.findIndex(r => r.id === cur.id) : -1;
+  if (i < 0) return;
+  history.replaceState(history.state, "", courseUrl(L[(i + d + L.length) % L.length].id)); route();
+}
 function setModal(on){ $$("body > header, body > .band, body > main, body > footer, body > .plan").forEach(e => e.inert = on); $("#drawer").inert = !on; }
-function openDrawer(id, keepScroll){
-  const c = BY[id];
-  if (!c){ $("#q").value = id.replace(/-/g, " "); history.replaceState(null, "", location.pathname + location.search + "#/courses"); show("courses"); onFilter(); return; }
+function openDrawerError(id){
+  const dr = $("#drawer"); cur = null;
+  dr.innerHTML = `<div class="d-head"><div class="d-nav"><button class="icon-btn" id="dClose" aria-label="${esc(t("close"))}">✕</button></div><h2 class="d-title serif" id="dTitle">${esc(t("apiError"))}</h2></div><div class="d-body"><p><button class="btn" id="dRetry">${esc(t("retry"))}</button></p></div>`;
+  dr.setAttribute("aria-label", t("apiError")); setModal(true); dr.classList.add("on"); $("#scrim").classList.add("on");
+  $("#dClose").onclick = closeDrawer; $("#dRetry").onclick = () => openDrawer(id); $("#dClose").focus();
+}
+let drawerSeq = 0;
+async function openDrawer(id, keepScroll){
+  const my = ++drawerSeq;
+  let c = DET[id];
+  if (!c){
+    try { c = await loadDetail(id); }
+    catch (e){
+      if (my !== drawerSeq) return;
+      if (e.status === 404){ $("#q").value = id.replace(/-/g, " "); history.replaceState(null, "", location.pathname + location.search + "#/courses"); show("courses"); onFilter(); return; }
+      openDrawerError(id); return;
+    }
+    if (my !== drawerSeq) return;
+  }
   const dr = $("#drawer"), wasOpen = dr.classList.contains("on"), fid = dr.contains(document.activeElement) ? document.activeElement.id : "";
   if (!wasOpen){ lastFocus = document.activeElement; const fr = lastFocus && lastFocus.closest && lastFocus.closest(".row[data-id]"); lastFocusId = fr ? fr.dataset.id : null; }
   if (cur !== c) showAllIns = false;
   cur = c;
-  const top = keepScroll ? dr.scrollTop : 0, L = navList(), pos = L.indexOf(c) + 1;
+  const top = keepScroll ? dr.scrollTop : 0, L = lastRows, idx = L.findIndex(r => r.id === c.id), pos = idx + 1;
   const chips = [c.cr && t("credits", c.cr), lvlName(c.lvl), ...c.br.map(brName), c.ge, c.es && brName("Ethnic Studies"), c.typ && c.typ !== "Not Applicable" && t("usually", c.typ)].filter(Boolean);
   let h = `<div class="d-head">
-    <div class="d-nav"><button class="icon-btn" id="dPrev" aria-label="${esc(t("prev"))}" title="${esc(t("prev"))} (←)">‹</button><span class="pos">${pos} / ${L.length}</span><button class="icon-btn" id="dNext" aria-label="${esc(t("next"))}" title="${esc(t("next"))} (→)">›</button><button class="icon-btn" id="dClose" aria-label="${esc(t("close"))}">✕</button></div>
+    <div class="d-nav">${idx >= 0 ? `<button class="icon-btn" id="dPrev" aria-label="${esc(t("prev"))}" title="${esc(t("prev"))} (←)">‹</button><span class="pos">${pos} / ${fmt(lastTotal)}</span><button class="icon-btn" id="dNext" aria-label="${esc(t("next"))}" title="${esc(t("next"))} (→)">›</button>` : ""}<button class="icon-btn" id="dClose" aria-label="${esc(t("close"))}">✕</button></div>
     <div class="d-code">${esc(c.code)}${c.al.length ? " · " + esc(t("alsoAs")) + " " + esc(c.al.join(", ")) : ""} · ${esc(c.sn)}</div>
     <h2 class="d-title serif" id="dTitle">${esc(c.t)}</h2>
     <div class="chips">${chips.map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div></div><div class="d-body">`;
@@ -935,7 +945,7 @@ function openDrawer(id, keepScroll){
     <div class="kpi"><b>${pct(c.pa)}</b><span>${esc(t("kA"))}</span></div><div class="kpi"><b>${c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"}</b><span>${esc(t("kDF"))}</span></div>
     <div class="kpi"><b>${c.now && c.en ? fmt(c.en) : "–"}</b><span>${esc(t("kNow", termShort(TERM)))}</span></div></div></div>`;
   if (c.d || c.prq) h += `<div class="d-sec">${c.d ? `<p class="desc">${esc(c.d)}</p>` : ""}${c.prq ? `<p class="prq"><b>${esc(t("req"))}</b> ${esc(c.prq)}</p>` : ""}</div>`;
-  h += `<div class="d-sec"><h3>${esc(termLabel(TERM))}${c.now ? ` <span class="muted">${esc(t("snapshot", D.meta.built_at.slice(0, 10)))}</span>` : ""}</h3>`;
+  h += `<div class="d-sec"><h3>${esc(termLabel(TERM))}${c.now ? ` <span class="muted">${esc(t("snapshot", META.built_at.slice(0, 10)))}</span>` : ""}</h3>`;
   if (c.now){
     h += `<p style="margin:0 0 6px">${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, c.now.lec, c.now.open, c.now.pk, c.now.wait))}</p>`;
     if (c.now.who.length) h += `<p class="small" style="margin:0;color:var(--ink-2)">${esc(t("teaching"))}` + c.now.who.map(n => {
@@ -964,7 +974,7 @@ function openDrawer(id, keepScroll){
   }
   const tone = c.rdt == null ? "" : c.rdt > .15 ? t("tonePos") : c.rdt < -.15 ? t("toneNeg") : t("toneMix");
   h += c.src === "catalog" ? `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0;color:var(--ink-2)">${esc(t("sayCatalog"))}</p></div>`
-    : `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
+    : `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : c.ms ? esc(t("sayChatFew")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
   if (c.src === "catalog") h += "</div>";
   else {
     if (c.rd.length) h += `<ul class="threads">` + c.rd.map(x => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${x[3] > 0 ? "+ " : x[3] < 0 ? "− " : ""}${x[2] || ""}</span></li>`).join("") + "</ul>";
@@ -972,7 +982,7 @@ function openDrawer(id, keepScroll){
   }
   dr.innerHTML = h; dr.scrollTop = top;
   $("#dClose").onclick = closeDrawer;
-  $("#dPrev").onclick = () => stepCourse(-1); $("#dNext").onclick = () => stepCourse(1);
+  if ($("#dPrev")){ $("#dPrev").onclick = () => stepCourse(-1); $("#dNext").onclick = () => stepCourse(1); }
   $("#dSave").onclick = () => toggleSave(c.id);
   if ($("#dAllIns")) $("#dAllIns").onclick = () => { showAllIns = !showAllIns; openDrawer(c.id, true); };
   $("#dShare").onclick = () => { const u = location.origin + location.pathname + "#/c/" + c.id; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => $("#dShare").textContent = t("copied"), () => prompt(t("copy"), u)); };
@@ -981,6 +991,7 @@ function openDrawer(id, keepScroll){
   if (!wasOpen) $("#dClose").focus(); else if (fid && document.getElementById(fid)) document.getElementById(fid).focus();
   setBand(c);
   document.title = c.code + " · UW Course Lookup";
+  if (idx >= 0) [L[idx + 1], L[idx - 1]].filter(Boolean).forEach(r => loadDetail(r.id).catch(() => {}));  // warm the neighbours
 }
 function sameName(a, b){ const pa = a.toUpperCase().split(/\s+/), pb = b.toUpperCase().split(/\s+/); return pa[0] === pb[0] && pa[pa.length - 1] === pb[pb.length - 1]; }
 function hideDrawer(){
@@ -998,8 +1009,15 @@ $("#scrim").onclick = closeDrawer;
 
 /* ── Compare ──────────────────────────────────────────── */
 const SERIES = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)"];
-function openCompare(){
-  const L = [...saved].map(id => BY[id]).filter(Boolean);
+async function openCompare(){
+  const ids = [...saved].filter(id => rec(id)).slice(0, 8);
+  if (ids.length < 2) return;
+  const need = ids.filter(id => !DET[id]);
+  if (need.length){
+    try { (await api("/api/compare", {ids: need.join(",")})).courses.forEach(c => { DET[c.id] = fill(c); }); }
+    catch (e){ return; }
+  }
+  const L = ids.map(id => DET[id]).filter(Boolean);
   if (L.length < 2) return;
   const inChart = L.slice(0, 4);
   const series = inChart.map((c, i) => ({name: c.code, color: SERIES[i], points: c.terms.filter(x => x[2] >= 10 && x[0] % 10 !== 6 && termYear(x[0]) >= 2012).map(x => ({x: termYear(x[0]), y: x[1], label: `<b>${esc(c.code)}</b> · ${termLabel(x[0])}<br>GPA ${x[1].toFixed(2)} · ${fmt(x[2])}`}))})).filter(s => s.points.length >= 2);
@@ -1008,7 +1026,7 @@ function openCompare(){
     [t("rA"), c => pct(c.pa)], [t("rDF"), c => c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"],
     [t("rTr"), c => trendTxt(c.tr) || "–"], [t("rSp"), c => c.sp == null ? "–" : c.sp.toFixed(2)],
     [termLabel(TERM), c => nowTxt(c) + (c.now && c.now.who.length ? `<div class="small muted">${esc(c.now.who.slice(0, 4).join(", "))}</div>` : "")],
-    [t("rBr"), c => esc(c.br.map(brName).join(", ") || "–")], [t("rTalk"), c => [t("chat", c.m), t("reddit", c.rdn)].join(" · ")],
+    [t("rBr"), c => esc(c.br.map(brName).join(", ") || "–")], [t("rTalk"), c => talkParts(c).join(" · ") || "–"],
   ];
   const dot = c => { const i = inChart.indexOf(c); return i >= 0 ? `<span class="swatch" style="background:${SERIES[i]}"></span>` : ""; };
   $("#cmp").innerHTML = `<div class="cmp"><div class="cmp-head"><h2 class="serif">${esc(t("cmpTitle"))}</h2><button class="icon-btn" id="cmpClose" aria-label="${esc(t("close"))}">✕</button></div>
@@ -1026,7 +1044,7 @@ function openCompare(){
 function rhoTxt(r){ return r ? "ρ " + (r.rho > 0 ? "+" : "") + r.rho.toFixed(2) + ", p " + (r.p < .001 ? "< .001" : r.p.toFixed(3)) + ", n " + r.n : "–"; }
 function rhoRead(r){ if (!r) return t("nodata"); const a = Math.abs(r.rho); return (a < .1 ? t("none") : (a < .3 ? t("weak") : a < .5 ? t("moderate") : t("strong")) + (r.rho > 0 ? t("positive") : t("negative"))) + (r.p < .05 ? "" : t("ns")); }
 function scatter(){
-  const pts = C.filter(c => c.gpa != null && c.n >= 50 && c.src === "chat");
+  const pts = (INS.scatter || []).map(([id, code, t, gpa, m, n, num]) => ({id, code, t, gpa, m, n, num}));
   const W = MOB() ? 380 : 1080, H = MOB() ? 340 : 380, L = 46, R = 16, T = 14, B = 36;
   const X = v => L + (W - L - R) * Math.log10(v) / Math.log10(80);
   const y0 = 2.4, y1 = 4.0, Y = v => T + (H - T - B) * (1 - (Math.max(v, y0) - y0) / (y1 - y0));
@@ -1039,7 +1057,7 @@ function scatter(){
   const labeled = new Set(pts.slice().sort((a, b) => b.m - a.m).slice(0, MOB() ? 4 : 7).map(c => c.id).concat(pts.slice().sort((a, b) => a.gpa - b.gpa).slice(0, MOB() ? 1 : 3).map(c => c.id)));
   pts.forEach(c => {
     const x = X(Math.max(1, c.m) * Math.pow(10, jit(c) * .08)), y = Y(c.gpa), right = x > W - 140;
-    s += `<g data-c="${c.id}" style="cursor:pointer" data-tip="<b>${esc(c.code)}</b> ${esc(c.t)}<br>GPA ${c.gpa.toFixed(2)} · ${esc(t("chat", c.m))} · ${fmt(c.n)}"><circle cx="${x}" cy="${y}" r="10" fill="transparent"/><circle cx="${x}" cy="${y}" r="4.5" fill="var(--series)" fill-opacity=".72" stroke="var(--surface)" stroke-width="1.5"/>` +
+    s += `<g data-c="${c.id}" style="cursor:pointer" data-tip="<b>${esc(c.code)}</b> ${esc(c.t)}<br>GPA ${c.gpa.toFixed(2)} · ${esc(c.m ? t("chat", c.m) : t("chatFew"))} · ${fmt(c.n)}"><circle cx="${x}" cy="${y}" r="10" fill="transparent"/><circle cx="${x}" cy="${y}" r="4.5" fill="var(--series)" fill-opacity=".72" stroke="var(--surface)" stroke-width="1.5"/>` +
       (labeled.has(c.id) ? `<text class="lbl" x="${right ? x - 8 : x + 8}" y="${y + 4}"${right ? ' text-anchor="end"' : ""}>${esc(c.code)}</text>` : "") + "</g>";
   });
   return s + "</svg>";
@@ -1071,12 +1089,18 @@ function courseTable(rows, cols){
     rows.map(r => `<tr data-c="${r.code.replace(/ /g, "-")}">${cols.map(c => `<td${c[2] ? ' class="r"' : ""}>${c[1](r)}</td>`).join("")}</tr>`).join("") + "</tbody></table>";
 }
 const panel = (title, lede, body, wide) => `<div class="panel${wide ? " wide" : ""}"><h2 class="serif">${esc(title)}</h2><p class="lede">${esc(lede)}</p>${body}</div>`;
-let insLang = null;
+let insLang = null, insLoading = false;
 matchMedia("(max-width:640px)").addEventListener("change", () => { insLang = null; if (lastTab === "insights") renderInsights(); if (cur) openDrawer(cur.id, true); });
-function renderInsights(){
+async function renderInsights(){
+  if (!INS.scatter){
+    if (insLoading) return;
+    insLoading = true;
+    try { INS = await api("/api/insights"); } catch (e){ $("#v-insights").innerHTML = `<div class="empty">${esc(t("apiError"))} <button class="btn" id="insRetry">${esc(t("retry"))}</button></div>`; return; }
+    finally { insLoading = false; }
+  }
   if (insLang === LANG) return; insLang = LANG;
   const k = INS.counts || {}, cr = INS.correlations || {};
-  let h = `<p class="lede" style="margin:0 0 12px">${esc(t("insNote", k.courses, fmt(C.length)))}</p><div class="stats">` + [
+  let h = `<p class="lede" style="margin:0 0 12px">${esc(t("insNote", k.courses, fmt(META.count)))}</p><div class="stats">` + [
     [k.courses, t("st_courses", k.from_chat, k.from_enrollment)], [fmt(k.graded_students), t("st_grades")],
     [fmt(k.instructors), t("st_instr")], [k.reddit_threads, t("st_reddit")],
     [k.offered_now, t("st_now", termLabel(TERM))], [k.rejected_seed_codes, t("st_rej")]].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${esc(l)}</span></div>`).join("") + "</div><div class=\"grid2\">";
@@ -1094,14 +1118,15 @@ function renderInsights(){
   h += panel(t("p8"), t("p8l"), courseTable(INS.popular_and_tough || [], [tcols[0], ["GPA", r => f2(r.gpa), 1], [t("rDF"), r => (r.pct_df * 100).toFixed(1) + "%", 1]]));
   h += panel(t("p9"), t("p9l"), courseTable(INS.quiet_high_gpa || [], [tcols[0], ["GPA", r => f2(r.gpa), 1], [t("thN"), r => fmt(r.graded), 1]]));
   h += panel(t("p10"), t("p10l"), `<table><thead><tr><th>${esc(t("thSubj"))}</th><th class="r">${esc(t("thCourses"))}</th><th class="r">${esc(t("thMent"))}</th><th class="r">GPA</th></tr></thead><tbody>` +
-    (INS.by_subject || []).map(s => `<tr data-subj="${esc(s.subject)}"><td><b>${esc(s.subject)}</b></td><td class="r">${s.courses}</td><td class="r">${s.mentions}</td><td class="r">${f2(s.gpa)}</td></tr>`).join("") + "</tbody></table>", true);
+    (INS.by_subject || []).map(s => `<tr data-subj="${esc(s.subject)}"><td><b>${esc(s.subject)}</b></td><td class="r">${s.courses}</td><td class="r">${s.mentions ?? "<3"}</td><td class="r">${f2(s.gpa)}</td></tr>`).join("") + "</tbody></table>", true);
   $("#v-insights").innerHTML = h + "</div>";
 }
 $("#v-insights").addEventListener("click", e => {
-  const c = e.target.closest("[data-c]"); if (c && BY[c.dataset.c]){ openCourse(c.dataset.c); return; }
+  if (e.target.closest("#insRetry")){ renderInsights(); return; }
+  const c = e.target.closest("[data-c]"); if (c){ openCourse(c.dataset.c); return; }
   const s = e.target.closest("[data-subj]"); if (s){ $("#fSubj").value = s.dataset.subj; location.hash = "#/courses"; onFilter(); }
 });
-$("#v-insights").addEventListener("pointerover", e => { if (e.pointerType !== "mouse") return; const g = e.target.closest("[data-c]"); if (g && BY[g.dataset.c]) setBand(BY[g.dataset.c]); });
+$("#v-insights").addEventListener("pointerover", e => { if (e.pointerType !== "mouse") return; const g = e.target.closest("[data-c]"); if (g && rec(g.dataset.c)) setBand(rec(g.dataset.c)); });
 $("#v-insights").addEventListener("pointerleave", () => setBand(cur));
 
 /* ── Language ─────────────────────────────────────────── */
@@ -1118,7 +1143,7 @@ function applyLang(){
   $("#fBr").innerHTML = `<option value="">${esc(t("anyBr"))}</option>` + breadths.map(s => `<option value="${esc(s)}">${esc(brName(s))}</option>`).join("") + `<option value="__es">${esc(t("esOpt"))}</option><option value="__ge">${esc(t("geOpt"))}</option>`;
   $("#fSubj").value = keepSubj; $("#fBr").value = keepBr;
   $("#keys").innerHTML = t("keys");
-  $("#foot").innerHTML = `<p>${t("foot", esc(D.meta.built_at.slice(0, 10)))} <a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">${esc(t("src"))}</a>.</p>`;
+  $("#foot").innerHTML = `<p>${t("foot", esc(META.built_at.slice(0, 10)))} <a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">${esc(t("src"))}</a>.</p>`;
   const bc = bandCourse; bandCourse = undefined; setBand(bc || null);
   renderLenses(); render();
   if (lastTab === "insights") renderInsights();
@@ -1142,7 +1167,20 @@ function show(tab){
   if (tab === "insights") renderInsights();
 }
 addEventListener("hashchange", route);
-applyLang();
-route();
+async function boot(){
+  try { META = await api("/api/meta"); }
+  catch (e){ loadState = "error"; $("#list").innerHTML = `<div class="empty">${esc(t("apiError"))} <button class="btn" id="retry">${esc(t("retry"))}</button></div>`; $("#retry").onclick = boot; return; }
+  TERM = +META.term; CD = META.campusDist; CT = CD.reduce((a, b) => a + b, 0); FIRST = META.first;
+  subjects = META.subjects; breadths = META.breadths; INS = {campus_gpa: META.campusGpa};
+  applyLang();
+  loadQuery(); renderLenses();
+  route();
+  const ids = [...saved].slice(0, 60);
+  if (ids.length){
+    try { const r = await api("/api/courses", {ids: ids.join(",")}); r.rows.forEach(x => { ROW[x.id] = fill(x); }); saved = new Set(r.rows.map(x => x.id)); store.set("saved", [...saved]); } catch (e) {}
+  }
+  readFilters(); await refresh();
+}
+boot();
 </script>
 </body></html>

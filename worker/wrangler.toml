@@ -1,0 +1,22 @@
+name = "uw-course-api"
+main = "src/worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+ALLOW_ORIGINS = "https://webgrs.github.io"
+
+# Per-location limits on top of the page's own request volume
+[[ratelimits]]
+name = "RL_LIST"
+namespace_id = "1001"
+[ratelimits.simple]
+limit = 120
+period = 60
+
+[[ratelimits]]
+name = "RL_DETAIL"
+namespace_id = "1002"
+[ratelimits.simple]
+limit = 60
+period = 60

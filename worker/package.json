@@ -1,0 +1,10 @@
+{
+  "name": "uw-course-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "dev": "node dev-server.mjs",
+    "deploy": "npx wrangler deploy"
+  }
+}

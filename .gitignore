@@ -6,10 +6,14 @@
 *.bakdb
 *.sqlite
 *.sqlite3
-# ...except the public course database built from public sources
-!data/uwcourses.db
-# API response cache (rebuildable)
-data/cache/
+# Course data is private: it lives in the cloud API, built locally and never committed
+data/*
+!data/schema.sql
+courses.json
+worker/data.json
+worker/node_modules/
+worker/.wrangler/
+.dev.vars
 
 # Exports that may contain messages, names, phone numbers, ids
 *.csv

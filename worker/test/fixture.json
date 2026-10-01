@@ -1,0 +1,19 @@
+{
+  "meta": {"built_at": "2026-01-01T00:00Z", "term": "1272", "campusDist": [10, 8, 6, 3, 2, 1, 1], "campusGpa": 3.3},
+  "insights": {"campus_gpa": 3.3, "scatter": [], "by_subject": []},
+  "courses": [
+    {"id": "COMP-SCI-300", "code": "COMP SCI 300", "al": ["E C E 300"], "sa": "COMP SCI", "sn": "Computer Sciences", "num": 300, "t": "Programming II", "cr": "3", "br": [], "src": "chat", "m": 28, "ms": 0, "pos": 5, "neg": 2, "n": 900, "gpa": 3.3, "gs": 3.31, "pa": 0.34, "tr": 0.02, "dist": [30, 20, 20, 10, 10, 5, 5],
+     "terms": [[1244, 3.2, 100], [1252, 3.3, 120], [1254, 3.3, 110], [1262, 3.4, 90]], "ins": [["Ada Lovelace", 3.4, 300, 0.4, 1262, 1]], "now": {"lec": 1, "who": ["Ada Lovelace"], "open": 1, "wait": 0, "pk": 2}, "en": 400, "rdn": 3, "rd": []},
+    {"id": "COMP-SCI-577", "code": "COMP SCI 577", "sa": "COMP SCI", "sn": "Computer Sciences", "num": 577, "t": "Introduction to Algorithms", "cr": "4", "src": "chat", "m": 0, "ms": 1, "n": 9000, "gpa": 3.0, "gs": 3.0, "pa": 0.28, "tr": -0.01, "dist": [28, 15, 27, 14, 11, 4, 2],
+     "terms": [[1252, 3.0, 800]], "ins": [["Grace Hopper", 2.9, 2000, 0.25, 1262, 1]], "now": {"lec": 3, "who": ["Grace Hopper", "Alan Turing"], "open": 2, "wait": 1, "pk": 9}, "en": 419},
+    {"id": "MATH-234", "code": "MATH 234", "al": ["MATH 2340"], "sa": "MATH", "sn": "Mathematics", "num": 234, "t": "Calculus--Functions of Several Variables", "cr": "4", "br": ["Natural Science"], "src": "chat", "m": 41, "pos": 6, "neg": 1, "n": 30000, "gpa": 2.96, "gs": 2.96, "pa": 0.3, "tr": -0.01, "dist": [30, 14, 22, 12, 12, 6, 4],
+     "ins": [["Mikhail Feldman", 2.97, 3000, 0.3, 1262, 0], ["Anne Marie Creighton", 3.1, 500, 0.35, 1262, 0]], "terms": [[1252, 3.0, 900], [1254, 2.9, 950]], "now": {"lec": 2, "who": ["Mikhail Feldman"], "open": 0, "wait": 0, "pk": 3}, "en": 1400, "sp": 0.7},
+    {"id": "PHYSICS-241", "code": "PHYSICS 241", "sa": "PHYSICS", "sn": "Physics", "num": 241, "t": "Introduction to Modern Physics", "cr": "3", "src": "catalog", "n": 700, "gpa": 3.1, "gs": 3.1, "dist": [20, 20, 20, 10, 10, 10, 10], "terms": [[1252, 3.1, 200]]},
+    {"id": "LITTRANS-326", "code": "LITTRANS 326", "sa": "LITTRANS", "sn": "Literature in Translation", "num": 326, "t": "Anne Frank", "cr": "3", "src": "catalog", "n": 80, "gpa": 3.87, "gs": 3.8, "dist": [60, 20, 10, 5, 3, 1, 1], "terms": [[1262, 3.9, 40]], "ins": [["Laurent Taylor", 3.87, 80, 0.8, 1262, 1]], "now": {"lec": 1, "who": ["Laurent Taylor"], "open": 1, "wait": 0, "pk": 1}, "en": 80},
+    {"id": "GERMAN-325", "code": "GERMAN 325", "sa": "GERMAN", "sn": "German", "num": 325, "t": "Anne Frank", "cr": "3", "src": "catalog", "now": {"lec": 1, "who": ["Laurent Taylor"], "open": 1, "wait": 0, "pk": 1}, "en": 1},
+    {"id": "ANTHRO-104", "code": "ANTHRO 104", "sa": "ANTHRO", "sn": "Anthropology", "num": 104, "t": "Cultural Anthropology", "cr": "3", "src": "catalog", "n": 5000, "gpa": 3.2, "gs": 3.2, "dist": [30, 20, 20, 10, 10, 5, 5], "terms": [[1262, 3.2, 500]],
+     "ins": [["Anne Marie Creighton", 3.1, 100, 0.3, 1262, 1], ["Frank Salomon", 3.4, 100, 0.4, 1262, 0]], "now": {"lec": 1, "who": ["Anne Marie Creighton"], "open": 0, "wait": 2, "pk": 1}, "en": 300},
+    {"id": "SURGERY-699", "code": "SURGERY 699", "sa": "SURGERY", "sn": "Surgery", "num": 699, "t": "Independent Study", "cr": "1-6", "src": "catalog", "n": 30, "gpa": 4.0, "gs": 4.0, "dist": [100, 0, 0, 0, 0, 0, 0], "terms": [[1262, 4.0, 30]]},
+    {"id": "ASIAN-355", "code": "ASIAN 355", "sa": "ASIAN", "sn": "Asian Languages and Cultures", "num": 355, "t": "Topics in Chinese Culture", "src": "catalog", "es": 1}
+  ]
+}

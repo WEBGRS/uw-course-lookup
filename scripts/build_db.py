@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Build data/uwcourses.db from the anonymized seed list + public sources.
+"""Build data/uwcourses.db from the (private) chat seed list + public sources.
 
 Steps: resolve every seed code against the real catalog (drops false positives,
 merges cross-listings) -> add the term's large courses -> add every other catalog course
@@ -188,7 +188,7 @@ def main():
     ap.add_argument("--featured-only", action="store_true", help="skip the catalog tier (chat + large courses only)")
     a = ap.parse_args()
 
-    seeds = json.load(open(SEED, encoding="utf-8"))
+    seeds = json.load(open(SEED, encoding="utf-8")) if os.path.exists(SEED) else []  # private; without it only the other tiers are built
     catalog = uwapi.enroll_catalog(a.term)
     mg_subjects = []
     page = 1
