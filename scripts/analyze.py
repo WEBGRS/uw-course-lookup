@@ -170,7 +170,8 @@ def main():
     db.commit()
 
     # ── Insights ─────────────────────────────────────────────────
-    rows = [{**c, **stats[c["id"]]} for c in courses]
+    featured = {c["id"] for c in courses if c["source"] != "catalog"}  # insights describe these only
+    rows = [{**c, **stats[c["id"]]} for c in courses if c["id"] in featured]
     graded = [r for r in rows if r["gpa"] is not None and r["graded"] >= 50]
     chat = [r for r in graded if r["source"] == "chat"]  # chat metrics only mean something here
     r2 = lambda v: round(v, 3) if v is not None else None  # noqa: E731
@@ -199,7 +200,9 @@ def main():
 
     # Weighted GPA across the whole tracked set, per regular term
     per_term = {}
-    for ts in terms.values():
+    for cid, ts in terms.items():
+        if cid not in featured:
+            continue
         for t in ts:
             if t["term"] % 10 == 6:
                 continue
@@ -236,9 +239,11 @@ def main():
                    "from_enrollment": sum(r["source"] == "enrollment" for r in rows),
                    "with_grades": sum(r["gpa"] is not None for r in rows),
                    "graded_students": sum(r["graded"] for r in rows),
-                   "instructors": db.execute("SELECT COUNT(*) FROM instructors").fetchone()[0],
+                   "instructors": db.execute("""SELECT COUNT(DISTINCT sg.instructor_id) FROM section_grades sg
+                                                JOIN courses c ON c.id=sg.course_id WHERE c.source<>'catalog'""").fetchone()[0],
                    "reddit_threads": db.execute("SELECT COUNT(*) FROM reddit_threads").fetchone()[0],
-                   "offered_now": db.execute("SELECT COUNT(*) FROM courses WHERE offered_now=1").fetchone()[0],
+                   "offered_now": db.execute("SELECT COUNT(*) FROM courses WHERE offered_now=1 AND source<>'catalog'").fetchone()[0],
+                   "catalog_courses": db.execute("SELECT COUNT(*) FROM courses WHERE source='catalog'").fetchone()[0],
                    "rejected_seed_codes": len(json.load(open(os.path.join(ROOT, "data", "rejected_codes.json"))))},
         "campus_gpa": r2(campus),
         "correlations": corr,

@@ -1,7 +1,7 @@
 # UW Course Lookup
 
-Grade history, instructor-by-instructor GPA, this term's sections and what students actually say, for
-**290 UW–Madison courses** on one static page.
+Grade history, instructor-by-instructor GPA and this term's sections for **every course in the Fall 2026 catalog
+(4,400+ UW–Madison courses)**, plus what students actually say about 290 of them, on one static page.
 
 👉 **[Open the tool](https://webgrs.github.io/uw-course-lookup/)**, or open `index.html` locally (works offline).
 
@@ -9,8 +9,8 @@ Grade history, instructor-by-instructor GPA, this term's sections and what stude
 
 ## What you can do with it
 
-- **Search** by code, title or instructor. Shorthand like `cs 577` or `stats 240` works, and the whole
-  Fall 2026 catalog (~5,000 courses) is searchable as a fallback.
+- **Search** by code, title or instructor. Shorthand like `cs 577` or `stats 240` works, and so do title words
+  with a number (`calculus 234`) or an instructor (`calc feldman`).
 - **Lenses** give one-click views: high GPA with a big class, big intro courses, courses where the
   instructor matters, grading getting harder or easier, open seats now, busy on Reddit.
 - **Filter** by subject, level, breadth, minimum GPA or "offered this term", and **sort** 10 ways.
@@ -57,7 +57,9 @@ The **Insights** tab and [`docs/ANALYSIS.md`](docs/ANALYSIS.md) are generated fr
 ## The database
 
 Everything lives in one SQLite file, [`data/uwcourses.db`](data/uwcourses.db)
-([schema](data/schema.sql)): 290 courses, 1.9M letter grades, 6,800+ instructors and 1,900+ Reddit threads.
+([schema](data/schema.sql), 28 MB): 4,438 courses, 4.2M letter grades, 18,000+ instructors and 1,900+ Reddit threads.
+Courses come in three tiers (`courses.source`): `chat` (mentioned in student chat), `enrollment` (largest this
+term) and `catalog` (everything else: grades and seats, no peer signal).
 
 ```sql
 -- Instructors teaching COMP SCI 577 this term, with their past GPA in it
@@ -77,10 +79,11 @@ courses.json  (anonymized chat counts)          scripts/extract_courses.py
    │
    ├─ build_db.py      match every code against the real catalog: drop non-courses,
    │                   merge cross-listings (CS 240 = MATH 240), add the term's largest
-   │                   courses, pull MadGrades history + current sections      ─► data/uwcourses.db
+   │                   courses and every other catalog course, pull MadGrades history
+   │                   + current sections                                       ─► data/uwcourses.db
    ├─ fetch_reddit.py  r/UWMadison threads per course                          ─► data/reddit.json
    ├─ analyze.py       GPA, trend, instructor spread, shrunk GPA, correlations ─► insights.json, ANALYSIS.md
-   └─ build_site.py    export compact data + render the page                   ─► assets/*.js, index.html
+   └─ build_site.py    export compact data + render the page                   ─► assets/data.js, index.html
 ```
 
 ```bash
@@ -95,6 +98,9 @@ CI runs the tests on every push. A manual **Refresh data** workflow rebuilds and
 
 ### A few details worth knowing
 
+- **Catalog tier.** The first ~290 courses carry the peer signal (chat, Reddit) and drive the Insights tab. The other
+  ~4,150 come straight from the catalog, with MadGrades history summed per term and instructor to keep the database small.
+  The first full build fetches ~14,000 API responses (about 20 minutes); later runs reuse the cache in `data/cache/`.
 - **Catalog verification.** 26 of the 256 chat-extracted codes weren't real courses (for example,
   "comp sci 300" read as NUTR SCI 300). They are dropped and listed in
   [`data/rejected_codes.json`](data/rejected_codes.json).

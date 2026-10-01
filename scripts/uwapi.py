@@ -4,7 +4,7 @@
 - Course Search & Enroll (public.enroll.wisc.edu): catalog, credits, breadths, current sections
 - MadGrades (api.madgrades.com): historical grade distributions from UW public records
 """
-import hashlib, json, os, re, time, urllib.error, urllib.request
+import hashlib, http.client, json, os, re, time, urllib.error, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, "data", "cache")
@@ -42,7 +42,7 @@ def _fetch(url, headers, body=None, cache=True, tries=6):
             if e.code == 429:
                 time.sleep(int(e.headers.get("Retry-After") or 0) or 15 * (i + 1))
                 continue
-        except (urllib.error.URLError, TimeoutError):
+        except (urllib.error.URLError, OSError, http.client.HTTPException):  # incl. resets while reading the body
             if i == tries - 1:
                 raise
         time.sleep(1.5 * (i + 1))

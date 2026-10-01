@@ -35,7 +35,7 @@ CREATE TABLE courses (
   offered_now      INTEGER DEFAULT 0,      -- has sections this term
   enroll_course_id TEXT,
   madgrades_uuid   TEXT,
-  source           TEXT,                   -- chat (peer-mentioned) or enrollment (large course this term)
+  source           TEXT,                   -- chat (peer-mentioned), enrollment (large this term) or catalog (everything else)
   enrolled_now     INTEGER                 -- lecture enrollment this term, at build time
 );
 
@@ -81,6 +81,7 @@ CREATE TABLE instructors (
   name TEXT NOT NULL
 );
 
+-- catalog-tier courses store one row per term and instructor (sections summed, section = 0)
 CREATE TABLE section_grades (
   course_id     INTEGER NOT NULL REFERENCES courses(id),
   term          INTEGER NOT NULL,

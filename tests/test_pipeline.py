@@ -90,6 +90,26 @@ class StatsTests(unittest.TestCase):
         self.assertAlmostEqual(analyze.wls_slope([0, 1, 2], [1, 2, 3], [1, 5, 1]), 1.0)
 
 
+class CatalogTierTests(unittest.TestCase):
+    def test_compact_grades_sums_per_term_and_instructor(self):
+        g = {"courseOfferings": [{"termCode": 1264, "cumulative": {"aCount": 5, "total": 8}, "sections": [
+            {"sectionNumber": 1, "aCount": 2, "total": 4, "instructors": [{"id": 7, "name": "A B"}]},
+            {"sectionNumber": 2, "aCount": 3, "total": 4, "instructors": [{"id": 7, "name": "A B"}, {"id": 9, "name": "C D"}]}]}]}
+        terms, per = build_db.compact_grades(g)
+        self.assertEqual([t for t, _ in terms], [1264])
+        self.assertEqual(per[(1264, 7)], ["A B", 5, 0, 0, 0, 0, 0, 0, 8])
+        self.assertEqual(per[(1264, 9)][1], 3)
+        self.assertEqual(build_db.compact_grades(None), ([], {}))
+
+    def test_catalog_tier_skips_tracked_designations(self):
+        def hit(cid, num):
+            return {"courseId": cid, "catalogNumber": num, "subject": {"subjectCode": "266", "shortDescription": "COMP SCI"}}
+        have = {"E1": {"abbr": "COMP SCI", "num": "300"}}
+        out = build_db.catalog_tier([hit("1", "300"), hit("2", "300"), hit("3", "400"), hit("4", "400")], have)
+        self.assertEqual(list(out), ["E3"])  # E2 repeats a tracked code, E4 repeats E3's
+        self.assertEqual(out["E3"]["source"], "catalog")
+
+
 class RedditTests(unittest.TestCase):
     def test_year_monotonic(self):
         years = [fr.post_year(p) for p in ["5l3qwg", "d8ymqq", "18t7mby", "1f1b25n", "1plbgr8"]]
@@ -134,6 +154,19 @@ class DatabaseTests(unittest.TestCase):
     def test_grade_bounds(self):
         self.assertEqual(self.q("SELECT COUNT(*) FROM course_stats WHERE gpa < 0 OR gpa > 4 OR pct_a > 1"), [(0,)])
         self.assertEqual(self.q("SELECT COUNT(*) FROM grade_terms WHERE a+ab+b+bc+c+d+f > total"), [(0,)])
+
+    def test_catalog_tier_is_broad(self):
+        n = self.q("SELECT COUNT(*) FROM courses WHERE source='catalog'")[0][0]
+        self.assertGreater(n, 3000)
+        feat = self.q("SELECT COUNT(*) FROM courses WHERE source<>'catalog'")[0][0]
+        self.assertTrue(200 < feat < 400, feat)
+        graded = self.q("SELECT COUNT(*) FROM courses c JOIN course_stats s ON s.course_id=c.id "
+                        "WHERE c.source='catalog' AND s.gpa IS NOT NULL")[0][0]
+        self.assertGreater(graded / n, 0.7)  # most catalog courses have letter-grade history
+        self.assertEqual(self.q("SELECT COUNT(*) FROM chat_mentions m JOIN courses c ON c.id=m.course_id "
+                                "WHERE c.source='catalog' AND (m.mentions<>0 OR m.positive<>0 OR m.negative<>0)"), [(0,)])
+        self.assertEqual(self.q("SELECT COUNT(*) FROM section_grades sg JOIN courses c ON c.id=sg.course_id "
+                                "WHERE c.source<>'catalog' AND sg.section=0"), [(0,)])
 
     def test_reddit_titles_clean(self):
         bad = self.q("SELECT title FROM reddit_threads WHERE title LIKE 'r/UWMadison on Reddit%' OR title LIKE '% - Reddit'"

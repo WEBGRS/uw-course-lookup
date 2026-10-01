@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Export data/uwcourses.db -> assets/data.js + assets/catalog.js, render index.html.
+"""Export data/uwcourses.db -> assets/data.js, render index.html.
 
 Data ships as <script> files (not fetch) so the page also works from file://.
 
@@ -17,7 +17,17 @@ INSIGHTS = os.path.join(ROOT, "data", "insights.json")
 TEMPLATE = os.path.join(os.path.dirname(__file__), "index.template.html")
 ASSETS = os.path.join(ROOT, "assets")
 MAX_INSTR = 14
+MAX_INSTR_CATALOG = 10
 MAX_THREADS = 8
+
+
+SMALL = {"and", "of", "in", "for", "the", "to", "on", "at", "a", "an", "or"}
+
+
+def nice(name):
+    """'AGRICULTURAL AND APPLIED ECONOMICS' -> 'Agricultural and Applied Economics'."""
+    ws = (name or "").title().split()
+    return " ".join(w.lower() if i and w.lower() in SMALL else w for i, w in enumerate(ws))
 
 
 def r3(v):
@@ -52,6 +62,8 @@ def export(db):
         rest = [x for x in ins if not x[5]]
         big = [x for x in rest if x[2] >= 30]
         ins = [x for x in ins if x[5]] + big + [x for x in rest if x[2] < 30][:max(0, MAX_INSTR - len(big))]
+        if src == "catalog":
+            ins = ins[:MAX_INSTR_CATALOG]
         secs = db.execute("""SELECT type, section, instructors, status, enrolled, capacity, package_id
                              FROM current_sections WHERE course_id=?""", (cid,)).fetchall()
         lectures = {}
@@ -71,26 +83,20 @@ def export(db):
         aliases = [a for (a,) in db.execute("SELECT alias FROM course_aliases WHERE course_id=? AND alias<>?",
                                              (cid, code))]
         cr = (f"{cmin:g}" if cmin == cmax else f"{cmin:g}–{cmax:g}") if cmin is not None else None
-        out.append({
+        rec = {
             "id": code.replace(" ", "-"), "code": code, "al": aliases, "sa": subj.get(sc, (None,))[0],
-            "sn": (subj.get(sc, (None, None))[1] or "").title(), "num": num, "t": title, "d": desc, "cr": cr,
+            "sn": nice(subj.get(sc, (None, None))[1]), "num": num, "t": title, "d": desc, "cr": cr,
             "prq": prq, "br": json.loads(br or "[]"), "ge": ge, "es": es, "lvl": lvl, "typ": typ, "last": last,
             "now": now_obj, "mg": uuid, "src": src, "en": enr, "m": men, "pos": pos, "neg": neg,
             "n": graded or 0, "gpa": r3(gpa), "gr": r3(gpa_r), "gs": r3(gpa_s), "pa": r3(pa), "pdf": r3(pdf),
             "tr": r3(tr), "sp": r3(sp), "dist": list(dist) if dist[0] is not None else None,
-            "terms": terms, "ins": ins, "rd": rd[:MAX_THREADS], "rdn": rdn or 0, "rdt": r3(rdt)})
+            "terms": terms, "ins": ins, "rd": rd[:MAX_THREADS], "rdn": rdn or 0, "rdt": r3(rdt)}
+        if src == "catalog":  # no peer signal: leave out empty fields, the page fills defaults
+            rec = {k: v for k, v in rec.items() if v not in (None, [], 0, "")}
+        out.append(rec)
     campus = db.execute("SELECT SUM(a),SUM(ab),SUM(b),SUM(bc),SUM(c),SUM(d),SUM(f) FROM grade_terms").fetchone()
     insights = json.load(open(INSIGHTS, encoding="utf-8")) if os.path.exists(INSIGHTS) else {}
     return {"meta": {**meta, "campusDist": list(campus)}, "courses": out, "insights": insights}
-
-
-def catalog(term):
-    rows = {}
-    for h in uwapi.enroll_catalog(term):
-        cmin, cmax = h.get("minimumCredits"), h.get("maximumCredits")
-        cr = (f"{cmin:g}" if cmin == cmax else f"{cmin:g}–{cmax:g}") if cmin is not None else ""
-        rows[h["courseDesignation"]] = [h["courseDesignation"], h.get("title") or "", cr]
-    return sorted(rows.values())
 
 
 def main():
@@ -99,12 +105,12 @@ def main():
     os.makedirs(ASSETS, exist_ok=True)
     js = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     open(os.path.join(ASSETS, "data.js"), "w", encoding="utf-8").write("window.UWCL=" + js + ";\n")
-    cat = catalog(data["meta"]["term"])
-    open(os.path.join(ASSETS, "catalog.js"), "w", encoding="utf-8").write(
-        "window.UWCL_CATALOG=" + json.dumps(cat, ensure_ascii=False, separators=(",", ":")) + ";\n")
+    stale = os.path.join(ASSETS, "catalog.js")  # superseded: every catalog course is in data.js now
+    if os.path.exists(stale):
+        os.remove(stale)
     html = open(TEMPLATE, encoding="utf-8").read().replace("__BUILT__", data["meta"]["built_at"][:10])
     open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8").write(html)
-    print(f"{len(data['courses'])} courses ({len(js) // 1024} KB), catalog {len(cat)} -> assets/, index.html")
+    print(f"{len(data['courses'])} courses ({len(js) // 1024} KB) -> assets/data.js, index.html")
 
 
 if __name__ == "__main__":

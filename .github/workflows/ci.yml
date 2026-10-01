@@ -14,6 +14,6 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Site data parses
         run: |
-          node -e "global.window={};require('./assets/data.js');require('./assets/catalog.js');
-            const d=window.UWCL; if(!d.courses.length||!window.UWCL_CATALOG.length) process.exit(1);
-            console.log(d.courses.length+' courses, '+window.UWCL_CATALOG.length+' catalog rows')"
+          node -e "global.window={};require('./assets/data.js');
+            const d=window.UWCL; if(!d||d.courses.length<4000) process.exit(1);
+            console.log(d.courses.length+' courses')"

@@ -18,14 +18,14 @@ await page.waitForSelector(".row[data-id]", { timeout: 30000 });
 
 const s = await page.evaluate(() => ({
   courses: window.UWCL?.courses?.length || 0,
-  catalog: window.UWCL_CATALOG?.length || 0,
+  extra: window.UWCL?.courses?.filter((c) => c.src === "catalog").length || 0,
   rows: document.querySelectorAll(".row[data-id]").length,
   count: document.querySelector("#cnt")?.textContent,
   hscroll: document.documentElement.scrollWidth > document.documentElement.clientWidth,
 }));
 console.log(JSON.stringify(s));
-if (s.courses < 200) problems.push(`only ${s.courses} courses in data`);
-if (s.catalog < 3000) problems.push(`catalog has ${s.catalog} rows`);
+if (s.courses < 4000) problems.push(`only ${s.courses} courses in data`);
+if (s.extra < 3000) problems.push(`only ${s.extra} catalog-tier courses`);
 if (!s.rows) problems.push("no course rows rendered");
 if (s.hscroll) problems.push("page scrolls horizontally");
 
@@ -36,6 +36,13 @@ const hit = await page.$$eval(".row[data-id]", (r) => r.map((x) => x.dataset.id)
 console.log('search "cs 300" ->', hit.slice(0, 3));
 if (!hit.includes("COMP-SCI-300")) problems.push('"cs 300" did not find COMP SCI 300');
 
+// Title words + number, and a catalog-tier course, are findable
+await page.fill("#q", "calculus 234");
+await page.waitForTimeout(300);
+if (!(await page.$$eval(".row[data-id]", (r) => r.map((x) => x.dataset.id))).includes("MATH-234")) problems.push('"calculus 234" did not find MATH 234');
+const extraId = await page.evaluate(() => window.UWCL.courses.find((c) => c.src === "catalog" && c.dist && c.now)?.id);
+if (!extraId) problems.push("no catalog-tier course with grades and seats");
+
 // Every sort keeps the list non-empty
 await page.fill("#q", "");
 for (const v of ["gpa", "gpaL", "pa", "tr", "tl", "sp", "rd", "en", "code", "m"]) {
@@ -45,9 +52,11 @@ for (const v of ["gpa", "gpaL", "pa", "tr", "tl", "sp", "rd", "en", "code", "m"]
 }
 
 // Lenses narrow the list and the band follows the hovered row
+const num = async () => (await page.textContent("#cnt")).replace(/,/g, "");
+const total = +(await num()).match(/of (\d+)/)[1];
 await page.click('[data-lens="easy"]');
-const easy = await page.$$eval(".row[data-id]", (r) => r.length);
-if (!easy || easy >= s.rows) problems.push(`lens "easy" did not narrow the list (${easy})`);
+const easy = +(await num()).match(/^(\d+)/)[1];
+if (!easy || easy >= total) problems.push(`lens "easy" did not narrow the list (${easy} of ${total})`);
 await page.click('[data-lens="easy"]');
 const before = await page.textContent("#bandL");
 await page.hover(".row[data-id]:nth-of-type(3)");
@@ -78,6 +87,15 @@ await page.waitForTimeout(200);
 if ((await page.evaluate(() => location.hash)) === "#/c/MATH-234") problems.push("ArrowRight did not move to the next course");
 if (!d.instructors) problems.push("drawer has no instructors");
 if (!d.mg || !d.rmp) problems.push("drawer is missing MadGrades or RMP links");
+
+// A catalog-tier course opens a drawer with grades and no peer-signal charts
+if (extraId) {
+  await page.goto(URL.split("#")[0] + "#/c/" + extraId);
+  await page.waitForSelector("#drawer.on", { timeout: 10000 });
+  const e = await page.evaluate(() => ({ charts: document.querySelectorAll("#drawer svg").length, say: document.querySelector("#drawer .d-sec:last-child")?.textContent.length }));
+  console.log("catalog-tier drawer", extraId, JSON.stringify(e));
+  if (e.charts < 1) problems.push("catalog-tier drawer has no chart");
+}
 
 // Insights tab
 await page.goto(URL.split("#")[0] + "#/insights");

@@ -2,11 +2,15 @@
 """Build data/uwcourses.db from the anonymized seed list + public sources.
 
 Steps: resolve every seed code against the real catalog (drops false positives,
-merges cross-listings) -> pull MadGrades history -> snapshot current sections
--> attach r/UWMadison threads (data/reddit.json, from fetch_reddit.py).
+merges cross-listings) -> add the term's large courses -> add every other catalog course
+-> pull MadGrades history -> snapshot current sections -> attach r/UWMadison threads
+(data/reddit.json, from fetch_reddit.py).
+
+Course tiers (courses.source): chat (peer-mentioned), enrollment (large this term),
+catalog (everything else in the catalog; grades and seats only, no peer signal).
 
 Usage:
-    python scripts/build_db.py [--term 1272] [--refresh]
+    python scripts/build_db.py [--term 1272] [--refresh] [--featured-only]
 """
 import argparse, datetime, json, os, re, sqlite3, sys
 from concurrent.futures import ThreadPoolExecutor
@@ -27,6 +31,7 @@ SEED_ALIAS = {"CS": "COMPSCI", "NUTRISCI": "NUTRSCI", "EDUPSY": "EDPSYCH", "BIO"
               "HIST": "HISTORY", "COMMARTS": "COMARTS", "AFRICA": "AFRICAN", "ANAT": "ANATOMY",
               "INTERDIS": "INTERLS", "MARKETING": "MARKETNG", "ACCT": "ACCTIS", "ARTS": "ART",
               "LING": "LINGUIS", "ASIALANG": "ASIALANG"}
+LECTURE_TYPES = ("LEC", "SEM", "IND", "FLD")
 GRADE_KEYS = ["a", "ab", "b", "bc", "c", "d", "f", "s", "u", "cr", "n", "p", "i", "nw", "nr", "other"]
 
 
@@ -115,12 +120,53 @@ def expansion(catalog, term, min_enrolled, have, refresh):
     return out
 
 
+def catalog_tier(catalog, have):
+    """Every catalog course not already tracked, one per designation (topics courses share a code)."""
+    seen = {f"{c['abbr']} {c['num']}" for c in have.values()}
+    out = {}
+    for h in catalog:
+        ident = "E" + h["courseId"]
+        code = f"{h['subject']['shortDescription']} {h['catalogNumber']}"
+        if ident in have or ident in out or code in seen:
+            continue
+        seen.add(code)
+        out[ident] = {"hit": h, "subject_code": h["subject"]["subjectCode"], "abbr": h["subject"]["shortDescription"],
+                      "num": h["catalogNumber"], "seeds": [], "n": 0, "pos": 0, "neg": 0, "source": "catalog"}
+    print(f"catalog tier: {len(out)} more courses")
+    return out
+
+
+def find_madgrades(c):
+    """MadGrades course for this catalog number, trying every cross-listed subject."""
+    subs = [c["subject_code"]] + [s["subjectCode"] for s in ((c["hit"] or {}).get("allCrossListedSubjects") or [])]
+    for code in dict.fromkeys(subs):
+        mg = [x for x in uwapi.madgrades_course(code, c["num"]) if str(x["number"]) == c["num"]]
+        if mg:
+            return mg[0]
+    return None
+
+
+def compact_grades(g):
+    """Catalog tier: per-term totals + per (term, instructor) sums, so no raw section rows are kept."""
+    terms, per = [], {}
+    for off in (g or {}).get("courseOfferings") or []:
+        terms.append((off["termCode"], grade_row(off["cumulative"])))
+        for sec in off.get("sections") or []:
+            for ins in sec.get("instructors") or []:
+                r = per.setdefault((off["termCode"], ins["id"]), [ins.get("name"), 0, 0, 0, 0, 0, 0, 0, 0])
+                for i, k in enumerate(("aCount", "abCount", "bCount", "bcCount", "cCount", "dCount", "fCount", "total"), 1):
+                    r[i] += sec.get(k, 0)
+    return terms, per
+
+
 def fetch_course(c, term, refresh):
     """MadGrades history + current sections for one resolved course."""
     if not c.get("mg"):
-        mg = [x for x in uwapi.madgrades_course(c["subject_code"], c["num"]) if str(x["number"]) == c["num"]]
-        c["mg"] = mg[0] if mg else None
+        c["mg"] = find_madgrades(c)
     c["grades"] = uwapi.madgrades(f"/courses/{c['mg']['uuid']}/grades") if c["mg"] else None
+    if c["source"] == "catalog":
+        c["gt"], c["sg"] = compact_grades(c["grades"])
+        c["grades"] = None
     c["packages"] = []
     if c["hit"]:
         c["packages"] = uwapi.enroll_packages(term, c["hit"]["subject"]["subjectCode"], c["hit"]["courseId"],
@@ -139,6 +185,7 @@ def main():
     ap.add_argument("--refresh", action="store_true", help="re-fetch current sections (seats change daily)")
     ap.add_argument("--min-enrolled", type=int, default=250,
                     help="also add unmentioned courses with at least this many enrolled this term (0 = off)")
+    ap.add_argument("--featured-only", action="store_true", help="skip the catalog tier (chat + large courses only)")
     a = ap.parse_args()
 
     seeds = json.load(open(SEED, encoding="utf-8"))
@@ -158,8 +205,20 @@ def main():
         c["source"] = "chat"
     if a.min_enrolled:
         courses.update(expansion(catalog, a.term, a.min_enrolled, courses, a.refresh))
+    if not a.featured_only:
+        courses.update(catalog_tier(catalog, courses))
+    todo = list(courses.values())
+    done = 0
+
+    def job(c):
+        nonlocal done
+        fetch_course(c, a.term, a.refresh)
+        done += 1
+        if done % 250 == 0:
+            print(f"  fetched {done}/{len(todo)}", flush=True)
+
     with ThreadPoolExecutor(8) as ex:
-        list(ex.map(lambda c: fetch_course(c, a.term, a.refresh), courses.values()))
+        list(ex.map(job, todo))
     reddit = json.load(open(REDDIT, encoding="utf-8")) if os.path.exists(REDDIT) else {}
 
     tmp = DB + ".tmp"
@@ -183,7 +242,8 @@ def main():
     db.executemany("INSERT INTO subjects VALUES (?,?,?,?)", [(k, *v) for k, v in subjects.items()])
 
     instructors = {}
-    order = sorted(courses.items(), key=lambda kv: (-kv[1]["n"], kv[1]["abbr"], int(kv[1]["num"])))
+    rank = {"chat": 0, "enrollment": 1, "catalog": 2}
+    order = sorted(courses.items(), key=lambda kv: (rank[kv[1]["source"]], -kv[1]["n"], kv[1]["abbr"], int(kv[1]["num"])))
     used, cid = set(), 0
     for ident, c in order:
         h, mg = c["hit"], c["mg"]
@@ -204,7 +264,7 @@ def main():
             1 if (h or {}).get("ethnicStudies") else 0,
             ", ".join(l["description"] for l in (h or {}).get("levels") or []) or None,
             (h or {}).get("typicallyOffered"),
-            int(h["lastTaught"]) if h and h.get("lastTaught") else None,
+            int(h["lastTaught"]) if h and str(h.get("lastTaught") or "").strip().isdigit() else None,
             1 if h else 0, 1 if packages else 0,
             (h or {}).get("courseId"), (mg or {}).get("uuid"), c["source"],
             lecture_enrollment(packages) if packages else None))
@@ -217,6 +277,15 @@ def main():
         db.execute("INSERT INTO chat_mentions VALUES (?,?,?,?,?,?)",
                    (cid, c["n"], c["pos"], c["neg"], c.get("people"), json.dumps(c["seeds"])))
 
+        if c["source"] == "catalog":
+            for term, row in c["gt"]:
+                db.execute(f"INSERT OR REPLACE INTO grade_terms VALUES (?,?,{','.join('?' * 17)})", (cid, term, *row))
+            for (term, iid), (name, *cnt) in c["sg"].items():
+                if iid not in instructors:
+                    instructors[iid] = name
+                    db.execute("INSERT INTO instructors VALUES (?,?)", (iid, name or f"Instructor {iid}"))
+                db.execute("INSERT OR IGNORE INTO section_grades VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                           (cid, term, 0, iid, *cnt))
         g = c["grades"]
         for off in (g or {}).get("courseOfferings") or []:
             db.execute(f"INSERT OR REPLACE INTO grade_terms VALUES (?,?,{','.join('?' * 17)})",
@@ -235,7 +304,10 @@ def main():
         for p in packages:
             es = p.get("enrollmentStatus") or {}
             status = (p.get("packageEnrollmentStatus") or {}).get("status")
-            for s in p.get("sections") or []:
+            secs = p.get("sections") or []
+            if c["source"] == "catalog" and secs:  # one row per package is all the page needs
+                secs = [next((x for x in secs if x.get("type") in LECTURE_TYPES), secs[0])]
+            for s in secs:
                 db.execute("INSERT OR IGNORE INTO current_sections VALUES (?,?,?,?,?,?,?,?,?,?)", (
                     cid, int(a.term), str(p.get("id") or p.get("docId")), s.get("type"), s.get("sectionNumber"),
                     json.dumps([name_of(i) for i in s.get("instructors") or [] if name_of(i)]),

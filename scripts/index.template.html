@@ -151,11 +151,6 @@ select,.chk{background:var(--surface);border:1px solid var(--line);border-radius
 }
 @media(max-width:520px){.row{grid-template-columns:24px minmax(0,1fr) 120px}.gcell{grid-template-columns:34px 1fr;gap:6px}}
 .empty{padding:28px 20px;text-align:center;color:var(--ink-2)}
-.catalog-hits{margin-top:18px}
-.catalog-hits h3{font-size:14px;margin:0 0 8px;color:var(--ink-2)}
-.cat-item{display:flex;justify-content:space-between;gap:10px;padding:9px 14px;border-top:1px solid var(--line-2);font-size:14px;align-items:center;flex-wrap:wrap}
-.cat-item:first-child{border-top:0}
-.cat-item .links{display:flex;gap:12px;font-size:13px}
 
 /* Plan bar */
 .plan{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(1140px,calc(100% - 24px));background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:10px 14px;display:flex;gap:14px;align-items:center;z-index:15;flex-wrap:wrap}
@@ -320,10 +315,6 @@ footer p{margin:0 0 6px}
     <div class="resline"><span id="cnt"></span><span class="keys" id="keys"></span></div>
     <div class="list" id="list"></div>
     <div class="more" id="moreWrap" hidden><button class="btn" id="more" data-t="more"></button></div>
-    <div class="catalog-hits" id="catHits" hidden>
-      <h3 id="catTitle"></h3>
-      <div class="list" id="catList"></div>
-    </div>
   </section>
 
   <section id="v-insights" hidden></section>
@@ -339,7 +330,7 @@ footer p{margin:0 0 6px}
         <li><b>Rate My Professors</b>: not copied. Each instructor has a link that searches RMP at UW–Madison.</li>
       </ul>
       <h2 class="serif">How courses were checked</h2>
-      <p>Course codes pulled from chat are messy ("cs300", "comp sci 300", "stats 240"). Each one was matched against the real catalog, and codes that don't exist were dropped, including a few that were really "comp sci" misread as nutrition science. Cross-listed courses such as COMP SCI 240 / MATH 240 were merged into one row. The largest courses of the current term were added even if nobody mentioned them.</p>
+      <p>Course codes pulled from chat are messy ("cs300", "comp sci 300", "stats 240"). Each one was matched against the real catalog, and codes that don't exist were dropped, including a few that were really "comp sci" misread as nutrition science. Cross-listed courses such as COMP SCI 240 / MATH 240 were merged into one row. The largest courses of the current term were added even if nobody mentioned them. Every other course in the catalog is listed too, with grades and seats but no chat or Reddit data.</p>
       <h2 class="serif">Reading the derived numbers</h2>
       <ul>
         <li><b>Recent GPA</b> uses the last six terms with grades.</li>
@@ -360,7 +351,7 @@ footer p{margin:0 0 6px}
         <li><b>Rate My Professors</b>：没有复制任何内容，每位老师旁边只放了一个跳到 RMP 搜索的链接。</li>
       </ul>
       <h2 class="serif">课程是怎么核对的</h2>
-      <p>群聊里的课号写法很乱（"cs300"、"comp sci 300"、"stats 240"）。每个课号都和真实的选课目录比对过，不存在的直接删掉，其中有几个其实是 "comp sci" 被误认成了营养学。交叉挂牌的课（比如 COMP SCI 240 / MATH 240）合并成一行。本学期人数最多的大课即使没人提过也一并收录。</p>
+      <p>群聊里的课号写法很乱（"cs300"、"comp sci 300"、"stats 240"）。每个课号都和真实的选课目录比对过，不存在的直接删掉，其中有几个其实是 "comp sci" 被误认成了营养学。交叉挂牌的课（比如 COMP SCI 240 / MATH 240）合并成一行。本学期人数最多的大课即使没人提过也一并收录；目录里的其余课程也都列出，有成绩和座位，但没有群聊和 Reddit 数据。</p>
       <h2 class="serif">衍生指标怎么看</h2>
       <ul>
         <li><b>近 6 学期 GPA</b>：只算最近六个有成绩的学期。</li>
@@ -383,10 +374,10 @@ footer p{margin:0 0 6px}
 <div class="tip" id="tip" aria-hidden="true"></div>
 
 <script src="assets/data.js"></script>
-<script src="assets/catalog.js"></script>
 <script>
 "use strict";
-const D = window.UWCL, CAT = window.UWCL_CATALOG || [], C = D.courses, INS = D.insights || {};
+const D = window.UWCL, C = D.courses, INS = D.insights || {};
+C.forEach(c => { c.al ||= []; c.br ||= []; c.ins ||= []; c.rd ||= []; c.terms ||= []; c.m ||= 0; c.pos ||= 0; c.neg ||= 0; c.rdn ||= 0; c.n ||= 0; c.es ||= 0; c.sn ??= ""; c.t ??= ""; });
 const BY = Object.fromEntries(C.map(c => [c.id, c]));
 const G = ["A","AB","B","BC","C","D","F"], GV = ["--gA","--gAB","--gB","--gBC","--gC","--gD","--gF"];
 const PAGE = 60, TERM = +D.meta.term;
@@ -424,14 +415,13 @@ const TX = {
     lt_easy: "Adjusted GPA 3.7+ with 500+ graded students", lt_intro: "Below 300-level with 250+ students this term",
     lt_instr: "Instructors differ by 0.6+ GPA points", lt_harder: "GPA falling 0.03+ per year since 2016", lt_easier: "GPA rising 0.03+ per year since 2016",
     lt_open: "At least one enrollment option open (snapshot)", lt_reddit: "8+ r/UWMadison threads",
-    count: (n, all) => n + " of " + all + " courses", more: "Show more",
+    count: (n, all) => fmt(n) + " of " + fmt(all) + " courses", more: "Show more",
     keys: "<kbd>/</kbd> search · <kbd>j</kbd> <kbd>k</kbd> move · <kbd>Enter</kbd> open · <kbd>s</kbd> save",
     colCourse: "Course", colCr: "Cr", colGpa: "GPA · grades", colA: "A's", colTr: "Trend", colTalk: "Mentions",
     open: "Open", wait: "Waitlist", full: "Full", notTerm: "Not this term", teachingNow: t => t + ": ",
     chat: n => n + " chat", reddit: n => n + " Reddit",
-    empty: "No tracked course matches. Try fewer filters, or check the catalog matches below.",
-    catTitle: t => "Also in the " + t + " catalog (no grade data here yet)", enroll: "Enroll",
-    bandAll: (n, g, f, gpa) => "<b>All " + n + " courses</b> · " + g + " letter grades since " + f + " · average GPA " + gpa,
+    empty: "No course matches. Try a different search or fewer filters.",
+    bandAll: (n, g, f, gpa) => "<b>All " + fmt(n) + " courses</b> · " + g + " letter grades since " + f + " · average GPA " + gpa,
     bandCourse: (code, title, gpa, n) => "<b>" + code + "</b> " + title + " · GPA " + gpa + " · " + n + " grades",
     bandNoData: code => "<b>" + code + "</b> · no letter-grade history",
     bandR: "Ticks mark the all-course split",
@@ -444,7 +434,7 @@ const TX = {
     teaching: "Teaching: ", pastHere: g => "(past GPA here " + g + ")", noHist: "(no grade history in this course)",
     notOffered: last => "Not offered this term" + (last ? "; last taught " + last : "") + ".",
     grades: "Grades", studentsRange: (n, a, b) => fmt(n) + " students, " + a + " – " + b,
-    thisCourse: "This course", allTracked: n => "All " + n + " tracked courses",
+    thisCourse: "This course", allTracked: n => "All " + fmt(n) + " courses",
     byTerm: "GPA by fall and spring term", since2016: "since 2016", trackedAvg: g => "all-course avg " + g,
     noGrades: "MadGrades has no letter-grade history for this course.",
     instructors: "Instructors", spread: s => "spread " + s + " GPA points",
@@ -453,6 +443,8 @@ const TX = {
     thin: "Fewer than 30 students is a thin sample, so weigh those GPAs lightly.", showAll: n => "Show all " + n, showFewer: "Show fewer",
     say: "What students say",
     sayEnroll: "Added because it is one of the largest courses this term; it never came up in the group chat",
+    sayCatalog: "Not one of the featured courses, so there is no group-chat or Reddit data here. Grades and seats come from MadGrades and Course Search & Enroll.",
+    insNote: (n, all) => "These panels analyse the " + n + " featured courses (mentioned in student chat, or the largest this term). The course list covers all " + all + ".",
     sayChat: (m, p, n) => "Mentioned <b>" + m + "</b> time" + (m === 1 ? "" : "s") + " in a UW student group chat" + (p || n ? " (" + p + " positive, " + n + " negative)" : ""),
     sayReddit: (n, tone) => ". Found <b>" + n + "</b> r/UWMadison thread" + (n === 1 ? "" : "s") + (tone ? ", tone " + tone : "") + ".",
     tonePos: "mostly positive", toneNeg: "mostly negative", toneMix: "mixed",
@@ -498,14 +490,13 @@ const TX = {
     lens_harder: "越来越难", lens_easier: "越来越松", lens_open: "现在有空位", lens_reddit: "Reddit 热议",
     lt_easy: "调整后 GPA ≥ 3.7，累计 500 人以上", lt_intro: "300 级以下、本学期 250 人以上", lt_instr: "不同老师给分相差 0.6 以上",
     lt_harder: "2016 年以来 GPA 每年降 0.03 以上", lt_easier: "2016 年以来 GPA 每年升 0.03 以上", lt_open: "至少一个选课组合开放（快照）", lt_reddit: "r/UWMadison 帖子 8 个以上",
-    count: (n, all) => "共 " + all + " 门，显示 " + n + " 门", more: "显示更多",
+    count: (n, all) => "共 " + fmt(all) + " 门，显示 " + fmt(n) + " 门", more: "显示更多",
     keys: "<kbd>/</kbd> 搜索 · <kbd>j</kbd> <kbd>k</kbd> 上下移动 · <kbd>Enter</kbd> 打开 · <kbd>s</kbd> 收藏",
     colCourse: "课程", colCr: "学分", colGpa: "GPA · 分布", colA: "A 比例", colTr: "趋势", colTalk: "讨论",
     open: "有空位", wait: "候补", full: "已满", notTerm: "本学期不开", teachingNow: t => t + "：",
     chat: n => "群聊 " + n, reddit: n => "Reddit " + n,
-    empty: "没有符合条件的课。试着减少筛选条件，或者看看下面目录里的匹配。",
-    catTitle: t => t + " 目录里的其他课（暂无成绩数据）", enroll: "选课系统",
-    bandAll: (n, g, f, gpa) => "<b>全部 " + n + " 门课</b> · " + f + " 以来 " + g + " 个字母成绩 · 平均 GPA " + gpa,
+    empty: "没有符合条件的课。换个关键词，或者减少筛选条件。",
+    bandAll: (n, g, f, gpa) => "<b>全部 " + fmt(n) + " 门课</b> · " + f + " 以来 " + g + " 个字母成绩 · 平均 GPA " + gpa,
     bandCourse: (code, title, gpa, n) => "<b>" + code + "</b> " + title + " · GPA " + gpa + " · " + n + " 个成绩",
     bandNoData: code => "<b>" + code + "</b> · 没有字母成绩记录",
     bandR: "刻度线 = 全部课程的分布",
@@ -518,7 +509,7 @@ const TX = {
     teaching: "授课：", pastHere: g => "（本课历史 GPA " + g + "）", noHist: "（本课无历史成绩）",
     notOffered: last => "本学期不开" + (last ? "，上次开课是 " + last : "") + "。",
     grades: "成绩", studentsRange: (n, a, b) => fmt(n) + " 名学生，" + a + " – " + b,
-    thisCourse: "本课", allTracked: n => "全部 " + n + " 门课",
+    thisCourse: "本课", allTracked: n => "全部 " + fmt(n) + " 门课",
     byTerm: "每学期 GPA（秋季和春季）", since2016: "自 2016 年", trackedAvg: g => "全部课程平均 " + g,
     noGrades: "MadGrades 没有这门课的字母成绩记录。",
     instructors: "老师", spread: s => "最大差距 " + s + " 绩点",
@@ -527,6 +518,8 @@ const TX = {
     thin: "少于 30 个学生的样本太小，GPA 仅供参考。", showAll: n => "显示全部 " + n + " 位", showFewer: "收起",
     say: "同学怎么说",
     sayEnroll: "这门课是本学期人数最多的课之一，所以收录进来；群聊里没人提过",
+    sayCatalog: "这不是重点收录的课，所以没有群聊和 Reddit 数据。成绩来自 MadGrades，座位来自 Course Search & Enroll。",
+    insNote: (n, all) => "这些图表只分析 " + n + " 门重点课（群聊提到过，或本学期人数最多）。课程列表则覆盖全部 " + all + " 门。",
     sayChat: (m, p, n) => "在 UW 学生群里被提到 <b>" + m + "</b> 次" + (p || n ? "（正面 " + p + "，负面 " + n + "）" : ""),
     sayReddit: (n, tone) => "。r/UWMadison 上找到 <b>" + n + "</b> 个帖子" + (tone ? "，整体" + tone : "") + "。",
     tonePos: "偏正面", toneNeg: "偏负面", toneMix: "褒贬不一",
@@ -659,11 +652,17 @@ function qMatch(c, q){
   if (!q) return true;
   const nq = norm(q), expanded = nq.replace(/^([a-z]+)/, m => SHORT[m] || m);
   if (!nq) return true;
-  const hay = c._hay || (c._hay = [c.code, ...c.al, c.t, c.sn, ...c.ins.map(i => i[0]), ...(c.now ? c.now.who : [])].join(" ").toLowerCase());
   const codes = c._codes || (c._codes = [c.code, ...c.al].map(norm));
   if (codeLike(nq)) return codes.some(x => x.startsWith(nq) || x.startsWith(expanded));
   if (codes.some(x => x.includes(nq))) return true;
-  return q.split(/\s+/).every(w => hay.includes(w));
+  return wordsMatch(c, q.split(/\s+/).map(w => w.replace(/[^a-z0-9]/g, "")).filter(Boolean));
+}
+const toks = s => s.split(/[^a-z0-9]+/).filter(Boolean);
+function wordsMatch(c, ws){  // each word starts a word in the code/title, or in one instructor's name
+  const f = c._f || (c._f = [toks([c.code, ...c.al, c.t, c.sn].join(" ").toLowerCase()),
+    ...[...new Set([...c.ins.map(i => i[0]), ...(c.now ? c.now.who : [])])].map(n => toks(n.toLowerCase()))]);
+  const rest = ws.filter(w => !f[0].some(t => t.startsWith(w)));
+  return !rest.length || f.slice(1).some(p => rest.every(w => p.some(t => t.startsWith(w))));
 }
 const nz = (v, d) => v == null ? d : v;
 const SORTS = {
@@ -709,7 +708,7 @@ function whoLine(c){
   return `<div class="who">${t("teachingNow", termShort(TERM))}${esc(w.slice(0, 3).join(", "))}${more}</div>`;
 }
 function renderLenses(){
-  $("#lenses").innerHTML = LENSES.map(([k]) => `<button class="lens" data-lens="${k}" aria-pressed="${st.lens === k}"${k ? ` title="${esc(t("lt_" + k))}"` : ""}>${esc(t("lens_" + k))} <small>${LENS_N[k]}</small></button>`).join("");
+  $("#lenses").innerHTML = LENSES.map(([k]) => `<button class="lens" data-lens="${k}" aria-pressed="${st.lens === k}"${k ? ` title="${esc(t("lt_" + k))}"` : ""}>${esc(t("lens_" + k))} <small>${fmt(LENS_N[k])}</small></button>`).join("");
 }
 function render(){
   readFilters();
@@ -719,8 +718,8 @@ function render(){
   const head = `<div class="row head">` + COLS.map(([k, l], i) =>
     `<div class="${i === 2 || i === 4 ? "num" : ""}"${i === 7 ? ` title="${esc(t("seatsAsOf", D.meta.built_at.slice(0, 10)))}"` : ""}>${k ? `<button data-sort="${k}"${st.sort === k ? ' aria-current="true"' : ""}>${esc(l)}</button>` : esc(l)}</div>`).join("") + "</div>";
   $("#list").innerHTML = head + (rows.length ? `<div class="rows" role="list" aria-label="${esc(t("tabCourses"))}">` + rows.slice(0, shown).map(c => `
-    <div class="row" role="listitem" tabindex="0" data-id="${c.id}">
-      <div class="c-star"><button class="star" data-star="${c.id}" aria-pressed="${saved.has(c.id)}" aria-label="${esc(t("save"))} ${esc(c.code)}">${saved.has(c.id) ? "★" : "☆"}</button></div>
+    <div class="row" role="listitem" tabindex="0" data-id="${esc(c.id)}">
+      <div class="c-star"><button class="star" data-star="${esc(c.id)}" aria-pressed="${saved.has(c.id)}" aria-label="${esc(t("save"))} ${esc(c.code)}">${saved.has(c.id) ? "★" : "☆"}</button></div>
       <div class="cname"><div><span class="code">${esc(c.code)}</span>${c.al.length ? ` <span class="alias">= ${esc(c.al.join(", "))}</span>` : ""}</div><div class="title">${esc(c.t)}</div>${whoLine(c)}</div>
       <div class="c-cr num small">${esc(c.cr || "–")}</div>
       <div class="c-gpa gcell"><b>${f2(c.gpa)}</b>${strip(c.dist)}</div>
@@ -732,18 +731,7 @@ function render(){
     </div>`).join("") + "</div>" : `<div class="empty">${esc(t("empty"))}</div>`);
   $("#fToggle").textContent = t("filters", activeFilters());
   $("#moreWrap").hidden = rows.length <= shown;
-  renderCatalog();
   renderPlan();
-}
-function renderCatalog(){
-  const q = st.q;
-  if (q.length < 2){ $("#catHits").hidden = true; return; }
-  const known = new Set(C.flatMap(c => [c.code, ...c.al]));
-  const nq = norm(q).replace(/^([a-z]+)/, m => SHORT[m] || m);
-  const hits = CAT.filter(([code, title]) => !known.has(code) && (norm(code).includes(nq) || title.toLowerCase().includes(q))).slice(0, 12);
-  $("#catHits").hidden = !hits.length;
-  $("#catTitle").textContent = t("catTitle", termLabel(TERM));
-  $("#catList").innerHTML = hits.map(([code, title, cr]) => `<div class="cat-item"><span><b>${esc(code)}</b> ${esc(title)} <span class="muted small">${esc(cr)} cr</span></span><span class="links"><a target="_blank" rel="noopener" href="https://madgrades.com/search?query=${encodeURIComponent(code)}">MadGrades</a><a target="_blank" rel="noopener" href="${enrollUrl(code)}">${esc(t("enroll"))}</a></span></div>`).join("");
 }
 function onFilter(){ shown = PAGE; render(); syncQuery(); }
 ["#q", "#sort", "#fSubj", "#fLvl", "#fBr", "#fGpa", "#fNow", "#fSaved"].forEach(s => $(s).addEventListener(s === "#q" ? "input" : "change", onFilter));
@@ -975,9 +963,13 @@ function openDrawer(id, keepScroll){
     h += "</div>";
   }
   const tone = c.rdt == null ? "" : c.rdt > .15 ? t("tonePos") : c.rdt < -.15 ? t("toneNeg") : t("toneMix");
-  h += `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
-  if (c.rd.length) h += `<ul class="threads">` + c.rd.map(x => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${x[3] > 0 ? "+ " : x[3] < 0 ? "− " : ""}${x[2] || ""}</span></li>`).join("") + "</ul>";
-  h += "</div></div>";
+  h += c.src === "catalog" ? `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0;color:var(--ink-2)">${esc(t("sayCatalog"))}</p></div>`
+    : `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
+  if (c.src === "catalog") h += "</div>";
+  else {
+    if (c.rd.length) h += `<ul class="threads">` + c.rd.map(x => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${x[3] > 0 ? "+ " : x[3] < 0 ? "− " : ""}${x[2] || ""}</span></li>`).join("") + "</ul>";
+    h += "</div></div>";
+  }
   dr.innerHTML = h; dr.scrollTop = top;
   $("#dClose").onclick = closeDrawer;
   $("#dPrev").onclick = () => stepCourse(-1); $("#dNext").onclick = () => stepCourse(1);
@@ -1084,7 +1076,7 @@ matchMedia("(max-width:640px)").addEventListener("change", () => { insLang = nul
 function renderInsights(){
   if (insLang === LANG) return; insLang = LANG;
   const k = INS.counts || {}, cr = INS.correlations || {};
-  let h = `<div class="stats">` + [
+  let h = `<p class="lede" style="margin:0 0 12px">${esc(t("insNote", k.courses, fmt(C.length)))}</p><div class="stats">` + [
     [k.courses, t("st_courses", k.from_chat, k.from_enrollment)], [fmt(k.graded_students), t("st_grades")],
     [fmt(k.instructors), t("st_instr")], [k.reddit_threads, t("st_reddit")],
     [k.offered_now, t("st_now", termLabel(TERM))], [k.rejected_seed_codes, t("st_rej")]].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${esc(l)}</span></div>`).join("") + "</div><div class=\"grid2\">";
