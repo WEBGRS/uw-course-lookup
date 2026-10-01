@@ -24,7 +24,9 @@ createServer(async (req, res) => {
   const file = url.pathname === "/" ? "index.html" : url.pathname.slice(1);
   if (!/^(index\.html|docs\/[\w.-]+)$/.test(file)) { res.writeHead(404); res.end("not found"); return; }
   try {
+    let body = await readFile(join(root, file));
+    if (file === "index.html") body = body.toString("utf8").replace(/window\.UWCL_API = "[^"]*"/, 'window.UWCL_API = ""');  // use this server's API
     res.writeHead(200, { "Content-Type": TYPES[extname(file)] || "application/octet-stream" });
-    res.end(await readFile(join(root, file)));
+    res.end(body);
   } catch { res.writeHead(404); res.end("not found"); }
 }).listen(port, "127.0.0.1", () => console.log(`http://127.0.0.1:${port}/`));
