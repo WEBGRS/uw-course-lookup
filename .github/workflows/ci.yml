@@ -1,0 +1,19 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit + database tests
+        run: python -m unittest discover -s tests -v
+      - name: Site data parses
+        run: |
+          node -e "global.window={};require('./assets/data.js');require('./assets/catalog.js');
+            const d=window.UWCL; if(!d.courses.length||!window.UWCL_CATALOG.length) process.exit(1);
+            console.log(d.courses.length+' courses, '+window.UWCL_CATALOG.length+' catalog rows')"
