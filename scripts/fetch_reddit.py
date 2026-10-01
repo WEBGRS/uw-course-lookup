@@ -20,6 +20,15 @@ SEARCH = "https://api.firecrawl.dev/v2/search"
 USER_RE = re.compile(r"(?<![A-Za-z0-9])/?u/[A-Za-z0-9_-]+")  # strip usernames from snippets
 POST_RE = re.compile(r"reddit\.com/r/UWMadison/comments/([a-z0-9]+)", re.I)
 
+
+def clean_title(title):
+    """Strip search-engine decoration: 'r/UWMadison on Reddit:' prefix, ' - Reddit' suffix, '...' truncation."""
+    t = re.sub(r"^\s*r/UWMadison\s+on\s+Reddit\s*:\s*", "", title or "", flags=re.I)
+    t = re.sub(r"\s*:\s*r/UWMadison.*$", "", t, flags=re.I)
+    t = re.sub(r"\s*[-–|]\s*Reddit\s*$", "", t, flags=re.I)
+    t = re.sub(r"\s*(\.{3}|…)\s*$", "…", t)
+    return t.strip()
+
 # Reddit post ids are sequential base-36; (first id of year) anchors, approximate
 YEAR_ANCHORS = [(2012, "o0000"), (2013, "15ww00"), (2014, "1u0000"), (2015, "2r0000"), (2016, "3yzzzz"),
                 (2017, "5l3000"), (2018, "7nk000"), (2019, "abb000"), (2020, "ei0000"), (2021, "koa000"),
@@ -78,7 +87,7 @@ def collect(row, limit, key):
         text = f"{hit.get('title', '')} {hit.get('description', '')}"
         if not m or not re.search(r"(?<!\d)" + num + r"(?!\d)", text):  # must actually name the course number
             continue
-        title = re.sub(r"\s*:\s*r/UWMadison.*$", "", hit.get("title", "")).strip()
+        title = clean_title(hit.get("title", ""))
         pid = m.group(1).lower()
         threads[pid] = {"id": pid, "url": f"https://www.reddit.com/r/UWMadison/comments/{pid}/",
                         "title": title[:200], "snippet": USER_RE.sub("", hit.get("description") or "")[:240],

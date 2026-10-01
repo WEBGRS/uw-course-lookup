@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(__file__))
 import uwapi  # noqa: E402
+from fetch_reddit import clean_title  # noqa: E402
 
 ROOT = uwapi.ROOT
 DB = os.path.join(ROOT, "data", "uwcourses.db")
@@ -242,7 +243,7 @@ def main():
 
         for t in reddit.get(code, []):
             db.execute("INSERT OR IGNORE INTO reddit_threads VALUES (?,?,?,?,?,?,?)",
-                       (cid, t["id"], t["url"], t["title"], t.get("snippet"), t.get("year"), t.get("tone", 0)))
+                       (cid, t["id"], t["url"], clean_title(t["title"]), t.get("snippet"), t.get("year"), t.get("tone", 0)))
 
     db.commit()
     db.close()

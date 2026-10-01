@@ -96,6 +96,12 @@ class RedditTests(unittest.TestCase):
         self.assertEqual(years, sorted(years))
         self.assertEqual(fr.post_year("1plbgr8"), 2025)
 
+    def test_clean_title(self):
+        self.assertEqual(fr.clean_title("Could I repeat Music 113 three times? - Reddit"), "Could I repeat Music 113 three times?")
+        self.assertEqual(fr.clean_title("r/UWMadison on Reddit: Thoughts on Comp Sci 200?"), "Thoughts on Comp Sci 200?")
+        self.assertEqual(fr.clean_title("Got put on academic probation because I got a ..."), "Got put on academic probation because I got a…")
+        self.assertEqual(fr.clean_title("Math 234 Tips : r/UWMadison"), "Math 234 Tips")
+
     def test_tone(self):
         self.assertEqual(fr.tone("Is STAT 240 an easy A?"), 1)
         self.assertEqual(fr.tone("Failing CS 577, am I cooked"), -1)
@@ -128,6 +134,11 @@ class DatabaseTests(unittest.TestCase):
     def test_grade_bounds(self):
         self.assertEqual(self.q("SELECT COUNT(*) FROM course_stats WHERE gpa < 0 OR gpa > 4 OR pct_a > 1"), [(0,)])
         self.assertEqual(self.q("SELECT COUNT(*) FROM grade_terms WHERE a+ab+b+bc+c+d+f > total"), [(0,)])
+
+    def test_reddit_titles_clean(self):
+        bad = self.q("SELECT title FROM reddit_threads WHERE title LIKE 'r/UWMadison on Reddit%' OR title LIKE '% - Reddit'"
+                     " OR title LIKE '%...'")
+        self.assertEqual(bad, [])
 
     def test_no_personal_fields(self):
         cols = {r[1] for t in ("chat_mentions", "reddit_threads") for r in self.q(f"PRAGMA table_info({t})")}
