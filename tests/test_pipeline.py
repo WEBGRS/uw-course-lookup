@@ -147,14 +147,14 @@ class OfferingsTests(unittest.TestCase):
                 "packageEnrollmentStatus": {"status": status, "availableSeats": seats, "waitlistTotal": 0}}
 
     def test_times_become_local_minutes(self):
-        # 19:00-20:15 UTC on Tue/Thu is 14:00-15:15 in Madison
-        m = offerings.meeting(meeting("TR", 68400000, 72900000), 5 * 3600000)
-        self.assertEqual(m, ["TR", 840, 915, "Chemistry Building S413"])
-        self.assertIsNone(offerings.meeting(meeting(None, 83100000, 90300000, "EXAM"), 5 * 3600000))
+        # Verified on the official site: 19:00-20:15 "UTC" on Tue/Thu is shown as 1:00-2:15 PM
+        m = offerings.meeting(meeting("TR", 68400000, 72900000))
+        self.assertEqual(m, ["TR", 780, 855, "Chemistry Building S413"])
+        self.assertIsNone(offerings.meeting(meeting(None, 83100000, 90300000, "EXAM")))
 
-    def test_offset_comes_from_the_term_start(self):
-        self.assertEqual(offerings.local_offset_ms({"startDate": self.TERM_START}), 5 * 3600000)
-        self.assertEqual(offerings.local_offset_ms({"startDate": self.TERM_START + 3600000}), 6 * 3600000)  # winter term
+    def test_offset_is_fixed_central_standard_time(self):
+        self.assertEqual(offerings.local_offset_ms({"startDate": self.TERM_START}), 6 * 3600000)   # even in a September (daylight) term
+        self.assertEqual(offerings.local_offset_ms({"startDate": self.TERM_START + 3600000}), 6 * 3600000)
 
     def test_compact_package(self):
         lec = self.section("LEC", "002", [meeting("TR", 68400000, 72900000)])
@@ -162,10 +162,22 @@ class OfferingsTests(unittest.TestCase):
         base = offerings.dominant_range([self.package("1", [lec, dis])])
         out = offerings.compact([self.package("1", [lec, dis], "WAITLISTED", 0)], base)
         self.assertEqual(out[0]["st"], "W")
-        self.assertEqual(out[0]["s"][0]["m"], [["TR", 840, 915, "Chemistry Building S413"]])
+        self.assertEqual(out[0]["s"][0]["m"], [["TR", 780, 855, "Chemistry Building S413"]])
         self.assertEqual(out[0]["s"][0]["i"], ["Ada Lovelace"])
         self.assertNotIn("w", out[0]["s"][0])       # full-term sections carry no date range
         self.assertNotIn("on", out[0])
+
+    def test_package_ids_stay_unique_and_sections_keep_class_numbers(self):
+        # one discussion (class 21095) can pair with two lectures: the numeric package id repeats, the docId does not
+        def pkg(doc, lec_no):
+            lec = self.section("LEC", lec_no, [meeting("MW", 53400000, 56400000)])
+            lec["classUniqueId"] = {"classNumber": 21091 if lec_no == "002" else 12586}
+            dis = self.section("DIS", "325", [meeting("R", 73500000, 76500000)])
+            dis["classUniqueId"] = {"classNumber": 21095}
+            return {**self.package("21095", [lec, dis]), "docId": doc}
+        out = offerings.compact([pkg("1272-A1-156-105-002-325", "002"), pkg("1272-A1-156-105-001-325", "001")], None)
+        self.assertEqual(len({p["id"] for p in out}), 2)
+        self.assertEqual([[s["k"] for s in p["s"]] for p in out], [[21091, 21095], [12586, 21095]])
 
     def test_part_term_sections_keep_their_dates(self):
         full = self.section("LEC", "1", [meeting("M", 68400000, 72900000)])
@@ -274,6 +286,12 @@ class DatabaseTests(unittest.TestCase):
         timed = self.q("SELECT COUNT(*) FROM offerings WHERE packages LIKE '%\"m\":[[%'")[0][0]
         self.assertGreater(timed / offered, 0.4)
         self.assertEqual(self.q("SELECT COUNT(*) FROM offerings WHERE json_valid(packages)=0"), [(0,)])
+
+    def test_package_ids_are_unique_within_each_course(self):
+        import json as _json
+        for (pk,) in self.db.execute("SELECT packages FROM offerings"):
+            ids = [p["id"] for p in _json.loads(pk)]
+            self.assertEqual(len(ids), len(set(ids)))
 
     def test_no_personal_fields(self):
         cols = {r[1] for t in ("chat_mentions", "reddit_threads") for r in self.q(f"PRAGMA table_info({t})")}

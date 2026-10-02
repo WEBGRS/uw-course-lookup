@@ -3,10 +3,11 @@
 
 One package = one valid way to enroll (a lecture plus the discussion/lab that goes with it).
 Output per package:
-    {"id": "12345", "st": "O|W|C", "seats": 8, "wait": 0,
+    {"id": "1272-A1-156-105-002-325",   # Enroll's docId: unique (the numeric package id is just the discussion's class number)
+     "st": "O|W|C", "seats": 8, "wait": 0,
      "on": 1,            # no meeting times (online / arranged)
      "c": 1,             # needs consent to add
-     "s": [{"t": "LEC", "n": "001", "m": [["MWF", 510, 560, "Van Vleck B102"]],
+     "s": [{"t": "LEC", "n": "001", "k": 21091, "m": [["MWF", 510, 560, "Van Vleck B102"]],   # k = class number
             "i": ["Jane Doe"], "w": [20332, 20431]}]}   # w only when not the full term
 Times are minutes after local midnight.
 """
@@ -32,13 +33,17 @@ def dominant_range(packages):
     return c.most_common(1)[0][0] if c else None
 
 
-def local_offset_ms(section):
-    """Enroll stores meeting times as UTC; the term's startDate is local midnight, so its UTC time of day is the offset."""
-    sd = section.get("startDate")
-    return sd % DAY_MS if sd else 5 * 3600000
+# Enroll stores a class's clock time as UTC with a fixed UTC-6 shift (Central *standard* time), also in
+# September when Madison is on daylight time. Checked against public.enroll.wisc.edu: COMP SCI 577 LEC 002 is
+# 68400000 ms = 19:00 "UTC" and the site shows 1:00 PM.
+ENROLL_OFFSET_MS = 6 * 3600000
 
 
-def meeting(m, off):
+def local_offset_ms(section=None):
+    return ENROLL_OFFSET_MS
+
+
+def meeting(m, off=ENROLL_OFFSET_MS):
     if m.get("meetingType") != "CLASS" or m.get("meetingTimeStart") is None or m.get("meetingTimeEnd") is None:
         return None
     days = "".join(L for L in LETTERS if L in (m.get("meetingDays") or "")) or \
@@ -62,6 +67,9 @@ def compact_section(s, base):
     ms = [x for x in (meeting(m, off) for m in s.get("classMeetings") or []) if x]
     out = {"t": s.get("type"), "n": s.get("sectionNumber"), "m": ms,
            "i": [n for n in (name_of(i) for i in s.get("instructors") or []) if n]}
+    k = (s.get("classUniqueId") or {}).get("classNumber")
+    if k:
+        out["k"] = k
     if s.get("startDate") and s.get("endDate") and base and (day_no(s["startDate"]), day_no(s["endDate"])) != tuple(base):
         out["w"] = [day_no(s["startDate"]), day_no(s["endDate"])]
     if (s.get("instructionMode") or "").startswith("Online Only"):
@@ -77,7 +85,7 @@ def compact(packages, base=None):
             continue
         secs = [compact_section(s, base) for s in p.get("sections") or []]
         st = p.get("packageEnrollmentStatus") or {}
-        rec = {"id": str(p.get("id") or p.get("docId")), "st": STATUS.get(st.get("status"), "C"),
+        rec = {"id": str(p.get("docId") or p.get("id")), "st": STATUS.get(st.get("status"), "C"),
                "seats": st.get("availableSeats") or 0, "wait": st.get("waitlistTotal") or 0, "s": secs}
         timed = any(s["m"] for s in secs)
         if not timed:

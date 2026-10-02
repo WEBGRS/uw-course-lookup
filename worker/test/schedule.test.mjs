@@ -56,6 +56,20 @@ test("explains an impossible request", () => {
   assert.equal(full.reasons[0].why, "full");
 });
 
+test("explains the limit that is really to blame, not just the most common one", () => {
+  const closed = (id, d, s, e) => pk(id, d, s, e, { st: "C", seats: 0 });
+  // 7 sections are full; the 2 with seats all end after 3 pm
+  const pks = [...Array.from({ length: 7 }, (_, i) => closed("c" + i, "TR", 780, 855)), pk("o1", "MWF", 900, 950), pk("o2", "TR", 930, 1005)];
+  const r = solve({ must: [course("A-1", pks)], prefs: { latest: 900 } });
+  assert.equal(r.reasons[0].why, "combo");
+  // one kind of limit removes everything by itself
+  assert.equal(solve({ must: [course("A-1", [closed("a", "M", 600, 650), closed("b", "T", 600, 650)])] }).reasons[0].why, "full");
+  assert.equal(solve({ must: [course("A-1", [pk("a", "M", 600, 650, { st: "W" })])], prefs: { seats: "open" } }).reasons[0].why, "waitlist");
+  assert.equal(solve({ must: [course("A-1", [pk("a", "M", 600, 650, { st: "W" }), closed("b", "T", 600, 650)])], prefs: { seats: "open" } }).reasons[0].why, "seats");
+  assert.equal(solve({ must: [course("A-1", [pk("a", "MWF", 480, 530), pk("b", "TR", 500, 575)])], prefs: { earliest: 540 } }).reasons[0].why, "early");
+  assert.equal(solve({ must: [course("A-1", [pk("a", "MWF", 480, 530), pk("b", "MW", 600, 650)])], prefs: { daysOff: [0, 2] } }).reasons[0].why, "dayoff");
+});
+
 test("consent-only sections are never scheduled", () => {
   const r = solve({ must: [course("IND-1", [{ id: "i", st: "O", seats: 5, wait: 0, c: 1, on: 1, s: [{ t: "IND", n: "1", m: [], i: [] }] }])] });
   assert.equal(r.ok, false);

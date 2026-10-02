@@ -122,11 +122,21 @@ export function describe(picks) {
 function options(course, prefs) {
   const all = (course.packages || []).map((pk) => prepPackage(pk, course));
   const removed = {};
+  // How many packages each *kind* of limit would remove on its own, so a failure can be explained honestly
+  const alone = { consent: 0, seats: 0, closed: 0, wait: 0, time: 0, early: 0, late: 0, dayoff: 0 };
   const kept = [];
   for (const p of all) {
     const why = rejection(p, prefs);
     if (why) removed[why] = (removed[why] || 0) + 1;
     else kept.push(p);
+    if (p.consent) alone.consent++;
+    if (p.status === CLOSED && prefs.seats !== "any") { alone.seats++; alone.closed++; }
+    if (p.status === WAIT && prefs.seats === "open") { alone.seats++; alone.wait++; }
+    const early = p.meets.some((m) => m.s < prefs.earliest), late = p.meets.some((m) => m.e > prefs.latest), off = p.meets.some((m) => prefs.daysOff.includes(m.d));
+    if (early || late || off) alone.time++;
+    if (early) alone.early++;
+    if (late) alone.late++;
+    if (off) alone.dayoff++;
   }
   const best = new Map();
   const rank = (p) => (p.status === OPEN ? 2 : p.status === WAIT ? 1 : 0) * 1000 + p.seats;
@@ -139,13 +149,17 @@ function options(course, prefs) {
     if (!cur || rank(p) > rank(cur)) best.set(p.sig, p);
   }
   const opts = [...best.values()].sort((a, b) => b.local - a.local);
-  return { course, all, opts, removed };
+  return { course, all, opts, removed, alone };
 }
 
+/** Why a course has no usable section: the one kind of limit that removes every section by itself, or "combo". */
 function whyEmpty(o) {
-  if (!o.all.length) return "unscheduled";
-  const r = o.removed, top = Object.entries(r).sort((a, b) => b[1] - a[1])[0];
-  return top ? top[0] : "unscheduled";
+  const n = o.all.length, a = o.alone;
+  if (!n) return "unscheduled";
+  if (a.consent === n) return "consent";
+  if (a.seats === n) return a.wait === 0 ? "full" : a.closed === 0 ? "waitlist" : "seats";
+  if (a.time === n) return ["early", "late", "dayoff"].sort((x, y) => a[y] - a[x])[0];
+  return "combo";   // each limit leaves some sections, but no section passes all of them
 }
 
 /**

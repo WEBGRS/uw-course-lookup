@@ -116,9 +116,63 @@ export function blockCaps(statuses) {
   return caps;
 }
 
-/** Heuristic: the requisite text names courses, and you have none of them. Not a prerequisite check. */
+/** "MATH 211, 217, or 221" -> "MATH 211 or MATH 217 or MATH 221" (bare numbers inherit the subject). */
+function expandLists(text, designations) {
+  const re = subjectRegex(designations, "g");
+  let out = "", last = 0, m;
+  while ((m = re.exec(text))) {
+    let end = re.lastIndex, str = m[0];
+    for (let rest = text.slice(end), mm; (mm = rest.match(/^\s*(?:,\s*(?:or\s+)?|\s+or\s+)(\d{3})\b/)); rest = rest.slice(mm[0].length)) {
+      str += ` or ${m[1]} ${mm[1]}`; end += mm[0].length;
+    }
+    out += text.slice(last, m.index) + str; last = end; re.lastIndex = end;
+  }
+  return out + text.slice(last);
+}
+
+/**
+ * Evaluate a requisite sentence against the courses you have: true / false, or null when it names no courses
+ * ("sophomore standing", "graduate standing"). "and" binds tighter than "or"; null operands are ignored.
+ */
+function evalRequisite(text, designations, taken) {
+  const toks = expandLists(text, designations).split(/(\(|\)|\band\b|\bor\b|,)/i).map((x) => x.trim()).filter(Boolean);
+  let i = 0;
+  const combine = (vals, isAnd) => {
+    const known = vals.filter((v) => v !== null);
+    if (!known.length) return null;
+    return isAnd ? known.every(Boolean) : known.some(Boolean);
+  };
+  const atom = (t) => {
+    const ids = [...t.matchAll(subjectRegex(designations))].flatMap((m) => expand(m[1].replace(/\s+/g, " "), m[2]));
+    return ids.length ? ids.some((id) => taken.has(id)) : null;
+  };
+  function factor() {
+    if (toks[i] === "(") { i++; const v = expr(); if (toks[i] === ")") i++; return v; }
+    const v = atom(toks[i] || ""); i++;
+    return v;
+  }
+  function term() {
+    const vals = [factor()];
+    while (i < toks.length && /^and$/i.test(toks[i])) { i++; vals.push(factor()); }
+    return combine(vals, true);
+  }
+  function expr() {
+    const vals = [term()];
+    while (i < toks.length && (/^or$/i.test(toks[i]) || toks[i] === ",")) { i++; vals.push(term()); }
+    return combine(vals, false);
+  }
+  const v = expr();
+  return v;
+}
+
+/**
+ * Heuristic, not a prerequisite check: true when the requisite needs someone's consent, or when its course
+ * conditions are not met by what you have taken. Only the first sentence counts ("Not open to students with
+ * credit for…" is an exclusion); alternatives like "graduate standing" are ignored.
+ */
 export function prereqRisk(prqText, designations, taken) {
   if (!prqText) return false;
-  const named = [...prqText.replace(/​/g, "").matchAll(subjectRegex(designations))].flatMap((m) => expand(m[1], m[2]));
-  return named.length > 0 && !named.some((id) => taken.has(id));
+  const first = String(prqText).replace(/​/g, "").split(/\.\s/)[0];
+  if (/\bconsent of (the )?(instructor|department|program)\b/i.test(first)) return true;
+  return evalRequisite(first, designations, taken) === false;
 }

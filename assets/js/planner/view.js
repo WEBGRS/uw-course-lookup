@@ -136,7 +136,7 @@ function secLines(p, c) {
       const hist = c && c.ins ? c.ins.find((i) => sameName(i[0], s.i[0])) : null;
       who = ` · ${s.i.slice(0, 2).join(", ")}${hist && hist[2] >= 30 ? ` <span class="muted">(${f2(hist[1])})</span>` : ""}`;
     }
-    return `<div class="sec"><b>${esc(s.t)} ${esc(s.n)}</b> ${esc(when)}${esc(loc)}${who}</div>`;
+    return `<div class="sec"><b>${esc(s.t)} ${esc(s.n)}</b>${s.k ? ` <span class="muted">#${s.k}</span>` : ""} ${esc(when)}${esc(loc)}${who}</div>`;
   });
   return lines.join("");
 }
@@ -166,7 +166,7 @@ function resultsHtml() {
     const c = S.courses.get(p.course);
     return `<li class="pick" data-pick="${esc(p.course)}"><span class="sw c${colorOf(p.course) % COLORS + 1}"></span>
       <div class="pk-main"><div><b>${esc(p.code)}</b> ${esc(p.title || "")} <span class="muted">${esc(t("cr", p.cr))}</span> ${pkTags(p)}</div>${secLines(p, c)}</div>
-      <div class="pk-side">${statusChip(p)}<span class="muted">${esc(t("classNo"))} ${esc(p.id)}</span><button class="linkbtn" data-swap="${esc(p.course)}">${esc(t("swap"))}</button></div>
+      <div class="pk-side">${statusChip(p)}<button class="linkbtn" data-swap="${esc(p.course)}">${esc(t("swap"))}</button></div>
       ${S.swap === p.course ? swapHtml(sch, p.course) : ""}</li>`;
   }).join("") + "</ul>";
   return h;
@@ -324,7 +324,7 @@ export async function init() {
     else if (b.dataset.var) { S.i = +b.dataset.var; S.swap = null; renderResults(); }
     else if (b.dataset.swap) { S.swap = S.swap === b.dataset.swap ? null : b.dataset.swap; renderResults(); }
     else if (b.dataset.swapto) swapTo(b.dataset.swapto);
-    else if (b.id === "rsCopy") { const s = S.results.schedules[S.i]; navigator.clipboard && navigator.clipboard.writeText(s.picks.map((p) => p.id).join(", ")); b.textContent = t("copied"); }
+    else if (b.id === "rsCopy") { const s = S.results.schedules[S.i]; navigator.clipboard && navigator.clipboard.writeText([...new Set(s.picks.flatMap((p) => p.raw.s.map((x) => x.k).filter(Boolean)))].join(", ")); b.textContent = t("copied"); }
     else if (b.id === "rsIcs") download(S.results.schedules[S.i]);
   });
   on("plan", () => { renderCourses(); renderDegree(); loadRows([...plan.must]).then(renderCourses).catch(() => {}); });
@@ -380,7 +380,7 @@ export const planApi = {
       taken: [...plan.done], inProgress: [...plan.ip], mustTake: [...plan.must], targetCredits: plan.credits, fillFromRequirements: plan.fill,
       preferences: prefs(),
       unmetRequirements: st ? st.filter((s) => s.counted && !s.planned).map((s) => ({ block: s.block.h, need: `${s.need} ${s.unit}`, have: s.have, options: s.items.filter((x) => x.state === "todo").slice(0, 10).map((x) => x.item.o.map((o) => o.i[0]).join(" | ")) })) : [],
-      timetable: S.results && S.results.ok ? S.results.schedules[S.i].picks.map((p) => ({ course: p.code, class: p.id, sections: p.secs.join(" + "), when: p.meets.map((m) => `${DAY_LETTERS[m.d]} ${fmtRange(m.s, m.e)}`).join(", ") })) : null,
+      timetable: S.results && S.results.ok ? S.results.schedules[S.i].picks.map((p) => ({ course: p.code, sections: p.raw.s.map((x) => `${x.t} ${x.n} (class ${x.k || "?"})`).join(" + "), when: p.meets.map((m) => `${DAY_LETTERS[m.d]} ${fmtRange(m.s, m.e)}`).join(", ") })) : null,
     };
   },
   setPrefs(p) { plan.prefs = { ...plan.prefs, ...p }; plan.save(); renderCourses(); },

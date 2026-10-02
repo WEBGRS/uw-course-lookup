@@ -54,7 +54,7 @@ export function buildICS(picks, name = "Timetable") {
       out.push("BEGIN:VEVENT", `UID:${p.id}-${n++}@uw-course-lookup`, `DTSTAMP:${ymd(new Date())}T000000Z`,
         `DTSTART;TZID=America/Chicago:${ymd(dateOf(first))}T${t(m.s)}`, `DTEND;TZID=America/Chicago:${ymd(dateOf(first))}T${t(m.e)}`,
         `RRULE:FREQ=WEEKLY;BYDAY=${[...new Set(days)].sort().map((d) => ICS_DAY[d]).join(",")};UNTIL=${ymd(dateOf(end))}T235959Z`,
-        `SUMMARY:${esc2(`${p.code} ${m.sec}`)}`, `LOCATION:${esc2(m.loc || "")}`, `DESCRIPTION:${esc2(`${p.title || ""} · class ${p.id}`)}`, "END:VEVENT");
+        `SUMMARY:${esc2(`${p.code} ${m.sec}`)}`, `LOCATION:${esc2(m.loc || "")}`, `DESCRIPTION:${esc2(`${p.title || ""} · class ${p.raw.s.map((x) => x.k).filter(Boolean).join(", ")}`)}`, "END:VEVENT");
     }
   }
   out.push("END:VCALENDAR");

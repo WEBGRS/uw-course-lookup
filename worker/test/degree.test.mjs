@@ -83,6 +83,26 @@ test("prereq risk: flagged only when none of the named courses is taken", () => 
   assert.equal(prereqRisk("COMP SCI 300 or 301, MATH 221", SUBJ, new Set(["MATH-221"])), false);
   assert.equal(prereqRisk("COMP SCI 300 or 301, MATH 221", SUBJ, new Set()), true);
   assert.equal(prereqRisk("Sophomore standing", SUBJ, new Set()), false);
+  assert.equal(prereqRisk("Consent of Instructor", SUBJ, new Set(["MATH-221"])), true);       // needs a person, whatever you have taken
+  assert.equal(prereqRisk("MATH 221 or consent of instructor", SUBJ, new Set(["MATH-221"])), true);
+});
+
+test("prereq risk reads 'and' conditions, shorthand lists and exclusions", () => {
+  const S = [...SUBJ, "COMP SCI", "E C E"];
+  const CS552 = "(COMP SCI/E C E 352 and COMP SCI/E C E 354) or graduate/professional standing";
+  const CS537 = "COMP SCI/E C E 354 and (COMP SCI 367 or 400) or graduate/professional standing or declared in the Capstone Certificate in Computer Sciences for Professionals";
+  const STAT340 = "(MATH 211, 217, or 221) and STAT 240";
+  const MATH320 = "MATH 222 or graduate/professional standing. Not open to students with credit for MATH 319, 340, 341, 345, or 375.";
+  const have = (...ids) => new Set(ids);
+  assert.equal(prereqRisk(CS552, S, have("COMP-SCI-354")), true);         // needs 352 AND 354
+  assert.equal(prereqRisk(CS552, S, have("COMP-SCI-354", "COMP-SCI-352")), false);
+  assert.equal(prereqRisk(CS537, S, have("COMP-SCI-354", "COMP-SCI-400")), false);
+  assert.equal(prereqRisk(CS537, S, have("COMP-SCI-354")), true);          // 367 or 400 missing
+  assert.equal(prereqRisk(CS537, S, have("E-C-E-354", "COMP-SCI-367")), false);   // cross-listed designation and the other alternative
+  assert.equal(prereqRisk(STAT340, S, have("MATH-221", "STAT-240")), false);      // "211, 217, or 221" inherits MATH
+  assert.equal(prereqRisk(STAT340, S, have("MATH-221")), true);                   // STAT 240 missing
+  assert.equal(prereqRisk(MATH320, S, have("MATH-222", "MATH-340")), false);      // the exclusion sentence is not a requirement
+  assert.equal(prereqRisk(MATH320, S, have("MATH-340")), true);
 });
 
 test("every shipped program parses into blocks the status code understands", { skip: !existsSync(new URL("../../assets/programs/index.json", import.meta.url)) }, () => {

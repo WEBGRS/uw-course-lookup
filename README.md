@@ -101,6 +101,7 @@ python scripts/pipeline.py              # build data/uwcourses.db, analysis, wor
 python scripts/pipeline.py --refresh    # also refresh this term's sections and seats
 python scripts/pipeline.py --programs   # also re-scrape degree requirements
 python scripts/pipeline.py --term 1274  # another term, e.g. Spring 2027 once Enroll publishes it
+python scripts/check_times.py           # compare meeting times with the official site (needs Playwright)
 node worker/dev-server.mjs              # page + API at http://127.0.0.1:8787/ (no assistant)
 
 python -m unittest discover -s tests    # parsers, meeting-time conversion, program scraper, database checks
@@ -133,8 +134,9 @@ courses.json  (private, chat counts)            scripts/extract_courses.py
 
 - **Three tiers.** `chat` (223 courses mentioned in student chat), `enrollment` (67 largest courses this term) and
   `catalog` (the other ~4,150: grades and seats, no peer signal). The first two drive the Insights tab.
-- **Meeting times.** Enroll stores them in UTC; the term's start date is local midnight, so its time of day gives the
-  offset. Consent-only rows (independent study) are collapsed to one marker and never scheduled.
+- **Meeting times.** Enroll stores clock time as UTC shifted by a fixed six hours (even in September), which only the
+  website can confirm: `python scripts/check_times.py` compares a sample of sections with public.enroll.wisc.edu and
+  should be run for every new term. Consent-only rows (independent study) are collapsed to one marker and never scheduled.
 - **Degree requirements are a guide, not an audit.** The Guide's tables are parsed into blocks; about one block in eight
   has a rule only expressed in prose and is shown as a note. DARS decides what counts.
 - **Adjusted GPA.** "Highest GPA" ranks by an empirical-Bayes estimate that pulls small courses toward their subject's

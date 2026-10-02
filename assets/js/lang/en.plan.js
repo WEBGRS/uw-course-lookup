@@ -75,6 +75,8 @@ export default {
     early: `${code}: every section starts before your earliest time.`,
     late: `${code}: every section ends after your latest time.`,
     dayoff: `${code}: every section meets on a day you want free.`,
+    seats: `${code}: no section has an open seat. Allow waitlisted or full sections.`,
+    combo: `${code}: no section fits all your limits at once (seats and times together). Loosen one of them.`,
     consent: `${code} needs instructor or department consent, so it cannot be scheduled.`,
     unscheduled: `${code} has no sections this term.`,
   }[why] || `${code} has no usable section.`),
