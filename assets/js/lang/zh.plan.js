@@ -57,6 +57,7 @@ export default {
   taken: "已修", inProgress: "在读", add: "添加", added: "已添加", remove: "移除",
   reqDone: (a, b) => `${b} 项要求已满足 ${a} 项`, reqUnit: (u, h, n) => (u === "credits" ? `${h} / ${n} 学分` : `${h} / ${n}`),
   reqNote: "来自 UW Guide，仅供参考，请以 DARS 和导师为准。", reqInfo: "具体规则见 Guide",
+  countedAbove: "（已算在别的要求里）",
   tookIt: "我修过", chooseN: (n) => (n === 1 ? "任选一门" : `任选 ${n} 门`),
   notOffered: "本学期不开", pickOne: "任选其一", viewGuide: "在 Guide 打开",
   fillLabel: "用剩余要求自动补满学分", targetCr: "学分", mustHave: "必修", mustEmpty: "在课程列表里点星标，或从要求里添加，或在下面搜索。",

@@ -185,6 +185,11 @@ def parse_program(html, path):
             head = " › ".join(x for x in (section, heading) if x) or "Requirements"
             prog["blocks"] += parse_table(el, head, intro)
             intro = ""
+    # "COMP SCI courses may only fulfill one COMP SCI major requirement area": a course counts once within that family
+    if re.search(r"may only fulfill one [A-Z ]*major requirement area", soup.get_text(" ")):
+        fam = next((b["h"].split(" › ")[0] for b in prog["blocks"] if b["h"].startswith("Advanced")), None)
+        if fam:
+            prog["exclusive"] = fam
     return prog if sum(len(b["items"]) for b in prog["blocks"]) >= 3 else None
 
 

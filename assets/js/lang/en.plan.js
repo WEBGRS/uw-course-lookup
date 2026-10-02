@@ -57,6 +57,7 @@ export default {
   taken: "Taken", inProgress: "In progress", add: "Add", added: "Added", remove: "Remove",
   reqDone: (a, b) => `${a} of ${b} requirements met`, reqUnit: (u, h, n) => (u === "credits" ? `${h} of ${n} credits` : `${h} of ${n}`),
   reqNote: "Built from the UW Guide. Check DARS and your advisor before you rely on it.", reqInfo: "See the Guide for the exact rule",
+  countedAbove: "(already counted in another requirement)",
   tookIt: "I took this", chooseN: (n) => (n === 1 ? "Choose one" : `Choose ${n}`),
   notOffered: "Not offered", pickOne: "Choose one", viewGuide: "Open in the Guide",
   fillLabel: "Fill the rest from my remaining requirements", targetCr: "Credits", mustHave: "Must take", mustEmpty: "Star courses in the list, add one from a requirement, or search below.",

@@ -44,6 +44,9 @@ const idText = (id) => id.replace(/-/g, " ");
 
 function itemHtml(x) {
   const { item, state, via } = x;
+  if (state === "used") {
+    return `<li class="req-item used"><span class="mark">–</span><span class="req-opts">${optLabel(via)} <span class="muted">${esc(t("countedAbove"))}</span></span></li>`;
+  }
   if (state !== "todo") {
     return `<li class="req-item ${state}"><span class="mark" title="${esc(t(state === "done" ? "taken" : "inProgress"))}">${state === "done" ? "✓" : "◐"}</span><span class="req-opts">${optLabel(via)}</span></li>`;
   }

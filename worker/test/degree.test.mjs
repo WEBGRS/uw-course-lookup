@@ -105,6 +105,27 @@ test("prereq risk reads 'and' conditions, shorthand lists and exclusions", () =>
   assert.equal(prereqRisk(MATH320, S, have("MATH-340")), true);
 });
 
+test("a course counts once inside an exclusive family (CS major areas), but freely in other programs", () => {
+  const blocks = [
+    { h: "Advanced Computer Science Courses › Applications", rule: { t: "n", n: 1 }, note: "", items: [{ o: [{ i: ["COMP-SCI-412"], t: "Num", c: "3" }] }, { o: [{ i: ["COMP-SCI-540"], t: "AI", c: "3" }] }] },
+    { h: "Advanced Computer Science Courses › Electives", rule: { t: "n", n: 2 }, note: "", items: [{ o: [{ i: ["COMP-SCI-407"], t: "Mobile", c: "3" }] }, { o: [{ i: ["COMP-SCI-412"], t: "Num", c: "3" }] }, { o: [{ i: ["COMP-SCI-540"], t: "AI", c: "3" }] }] },
+    { h: "Other", rule: { t: "all" }, note: "", items: [{ o: [{ i: ["COMP-SCI-540"], t: "AI", c: "3" }] }] },
+  ];
+  const shared = { blocks }, exclusive = { blocks, exclusive: "Advanced Computer Science Courses" };
+  const have = (st) => st.map((s) => [s.have, s.items.map((x) => x.state).join(",")]);
+  // freely shared (other programs): 540 satisfies Applications AND Electives AND Other
+  assert.deepEqual(have(statusOf(shared, new Set(["COMP-SCI-540"]))), [[1, "todo,done"], [1, "todo,todo,done"], [1, "done"]]);
+  // exclusive: Applications takes 540; Electives sees it as used; the unrelated block still counts it
+  assert.deepEqual(have(statusOf(exclusive, new Set(["COMP-SCI-540"]))), [[1, "todo,done"], [0, "todo,todo,used"], [1, "done"]]);
+  // a spare course flows on: with 412 and 540 both done, one fills Applications, the other counts toward Electives
+  const st = statusOf(exclusive, new Set(["COMP-SCI-540", "COMP-SCI-412", "COMP-SCI-407"]));
+  assert.equal(st[0].met, true);
+  assert.equal(st[1].have, 2);                 // 407 + the spare one
+  assert.equal(st[1].met, true);
+  // used courses are never suggested as things to take
+  assert.ok(!candidatesFrom(statusOf(exclusive, new Set(["COMP-SCI-540"]))).some((c) => c.id === "COMP-SCI-540"));
+});
+
 test("every shipped program parses into blocks the status code understands", { skip: !existsSync(new URL("../../assets/programs/index.json", import.meta.url)) }, () => {
   const idx = JSON.parse(readFileSync(new URL("../../assets/programs/index.json", import.meta.url), "utf8"));
   assert.ok(idx.length > 150);
@@ -112,6 +133,11 @@ test("every shipped program parses into blocks the status code understands", { s
   const st = statusOf(cs, new Set(["MATH-221", "COMP-SCI-240"]));
   assert.equal(st[0].items.find((x) => x.via).via.i[0], "MATH-221");
   assert.ok(candidatesFrom(st).some((c) => c.id === "COMP-SCI-300"));
+  assert.equal(cs.exclusive, "Advanced Computer Science Courses");
+  const mine = statusOf(cs, new Set(["COMP-SCI-540", "COMP-SCI-577", "COMP-SCI-240", "COMP-SCI-400", "COMP-SCI-300", "COMP-SCI-252", "MATH-221", "MATH-222"]), new Set(["COMP-SCI-354"]));
+  const byName = (name) => mine.find((s) => s.block.h.endsWith(name));
+  assert.equal(byName("Applications").met, true);
+  assert.equal(byName("Electives").have, 0);   // 540 is already spent on Applications
   for (const e of idx) {
     const p = JSON.parse(readFileSync(new URL(`../../assets/programs/${e.id}.json`, import.meta.url), "utf8"));
     assert.ok(p.blocks.length > 0 && p.blocks.every((b) => b.items.length > 0 && b.items.every((i) => i.o.length && i.o[0].i.length)), e.id);

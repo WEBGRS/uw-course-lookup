@@ -68,27 +68,43 @@ export function parseTranscript(text, designations) {
 const credit = (c) => { const n = parseFloat(String(c ?? "").split(/[–-]/)[0]); return Number.isFinite(n) ? n : 0; };
 const anyIn = (set, opt) => opt.i.some((id) => set.has(id));
 
-/** Per block: which items are done / in progress / still to do, and whether the rule is met. */
+/**
+ * Per block: which items are done / in progress / still to do, and whether the rule is met.
+ * `program.exclusive` names a family of blocks (e.g. the CS "Advanced Computer Science Courses" areas) in which one
+ * course may count only once: blocks are filled in order, and a course already counted shows as state "used".
+ */
 export function statusOf(program, done, ip = new Set()) {
+  const used = new Set();
+  const ex = program.exclusive || "";
   return program.blocks.map((block, bi) => {
+    const fam = !!ex && block.h.startsWith(ex);
+    const taken = (o) => fam && o.i.some((id) => used.has(id));
     const items = block.items.map((item, ii) => {
-      const d = item.o.find((o) => anyIn(done, o)), p = !d && item.o.find((o) => anyIn(ip, o));
-      return { item, key: `${bi}.${ii}`, state: d ? "done" : p ? "ip" : "todo", via: d || p || null };
+      const d = item.o.find((o) => anyIn(done, o) && !taken(o)), p = !d && item.o.find((o) => anyIn(ip, o) && !taken(o));
+      const u = !d && !p && item.o.find((o) => (anyIn(done, o) || anyIn(ip, o)) && taken(o));
+      return { item, key: `${bi}.${ii}`, state: d ? "done" : p ? "ip" : u ? "used" : "todo", via: d || p || u || null };
     });
-    const r = block.rule, nDone = items.filter((x) => x.state === "done").length, nIp = items.filter((x) => x.state !== "todo").length;
+    const r = block.rule, nDone = items.filter((x) => x.state === "done").length, nIp = items.filter((x) => x.state === "done" || x.state === "ip").length;
     let need = 0, have = 0, haveIp = 0, unit = "courses";
     if (r.t === "all") { need = items.length; have = nDone; haveIp = nIp; }
     else if (r.t === "n") { need = Math.min(r.n, items.length); have = Math.min(need, nDone); haveIp = Math.min(need, nIp); }
     else if (r.t === "cr") {
       need = r.c; unit = "credits";
       have = items.filter((x) => x.state === "done").reduce((a, x) => a + credit(x.via.c), 0);
-      haveIp = items.filter((x) => x.state !== "todo").reduce((a, x) => a + credit(x.via.c), 0);
+      haveIp = items.filter((x) => x.state === "done" || x.state === "ip").reduce((a, x) => a + credit(x.via.c), 0);
+    }
+    if (fam && r.t !== "info") {   // consume only what this block needs; extras stay available to later blocks
+      let left = r.t === "n" ? need : Infinity, credits = 0;
+      for (const x of items.filter((y) => y.state === "done").concat(items.filter((y) => y.state === "ip"))) {
+        if (r.t === "cr" ? credits >= r.c : left <= 0) continue;
+        x.via.i.forEach((id) => used.add(id));
+        left--; credits += credit(x.via.c);
+      }
     }
     const counted = r.t !== "info";
     return { index: bi, block, items, need, have, haveIp, unit, counted, met: counted && have >= need, planned: counted && haveIp >= need };
   });
 }
-
 export function progress(statuses) {
   const c = statuses.filter((s) => s.counted && s.need > 0);
   const total = c.length, met = c.filter((s) => s.met).length, planned = c.filter((s) => s.planned).length;
