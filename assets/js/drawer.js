@@ -115,8 +115,14 @@ export async function openDrawer(id, keepScroll) {
     if (c.ins.some((i) => i[2] < 30)) h += `<p class="small muted" style="margin:8px 0 0">${esc(t("thin"))}</p>`;
     h += "</div>";
   }
-  if (c.rd.length) h += `<div class="d-sec"><h3>${esc(t("say"))}</h3><ul class="threads">` + c.rd.map((x) => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${x[3] > 0 ? "+ " : x[3] < 0 ? "− " : ""}${x[2] || ""}</span></li>`).join("") + "</ul></div>";
-  h += "</div>";
+  const tone = c.rdt == null ? "" : c.rdt > 0.15 ? t("tonePos") : c.rdt < -0.15 ? t("toneNeg") : t("toneMix");
+  h += c.src === "catalog" ? `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0;color:var(--ink-2)">${esc(t("sayCatalog"))}</p></div>`
+    : `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : c.ms ? esc(t("sayChatFew")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
+  if (c.src === "catalog") h += "</div>";
+  else {
+    if (c.rd.length) h += `<ul class="threads">` + c.rd.map((x) => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${x[3] > 0 ? "+ " : x[3] < 0 ? "− " : ""}${x[2] || ""}</span></li>`).join("") + "</ul>";
+    h += "</div></div>";
+  }
   dr.innerHTML = h; dr.scrollTop = top;
   $("#dClose").onclick = closeDrawer;
   if ($("#dPrev")) { $("#dPrev").onclick = () => stepCourse(-1); $("#dNext").onclick = () => stepCourse(1); }

@@ -75,6 +75,7 @@ const d = await page.evaluate(() => ({
   charts: document.querySelectorAll("#drawer svg").length,
   instructors: document.querySelectorAll("#drawer .itable tbody tr").length,
   sections: document.querySelectorAll("#dSections tr").length,
+  talk: /group chat/i.test(document.querySelector("#drawer").innerText) && /r\/UWMadison thread/i.test(document.querySelector("#drawer").innerText),
   mg: document.querySelector('#drawer a[href*="madgrades.com"]')?.href,
   rmp: document.querySelector('#drawer a[href*="ratemyprofessors.com"]')?.href,
 }));
@@ -82,6 +83,7 @@ console.log(JSON.stringify(d));
 if (d.charts < 3) problems.push("drawer is missing charts");
 if (!d.instructors) problems.push("drawer has no instructors");
 if (!d.sections) problems.push("drawer shows no sections for a course offered this term");
+if (!d.talk) problems.push("drawer lost the chat / Reddit summary");
 if (!d.mg || !d.rmp) problems.push("drawer is missing MadGrades or RMP links");
 
 // A catalog-tier course opens too
