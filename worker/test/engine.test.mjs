@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { buildIndex, query, detail, details } from "../src/engine.js";
+import { buildIndex, query, detail, details, planData } from "../src/engine.js";
 
 const data = JSON.parse(readFileSync(new URL("./fixture.json", import.meta.url), "utf8"));
 const ix = buildIndex(data);
@@ -14,10 +14,12 @@ test("meta: counts, lenses, subjects, first term", () => {
   const m = JSON.parse(ix.metaJson);
   assert.equal(m.count, 9);
   assert.equal(m.first, 1244);
+  assert.equal(m.term_range, "2026-09-02/2026-12-09");
   assert.equal(m.lens.open, 4);
   assert.equal(m.lens.easy, 0);
   assert.deepEqual(m.subjects, ["ANTHRO", "ASIAN", "COMP SCI", "GERMAN", "LITTRANS", "MATH", "PHYSICS", "SURGERY"]);
   assert.deepEqual(m.breadths, ["Natural Science"]);
+  assert.ok(m.designations.includes("E C E") && m.designations.includes("COMP SCI"));
 });
 
 test("default sort: mentions, then Reddit threads, then enrollment", () => {
@@ -97,4 +99,20 @@ test("slim catalog records stay slim in details", () => {
   const d = JSON.parse(detail(ix, "ASIAN-355"));
   assert.equal(d.al, undefined);
   assert.equal(d.rd, undefined);
+});
+
+test("planData: facts, instructor GPA and meeting times by id or alias", () => {
+  const all = JSON.parse(planData(ix, ["COMP-SCI-577", "NOPE", "E-C-E-300", "MATH-234", "COMP-SCI-300"])), out = all.courses;
+  assert.deepEqual(Object.keys(out).sort(), ["COMP-SCI-300", "COMP-SCI-577", "MATH-234"]);  // alias and primary collapse to one key
+  assert.deepEqual(all.map, { "E-C-E-300": "COMP-SCI-300" });
+  assert.equal(out["COMP-SCI-577"].pk[0].s[0].m[0][0], "TR");
+  assert.equal(out["COMP-SCI-577"].code, "COMP SCI 577");
+  assert.deepEqual(out["COMP-SCI-300"].pk, []);
+  assert.deepEqual(out["COMP-SCI-577"].ins[0], ["Grace Hopper", 2.9, 2000]);
+  assert.deepEqual(JSON.parse(planData(ix, [])), { courses: {}, map: {} });
+});
+
+test("cross-listed designations resolve as ids", () => {
+  assert.equal(detail(ix, "E-C-E-300") && JSON.parse(detail(ix, "E-C-E-300")).id, "COMP-SCI-300");
+  assert.deepEqual(run({ ids: "E-C-E-300" }).ids, ["COMP-SCI-300"]);
 });

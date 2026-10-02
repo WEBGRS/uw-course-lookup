@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Export data/uwcourses.db -> worker/data.json (private, deployed to the cloud API), render index.html.
+"""Export data/uwcourses.db -> worker/data.json (private, deployed to the cloud API) and write assets/config.js.
 
 The page itself carries no course data: it asks the API for pages of results. Chat-derived counts
 below K_ANON are withheld everywhere in the export.
@@ -15,7 +15,6 @@ import uwapi  # noqa: E402
 ROOT = uwapi.ROOT
 DB = os.path.join(ROOT, "data", "uwcourses.db")
 INSIGHTS = os.path.join(ROOT, "data", "insights.json")
-TEMPLATE = os.path.join(os.path.dirname(__file__), "index.template.html")
 WORKER_DATA = os.path.join(ROOT, "worker", "data.json")
 CONFIG = os.path.join(ROOT, "site.config.json")
 K_ANON = 3  # chat counts below this are never published per course
@@ -122,7 +121,9 @@ def export(db):
     insights = json.load(open(INSIGHTS, encoding="utf-8")) if os.path.exists(INSIGHTS) else {}
     insights = public_insights(insights, out)
     meta = {**meta, "campusDist": list(campus), "campusGpa": insights.get("campus_gpa")}
-    return {"meta": meta, "courses": out, "insights": insights}
+    sections = {code.replace(" ", "-"): json.loads(pk) for code, pk in db.execute(
+        "SELECT c.code, o.packages FROM offerings o JOIN courses c ON c.id=o.course_id")}
+    return {"meta": meta, "courses": out, "insights": insights, "sections": sections}
 
 
 def main():
@@ -138,9 +139,9 @@ def main():
         if os.path.exists(f):
             os.remove(f)
     api = json.load(open(CONFIG, encoding="utf-8")).get("api", "") if os.path.exists(CONFIG) else ""
-    html = open(TEMPLATE, encoding="utf-8").read().replace("__BUILT__", data["meta"]["built_at"][:10]).replace("__API__", api)
-    open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8").write(html)
-    print(f"{len(data['courses'])} courses ({len(js) // 1024} KB) -> worker/data.json, index.html (api: {api or 'same origin'})")
+    with open(os.path.join(ROOT, "assets", "config.js"), "w", encoding="utf-8") as f:
+        f.write("window.UWCL = " + json.dumps({"api": api, "built": data["meta"]["built_at"][:10]}) + ";\n")
+    print(f"{len(data['courses'])} courses ({len(js) // 1024} KB) -> worker/data.json, assets/config.js (api: {api or 'same origin'})")
 
 
 if __name__ == "__main__":

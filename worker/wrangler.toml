@@ -6,6 +6,10 @@ workers_dev = true
 [vars]
 ALLOW_ORIGINS = "https://webgrs.github.io"
 
+# The in-page assistant (Workers AI; the free daily allowance applies)
+[ai]
+binding = "AI"
+
 # Per-location limits on top of the page's own request volume
 [[ratelimits]]
 name = "RL_LIST"
@@ -19,4 +23,11 @@ name = "RL_DETAIL"
 namespace_id = "1002"
 [ratelimits.simple]
 limit = 60
+period = 60
+
+[[ratelimits]]
+name = "RL_CHAT"
+namespace_id = "1003"
+[ratelimits.simple]
+limit = 30
 period = 60

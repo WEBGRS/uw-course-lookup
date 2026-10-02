@@ -7,7 +7,7 @@ const SHORT = { cs: "compsci", compsci: "compsci", stats: "stat", ece: "ece", po
 
 export const SORT_KEYS = ["m", "gpa", "gpaL", "pa", "tr", "tl", "sp", "rd", "en", "code"];
 export const LENS_KEYS = ["easy", "intro", "instr", "harder", "easier", "open", "reddit"];
-export const LIMITS = { rows: 60, offset: 4600, ids: 60, compare: 8 };
+export const LIMITS = { rows: 60, offset: 4600, ids: 60, compare: 8, plan: 40 };
 
 const nz = (v, d) => (v == null ? d : v);
 
@@ -70,7 +70,9 @@ export function buildIndex(data) {
   const ix = { n, C, meta: data.meta, insights: data.insights, detailJson };
 
   ix.ids = new Map(C.map((c, i) => [c.id, i]));
+  C.forEach((c, i) => c.al.forEach((a) => { const k = a.replace(/\s+/g, "-"); if (!ix.ids.has(k)) ix.ids.set(k, i); }));  // cross-listed designations resolve too
   ix.rowJson = C.map((c) => JSON.stringify(toRow(c)));
+  ix.secPk = new Map(Object.entries(data.sections || {}));
 
   // numeric columns
   ix.num = Int32Array.from(C, (c) => c.num);
@@ -106,10 +108,11 @@ function makeMeta(ix) {
   for (const k of LENS_KEYS) lens[k] = ix.lens[k].reduce((a, b) => a + b, 0);
   const first = Math.min(...ix.C.filter((c) => c.terms.length).map((c) => c.terms[0][0]));
   return {
-    built_at: ix.meta.built_at, term: ix.meta.term, campusDist: ix.meta.campusDist, campusGpa: ix.meta.campusGpa,
+    built_at: ix.meta.built_at, term: ix.meta.term, term_range: ix.meta.term_range || "", campusDist: ix.meta.campusDist, campusGpa: ix.meta.campusGpa,
     count: ix.n, first, lens,
     subjects: [...new Set(ix.C.map((c) => c.sa).filter(Boolean))].sort(),
     breadths: [...new Set(ix.C.flatMap((c) => c.br))].sort(),
+    designations: [...new Set(ix.C.flatMap((c) => [c.code, ...c.al]).map((x) => x.replace(/\s*\d[\w]*$/, "")))].sort(),  // every subject prefix, cross-listings included
     featured: ix.C.filter((c) => c.src !== "catalog").length,
   };
 }
@@ -180,4 +183,20 @@ export function detail(ix, id) {
 
 export function details(ix, ids) {
   return ids.slice(0, LIMITS.compare).map((id) => detail(ix, id)).filter(Boolean);
+}
+
+// Everything the planner needs per course: facts, instructors' past GPA and this term's packages with meeting times.
+// `map` says which primary id answers each requested alias (MATH-240 -> COMP-SCI-240).
+export function planData(ix, ids) {
+  const courses = new Map(), map = {};
+  for (const id of ids.slice(0, LIMITS.plan)) {
+    const i = ix.ids.get(id);
+    if (i == null) continue;
+    const c = ix.C[i];
+    if (c.id !== id) map[id] = c.id;
+    if (courses.has(c.id)) continue;
+    courses.set(c.id, JSON.stringify({ code: c.code, t: c.t, cr: c.cr || null, gpa: c.gs ?? c.gpa ?? null, prq: c.prq || null, br: c.br,
+      ins: c.ins.slice(0, 14).map((x) => [x[0], x[1], x[2]]), pk: ix.secPk.get(c.id) || [] }));
+  }
+  return `{"courses":{${[...courses].map(([k, v]) => JSON.stringify(k) + ":" + v).join(",")}},"map":${JSON.stringify(map)}}`;
 }

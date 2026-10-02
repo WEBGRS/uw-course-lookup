@@ -13,6 +13,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Install the program scraper's dependencies
+        run: pip install -r requirements.txt
       - name: Pipeline unit tests (database tests skip when the private data is absent)
         run: python -m unittest discover -s tests -v
       - name: API tests

@@ -106,6 +106,13 @@ CREATE TABLE current_sections (
   PRIMARY KEY (course_id, package_id, type, section)
 );
 
+-- Current-term enrollment packages with meeting times, compacted by scripts/offerings.py (feeds the planner)
+CREATE TABLE offerings (
+  course_id INTEGER PRIMARY KEY REFERENCES courses(id),
+  term      INTEGER NOT NULL,
+  packages  TEXT NOT NULL                 -- JSON array of {id, st, seats, wait, on?, c?, s:[{t, n, m, i, w?}]}
+);
+
 -- Derived stats (scripts/analyze.py)
 CREATE TABLE course_stats (
   course_id     INTEGER PRIMARY KEY REFERENCES courses(id),

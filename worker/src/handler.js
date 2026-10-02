@@ -1,10 +1,11 @@
 // HTTP layer for the course API: routing, origin check, rate limits, headers.
-import { buildIndex, query, detail, details, LIMITS } from "./engine.js";
+import { buildIndex, query, detail, details, planData, LIMITS } from "./engine.js";
+import { chatStep } from "./assistant.js";
 
 const DEFAULT_ORIGINS = ["https://webgrs.github.io"];
 const LOCAL = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 const WINDOW_MS = 60_000;
-const LIMIT = { list: 120, detail: 60 };  // per client per minute (in-memory fallback; the binding is per location)
+const LIMIT = { list: 120, detail: 60, chat: 30 };  // per client per minute (in-memory fallback; the binding is per location)
 
 export function createHandler(data, opts = {}) {
   const ix = buildIndex(data);
@@ -41,9 +42,10 @@ export function createHandler(data, opts = {}) {
     const fail = (status, msg, extra) => send(JSON.stringify({ error: msg }), status, 0, extra);
 
     if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: { ...base, "Access-Control-Allow-Methods": "GET", "Access-Control-Max-Age": "86400" } });
+      return new Response(null, { status: 204, headers: { ...base, "Access-Control-Allow-Methods": "GET, POST", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Max-Age": "86400" } });
     }
-    if (request.method !== "GET" && request.method !== "HEAD") return fail(405, "method not allowed");
+    const isChat = request.method === "POST" && url.pathname === "/api/chat";
+    if (request.method !== "GET" && request.method !== "HEAD" && !isChat) return fail(405, "method not allowed");
     if (!url.pathname.startsWith("/api/")) return fail(404, "not found");
     if (url.pathname === "/api/health") return send(JSON.stringify({ ok: true, count: ix.n, built_at: ix.meta.built_at }), 200, 0);
 
@@ -51,10 +53,19 @@ export function createHandler(data, opts = {}) {
     if (!originOk && !sameOrigin) return fail(403, "forbidden");
 
     const ip = request.headers.get("CF-Connecting-IP") || "local";
-    const kind = url.pathname.startsWith("/api/course/") || url.pathname === "/api/compare" ? "detail" : "list";
-    const limiter = kind === "detail" ? env.RL_DETAIL : env.RL_LIST;
+    const kind = isChat ? "chat" : url.pathname.startsWith("/api/course/") || url.pathname === "/api/compare" || url.pathname === "/api/plan" ? "detail" : "list";
+    const limiter = kind === "chat" ? env.RL_CHAT : kind === "detail" ? env.RL_DETAIL : env.RL_LIST;
     const limited = limiter ? !(await limiter.limit({ key: ip })).success : overLimit(kind, ip);
     if (limited) return fail(429, "slow down", { "Retry-After": "10" });
+
+    if (isChat) {
+      const raw = await request.text();
+      if (raw.length > 90_000) return fail(413, "too large");
+      let body;
+      try { body = JSON.parse(raw); } catch { return fail(400, "bad json"); }
+      const r = await chatStep(env, ix, body);
+      return send(JSON.stringify(r.body), r.status, 0, { "Cache-Control": "no-store" });
+    }
 
     const p = url.searchParams;
     switch (url.pathname) {
@@ -68,6 +79,8 @@ export function createHandler(data, opts = {}) {
         const list = details(ix, (p.get("ids") || "").split(",").filter(Boolean));
         return send(`{"courses":[${list.join(",")}]}`);
       }
+      case "/api/plan":
+        return send(planData(ix, (p.get("ids") || "").split(",").filter(Boolean)), 200, 120);
       default: {
         if (url.pathname.startsWith("/api/course/")) {
           let id;

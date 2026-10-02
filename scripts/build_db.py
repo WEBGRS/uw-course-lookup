@@ -16,6 +16,7 @@ import argparse, datetime, json, os, re, sqlite3, sys
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(__file__))
+import offerings  # noqa: E402
 import uwapi  # noqa: E402
 from fetch_reddit import clean_title  # noqa: E402
 
@@ -220,6 +221,7 @@ def main():
     with ThreadPoolExecutor(8) as ex:
         list(ex.map(job, todo))
     reddit = json.load(open(REDDIT, encoding="utf-8")) if os.path.exists(REDDIT) else {}
+    base = offerings.dominant_range([p for c in courses.values() for p in c["packages"] or []])
 
     tmp = DB + ".tmp"
     if os.path.exists(tmp):
@@ -229,6 +231,7 @@ def main():
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
     db.executemany("INSERT INTO meta VALUES (?,?)", [
         ("built_at", now), ("term", a.term), ("seed_rows", str(len(seeds))),
+        ("term_range", f"{offerings.day_date(base[0])}/{offerings.day_date(base[1])}" if base else ""),
         ("sources", "Course Search & Enroll; MadGrades (UW public records); r/UWMadison via web search; "
                     "anonymized WeChat group-chat counts")])
 
@@ -312,6 +315,10 @@ def main():
                     cid, int(a.term), str(p.get("id") or p.get("docId")), s.get("type"), s.get("sectionNumber"),
                     json.dumps([name_of(i) for i in s.get("instructors") or [] if name_of(i)]),
                     status, es.get("currentlyEnrolled"), es.get("capacity"), es.get("waitlistCurrentSize")))
+
+        if packages:
+            db.execute("INSERT INTO offerings VALUES (?,?,?)", (
+                cid, int(a.term), json.dumps(offerings.compact(packages, base), separators=(",", ":"), ensure_ascii=False)))
 
         for t in reddit.get(code, []):
             db.execute("INSERT OR IGNORE INTO reddit_threads VALUES (?,?,?,?,?,?,?)",

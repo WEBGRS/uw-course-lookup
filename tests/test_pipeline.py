@@ -12,7 +12,9 @@ sys.path.insert(0, os.path.join(ROOT, "scripts"))
 import analyze  # noqa: E402
 import build_db  # noqa: E402
 import extract_courses as ex  # noqa: E402
+import fetch_programs as fp  # noqa: E402
 import fetch_reddit as fr  # noqa: E402
+import offerings  # noqa: E402
 
 DB = os.path.join(ROOT, "data", "uwcourses.db")
 
@@ -128,6 +130,99 @@ class RedditTests(unittest.TestCase):
         self.assertEqual(fr.tone("CS 577 textbook"), 0)
 
 
+def meeting(days, start_ms, end_ms, kind="CLASS"):
+    return {"meetingType": kind, "meetingDays": days, "meetingTimeStart": start_ms, "meetingTimeEnd": end_ms,
+            "building": {"buildingName": "Chemistry Building"}, "room": "S413"}
+
+
+class OfferingsTests(unittest.TestCase):
+    TERM_START = 1788325200000  # 2026-09-02 05:00 UTC = local midnight in Madison (UTC-5)
+
+    def section(self, type_, num, meetings, start=TERM_START, end=1796796000000, consent="N", mode="Classroom Instruction"):
+        return {"type": type_, "sectionNumber": num, "classMeetings": meetings, "startDate": start, "endDate": end,
+                "addConsent": {"code": consent}, "instructionMode": mode, "instructors": [{"name": {"first": "Ada", "last": "Lovelace"}}]}
+
+    def package(self, pid, sections, status="OPEN", seats=5):
+        return {"id": pid, "published": True, "sections": sections,
+                "packageEnrollmentStatus": {"status": status, "availableSeats": seats, "waitlistTotal": 0}}
+
+    def test_times_become_local_minutes(self):
+        # 19:00-20:15 UTC on Tue/Thu is 14:00-15:15 in Madison
+        m = offerings.meeting(meeting("TR", 68400000, 72900000), 5 * 3600000)
+        self.assertEqual(m, ["TR", 840, 915, "Chemistry Building S413"])
+        self.assertIsNone(offerings.meeting(meeting(None, 83100000, 90300000, "EXAM"), 5 * 3600000))
+
+    def test_offset_comes_from_the_term_start(self):
+        self.assertEqual(offerings.local_offset_ms({"startDate": self.TERM_START}), 5 * 3600000)
+        self.assertEqual(offerings.local_offset_ms({"startDate": self.TERM_START + 3600000}), 6 * 3600000)  # winter term
+
+    def test_compact_package(self):
+        lec = self.section("LEC", "002", [meeting("TR", 68400000, 72900000)])
+        dis = self.section("DIS", "323", [meeting("W", 81300000, 84300000)])
+        base = offerings.dominant_range([self.package("1", [lec, dis])])
+        out = offerings.compact([self.package("1", [lec, dis], "WAITLISTED", 0)], base)
+        self.assertEqual(out[0]["st"], "W")
+        self.assertEqual(out[0]["s"][0]["m"], [["TR", 840, 915, "Chemistry Building S413"]])
+        self.assertEqual(out[0]["s"][0]["i"], ["Ada Lovelace"])
+        self.assertNotIn("w", out[0]["s"][0])       # full-term sections carry no date range
+        self.assertNotIn("on", out[0])
+
+    def test_part_term_sections_keep_their_dates(self):
+        full = self.section("LEC", "1", [meeting("M", 68400000, 72900000)])
+        half = self.section("LEC", "2", [meeting("M", 68400000, 72900000)], start=self.TERM_START + 47 * 86400000)
+        base = offerings.dominant_range([self.package("1", [full]), self.package("2", [full]), self.package("3", [half])])
+        out = offerings.compact([self.package("3", [half])], base)
+        self.assertEqual(out[0]["s"][0]["w"][0], (self.TERM_START + 47 * 86400000) // 86400000)
+
+    def test_consent_only_rows_collapse_to_one_marker(self):
+        ind = lambda n: self.package(str(n), [self.section("IND", str(n), [], consent="I")])
+        out = offerings.compact([ind(1), ind(2), ind(3)], None)
+        self.assertEqual(len(out), 1)
+        self.assertEqual((out[0]["c"], out[0]["on"]), (1, 1))
+        # a real timed section is never dropped
+        timed = self.package("9", [self.section("LEC", "1", [meeting("M", 68400000, 72900000)], consent="D")])
+        self.assertEqual(len(offerings.compact([ind(1), timed], None)), 1)
+
+
+class ProgramParseTests(unittest.TestCase):
+    HTML = """<html><body><h1>Guide</h1><h1 class="page-title">Toy Science, BS</h1>
+    <h2 name="requirementstext">University Requirements</h2>
+    <h2 name="requirementstext">Requirements for the Major</h2>
+    <h3>Core</h3>
+    <table class="sc_courselist"><tbody>
+      <tr><td class="codecol"><a class="bubblelink code" title="COMP SCI/​MATH 240">COMP SCI/MATH 240</a></td><td>Discrete</td><td class="hourscol">3</td></tr>
+      <tr><td class="codecol"><a class="bubblelink code" title="COMP SCI 300">COMP SCI 300</a></td><td>Programming II</td><td class="hourscol">3</td></tr>
+      <tr class="listsum"><td colspan="2">Total Credits</td><td class="hourscol">6</td></tr></tbody></table>
+    <h3>Linear Algebra<sup>1</sup></h3>
+    <table class="sc_courselist"><tbody>
+      <tr><td colspan="2"><span class="courselistcomment">Complete one:</span></td><td class="hourscol"></td></tr>
+      <tr><td class="codecol"><a class="bubblelink code" title="MATH 320">MATH 320</a></td><td>LA+DE</td><td class="hourscol">3</td></tr>
+      <tr class="orclass"><td class="codecol"><a class="bubblelink code" title="MATH 340">MATH 340</a></td><td>Matrix</td><td class="hourscol">3</td></tr>
+      <tr><td class="codecol"><a class="bubblelink code" title="MATH 341">MATH 341</a></td><td>Linear Algebra</td><td class="hourscol">3</td></tr></tbody></table>
+    <h2 name="requirementstext">Honors in the Major</h2>
+    <table class="sc_courselist"><tbody><tr><td class="codecol"><a class="bubblelink code" title="HONORS 100">HONORS 100</a></td><td>x</td><td class="hourscol">3</td></tr></tbody></table>
+    </body></html>"""
+
+    def test_blocks_rules_alternatives_and_skipped_sections(self):
+        p = fp.parse_program(self.HTML, "/undergraduate/letters-science/toy-science/toy-science-bs/")
+        self.assertEqual(p["name"], "Toy Science, BS")
+        self.assertEqual(p["degree"], "BS")
+        self.assertEqual([b["rule"] for b in p["blocks"]], [{"t": "all"}, {"t": "n", "n": 1}])
+        core, la = p["blocks"]
+        self.assertEqual(core["items"][0]["o"][0]["i"], ["COMP-SCI-240", "MATH-240"])  # cross-listing keeps both designations
+        self.assertEqual(la["h"], "Linear Algebra")                                      # footnote marker stripped
+        self.assertEqual([o["i"][0] for o in la["items"][0]["o"]], ["MATH-320", "MATH-340"])  # "or" row joins the row above
+        self.assertEqual(len(la["items"]), 2)
+        self.assertNotIn("HONORS-100", json.dumps(p))
+
+    def test_rules(self):
+        self.assertEqual(fp.parse_rule("Complete two:"), {"t": "n", "n": 2})
+        self.assertEqual(fp.parse_rule("Select 6 credits from the following:"), {"t": "cr", "c": 6})
+        self.assertEqual(fp.parse_rule("Complete both:"), {"t": "all"})
+        self.assertEqual(fp.parse_rule("Complete either:"), {"t": "n", "n": 1})
+        self.assertIsNone(fp.parse_rule("See your advisor"))
+
+
 @unittest.skipUnless(os.path.exists(DB), "database not built")
 class DatabaseTests(unittest.TestCase):
     @classmethod
@@ -172,6 +267,13 @@ class DatabaseTests(unittest.TestCase):
         bad = self.q("SELECT title FROM reddit_threads WHERE title LIKE 'r/UWMadison on Reddit%' OR title LIKE '% - Reddit'"
                      " OR title LIKE '%...'")
         self.assertEqual(bad, [])
+
+    def test_offerings_have_times_for_most_offered_courses(self):
+        offered = self.q("SELECT COUNT(*) FROM courses WHERE offered_now=1")[0][0]
+        self.assertEqual(self.q("SELECT COUNT(*) FROM offerings")[0][0], offered)
+        timed = self.q("SELECT COUNT(*) FROM offerings WHERE packages LIKE '%\"m\":[[%'")[0][0]
+        self.assertGreater(timed / offered, 0.4)
+        self.assertEqual(self.q("SELECT COUNT(*) FROM offerings WHERE json_valid(packages)=0"), [(0,)])
 
     def test_no_personal_fields(self):
         cols = {r[1] for t in ("chat_mentions", "reddit_threads") for r in self.q(f"PRAGMA table_info({t})")}

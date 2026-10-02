@@ -1,5 +1,5 @@
 {
-  "meta": {"built_at": "2026-01-01T00:00Z", "term": "1272", "campusDist": [10, 8, 6, 3, 2, 1, 1], "campusGpa": 3.3},
+  "meta": {"built_at": "2026-01-01T00:00Z", "term": "1272", "term_range": "2026-09-02/2026-12-09", "campusDist": [10, 8, 6, 3, 2, 1, 1], "campusGpa": 3.3},
   "insights": {"campus_gpa": 3.3, "scatter": [], "by_subject": []},
   "courses": [
     {"id": "COMP-SCI-300", "code": "COMP SCI 300", "al": ["E C E 300"], "sa": "COMP SCI", "sn": "Computer Sciences", "num": 300, "t": "Programming II", "cr": "3", "br": [], "src": "chat", "m": 28, "ms": 0, "pos": 5, "neg": 2, "n": 900, "gpa": 3.3, "gs": 3.31, "pa": 0.34, "tr": 0.02, "dist": [30, 20, 20, 10, 10, 5, 5],
@@ -15,5 +15,14 @@
      "ins": [["Anne Marie Creighton", 3.1, 100, 0.3, 1262, 1], ["Frank Salomon", 3.4, 100, 0.4, 1262, 0]], "now": {"lec": 1, "who": ["Anne Marie Creighton"], "open": 0, "wait": 2, "pk": 1}, "en": 300},
     {"id": "SURGERY-699", "code": "SURGERY 699", "sa": "SURGERY", "sn": "Surgery", "num": 699, "t": "Independent Study", "cr": "1-6", "src": "catalog", "n": 30, "gpa": 4.0, "gs": 4.0, "dist": [100, 0, 0, 0, 0, 0, 0], "terms": [[1262, 4.0, 30]]},
     {"id": "ASIAN-355", "code": "ASIAN 355", "sa": "ASIAN", "sn": "Asian Languages and Cultures", "num": 355, "t": "Topics in Chinese Culture", "src": "catalog", "es": 1}
-  ]
+  ],
+  "sections": {
+    "COMP-SCI-577": [
+      {"id": "1", "st": "O", "seats": 5, "wait": 0, "s": [{"t": "LEC", "n": "002", "m": [["TR", 840, 915, "Chemistry S413"]], "i": ["Grace Hopper"]}, {"t": "DIS", "n": "323", "m": [["W", 1055, 1105, "Engineering 2534"]], "i": []}]},
+      {"id": "2", "st": "C", "seats": 0, "wait": 0, "s": [{"t": "LEC", "n": "002", "m": [["TR", 840, 915, "Chemistry S413"]], "i": ["Grace Hopper"]}, {"t": "DIS", "n": "322", "m": [["W", 990, 1040, "Engineering 2534"]], "i": []}]}
+    ],
+    "MATH-234": [
+      {"id": "3", "st": "O", "seats": 12, "wait": 0, "s": [{"t": "LEC", "n": "001", "m": [["MWF", 545, 595, "Van Vleck B102"]], "i": ["Jane Feldman"]}]}
+    ]
+  }
 }
