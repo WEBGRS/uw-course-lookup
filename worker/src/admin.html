@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin</title>
+<style>
+:root { --bg: #F6F7F5; --card: #fff; --ink: #1D2430; --ink2: #4A5361; --line: #DCE1E5; --acc: #2E6F8E; --wash: #E3EEF3; --warn: #9A5B00; --warnw: #FFF4DF; --bad: #B3261E; --badw: #FCE8E6; }
+@media (prefers-color-scheme: dark) { :root { --bg: #10161D; --card: #18212B; --ink: #E7ECF1; --ink2: #B9C3CE; --line: #2C3846; --acc: #6FB3D2; --wash: #18313D; --warn: #F2B356; --warnw: #3A2B12; --bad: #FF8A80; --badw: #3B1A18; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { display: flex; align-items: center; gap: 14px; padding: 10px 16px; background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 2; flex-wrap: wrap; }
+header h1 { font-size: 17px; margin: 0; }
+nav { display: flex; gap: 4px; flex-wrap: wrap; }
+nav button, .btn { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 6px; padding: 5px 11px; font: inherit; cursor: pointer; }
+nav button.on { background: var(--wash); border-color: transparent; color: var(--acc); font-weight: 600; }
+.btn.danger { color: var(--bad); border-color: var(--bad); }
+.btn.primary { background: var(--acc); border-color: var(--acc); color: #fff; }
+.right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+main { padding: 16px; max-width: 1200px; margin: 0 auto; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.card h2 { font-size: 15px; margin: 0 0 10px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.kpi b { display: block; font-size: 22px; }
+.kpi span { color: var(--ink2); font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink2); font-weight: 600; }
+td.r, th.r { text-align: right; }
+tr.flag td { background: var(--warnw); }
+tr.blocked td { background: var(--badw); }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: var(--wash); }
+.bars { display: grid; gap: 3px; }
+.bar { display: grid; grid-template-columns: 92px 1fr 64px; gap: 8px; align-items: center; font-size: 12px; }
+.bar i { display: block; height: 10px; border-radius: 3px; background: var(--acc); min-width: 2px; }
+.muted { color: var(--ink2); font-size: 12px; }
+.pill { display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--wash); color: var(--acc); }
+.pill.warn { background: var(--warnw); color: var(--warn); }
+.pill.bad { background: var(--badw); color: var(--bad); }
+input[type=search], input[type=password], input[type=date] { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); }
+.toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+pre { white-space: pre-wrap; word-break: break-word; font-size: 12px; background: var(--bg); padding: 10px; border-radius: 8px; max-height: 70vh; overflow: auto; }
+#login { max-width: 380px; margin: 12vh auto; }
+#login input { width: 100%; margin: 10px 0; }
+.err { color: var(--bad); }
+.hide { display: none !important; }
+@media (max-width: 700px) { main { padding: 10px; } .hide-sm { display: none; } }
+</style>
+</head>
+<body>
+<div id="login" class="card">
+  <h2 data-t="login_t"></h2>
+  <p class="muted" data-t="login_p"></p>
+  <input id="tok" type="password" autocomplete="current-password">
+  <button class="btn primary" id="go" data-t="login_b"></button>
+  <p class="err" id="lerr"></p>
+</div>
+<div id="app" class="hide">
+  <header>
+    <h1 id="title">Admin</h1>
+    <nav id="tabs">
+      <button data-v="over" class="on" data-t="t_over"></button>
+      <button data-v="sess" data-t="t_sess"></button>
+      <button data-v="block" data-t="t_block"></button>
+      <button data-v="data" data-t="t_data"></button>
+    </nav>
+    <div class="right">
+      <select id="days"><option value="1">24h</option><option value="7" selected>7d</option><option value="30">30d</option><option value="90">90d</option></select>
+      <button class="btn" id="lang">EN</button>
+      <button class="btn" id="out" data-t="logout"></button>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+<script>
+(() => {
+  const T = {
+    login_t: ['Admin sign-in', '后台登录'], login_p: ['Paste the admin token.', '粘贴后台口令。'], login_b: ['Sign in', '登录'], bad_tok: ['Wrong token.', '口令不对。'],
+    t_over: ['Overview', '概览'], t_sess: ['Visitors', '访客'], t_block: ['Blocked', '封禁名单'], t_data: ['Data', '数据'], logout: ['Sign out', '退出'],
+    k_req: ['requests', '次请求'], k_vis: ['visitors (sessions)', '个访客（会话）'], k_ip: ['networks (IPs)', '个网络（IP）'], k_hum: ['passed the human check', '通过人机验证'],
+    per_day: ['Requests per day', '每天请求数'], kinds: ['By request type', '按请求类型'], countries: ['Visitors by country', '访客国家'],
+    top: ['Most viewed', '被看最多'], searches: ['Searches', '搜索词'], views: ['views', '次'], who: ['visitors', '人'],
+    day: ['Day', '日期'], visitor: ['Visitor', '访客'], country: ['Country', '国家'], first: ['First', '首次'], last: ['Last', '最后'],
+    details: ['Details', '详情'], search_n: ['Searches', '搜索'], total: ['Total', '合计'], refused: ['Refused', '被拒'], human: ['Human', '人机验证'],
+    yes: ['yes', '是'], no: ['no', '否'], block: ['Block', '封禁'], block_ip: ['Block IP', '封 IP'], unblock: ['Unblock', '解封'], events: ['Requests of this visitor', '这个访客的请求'],
+    flag_hint: ['Highlighted: many detail views, or no human check. Blocking stops the visitor (or the whole IP) at once.', '标黄：看了很多详情，或没通过人机验证。封禁后该访客（或整个 IP）立即无法再取数据。'],
+    reason: ['Reason', '原因'], when: ['When', '时间'], key: ['Key', '对象'], none: ['Nothing yet.', '暂无。'],
+    data_ph: ['Search the data', '搜索数据'], more: ['More', '更多'], kind: ['Type', '类型'], item: ['Item', '条目'], status: ['Status', '状态'], query: ['Query', '参数'],
+    sure_block: ['Block this visitor?', '确定封禁这个访客？'], sure_ip: ['Block every visitor from this IP?', '确定封禁这个 IP 下的所有访客？'],
+  };
+  let lang = localStorage.getItem('adm:lang') || 'zh';
+  const t = k => (T[k] || [k, k])[lang === 'zh' ? 1 : 0];
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = ms => new Date(ms).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  let token = localStorage.getItem('adm:token') || '';
+  let view = 'over', info = null;
+
+  function applyLang() {
+    document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
+    $('#lang').textContent = lang === 'zh' ? 'EN' : '中文';
+    $('#tok').placeholder = t('login_p');
+  }
+  async function api(path, opts = {}) {
+    const r = await fetch('/api/admin/' + path, { ...opts, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' } });
+    if (r.status === 401) { signOut(); throw new Error('unauthorized'); }
+    return r.json();
+  }
+  const days = () => $('#days').value;
+
+  async function signIn() {
+    token = $('#tok').value.trim() || token;
+    try {
+      info = await api('info');
+      localStorage.setItem('adm:token', token);
+      $('#title').textContent = info.title + ' · Admin';
+      document.title = info.title + ' · Admin';
+      $('#login').classList.add('hide');
+      $('#app').classList.remove('hide');
+      show(view);
+    } catch { $('#lerr').textContent = t('bad_tok'); }
+  }
+  function signOut() { localStorage.removeItem('adm:token'); token = ''; $('#app').classList.add('hide'); $('#login').classList.remove('hide'); }
+
+  function bars(rows, label, value, fmtv = v => v) {
+    const max = Math.max(1, ...rows.map(value));
+    return `<div class="bars">${rows.map(r => `<div class="bar"><span>${esc(label(r))}</span><i style="width:${(100 * value(r) / max).toFixed(1)}%"></i><span class="r">${fmtv(value(r))}</span></div>`).join('') || `<p class="muted">${t('none')}</p>`}</div>`;
+  }
+
+  async function over() {
+    const [s, top, sr] = await Promise.all([api('stats?days=' + days()), api('top?kind=detail&days=' + days()), api('searches?days=' + days())]);
+    const sum = k => s.perDay.reduce((a, r) => a + r[k], 0);
+    const hum = s.humans.find(h => h.human === 1)?.n || 0, all = s.humans.reduce((a, h) => a + h.n, 0);
+    $('#view').innerHTML = `
+      <div class="kpis">
+        <div class="kpi"><b>${sum('n').toLocaleString()}</b><span>${t('k_req')}</span></div>
+        <div class="kpi"><b>${all.toLocaleString()}</b><span>${t('k_vis')}</span></div>
+        <div class="kpi"><b>${Math.max(0, ...s.perDay.map(r => r.i)).toLocaleString()}</b><span>${t('k_ip')} (max/day)</span></div>
+        <div class="kpi"><b>${all ? Math.round(100 * hum / all) : 0}%</b><span>${t('k_hum')}</span></div>
+      </div>
+      <div class="grid">
+        <div class="card"><h2>${t('per_day')}</h2>${bars(s.perDay, r => r.day.slice(5), r => r.n)}</div>
+        <div class="card"><h2>${t('kinds')}</h2>${bars(s.kinds, r => r.kind, r => r.n)}</div>
+        <div class="card"><h2>${t('top')}</h2><table><tbody>${top.rows.map(r => `<tr class="click" data-item="${esc(r.item)}"><td>${esc(r.label || r.item)}</td><td class="r">${r.n} ${t('views')}</td><td class="r muted">${r.s} ${t('who')}</td></tr>`).join('') || `<tr><td class="muted">${t('none')}</td></tr>`}</tbody></table></div>
+        <div class="card"><h2>${t('searches')}</h2><table><tbody>${sr.rows.map(r => `<tr><td>${esc(r.t)}</td><td class="r">${r.n}</td><td class="r muted">${r.s} ${t('who')}</td></tr>`).join('') || `<tr><td class="muted">${t('none')}</td></tr>`}</tbody></table></div>
+        <div class="card"><h2>${t('countries')}</h2>${bars(s.countries, r => r.country || '?', r => r.s)}</div>
+      </div>`;
+    $('#view').querySelectorAll('[data-item]').forEach(tr => tr.onclick = () => openItem(tr.dataset.item));
+  }
+
+  async function sess(day) {
+    day = day || new Date().toISOString().slice(0, 10);
+    const r = await api('sessions?day=' + day);
+    const flag = x => x.details >= 40 || x.n >= 400 || x.human === 0 || x.refused > 5;
+    $('#view').innerHTML = `<div class="toolbar"><input type="date" id="sday" value="${day}"><span class="muted">${t('flag_hint')}</span></div>
+      <div class="card"><table><thead><tr><th>${t('visitor')}</th><th class="hide-sm">${t('country')}</th><th>${t('first')}</th><th class="hide-sm">${t('last')}</th><th class="r">${t('details')}</th><th class="r">${t('search_n')}</th><th class="r">${t('total')}</th><th class="r">${t('refused')}</th><th>${t('human')}</th><th></th></tr></thead><tbody>
+      ${r.rows.map(x => `<tr class="click ${x.blocked ? 'blocked' : flag(x) ? 'flag' : ''}" data-sid="${esc(x.sid)}">
+        <td><code>${esc(x.sid.slice(0, 8))}</code><div class="muted">${esc((x.ua || '').replace(/^Mozilla\/5\.0 /, '').slice(0, 60))}</div></td>
+        <td class="hide-sm">${esc(x.country || '')}</td><td>${fmt(x.first)}</td><td class="hide-sm">${fmt(x.last)}</td>
+        <td class="r">${x.details}</td><td class="r">${x.searches}</td><td class="r">${x.n}</td><td class="r">${x.refused}</td>
+        <td>${x.human === 1 ? `<span class="pill">${t('yes')}</span>` : `<span class="pill warn">${t('no')}</span>`}</td>
+        <td>${x.blocked ? `<span class="pill bad">${t('t_block')}</span>` : `<button class="btn danger" data-b="${esc(x.sid)}">${t('block')}</button> <button class="btn danger" data-bi="${esc(x.ip_h)}">${t('block_ip')}</button>`}</td></tr>`).join('') || `<tr><td class="muted">${t('none')}</td></tr>`}
+      </tbody></table></div><div id="evs"></div>`;
+    $('#sday').onchange = e => sess(e.target.value);
+    $('#view').querySelectorAll('[data-b]').forEach(b => b.onclick = async e => { e.stopPropagation(); if (confirm(t('sure_block'))) { await api('block', { method: 'POST', body: JSON.stringify({ key: b.dataset.b, kind: 'sid', reason: 'admin' }) }); sess(day); } });
+    $('#view').querySelectorAll('[data-bi]').forEach(b => b.onclick = async e => { e.stopPropagation(); if (confirm(t('sure_ip'))) { await api('block', { method: 'POST', body: JSON.stringify({ key: b.dataset.bi, kind: 'ip', reason: 'admin' }) }); sess(day); } });
+    $('#view').querySelectorAll('tr[data-sid]').forEach(tr => tr.onclick = () => events(tr.dataset.sid));
+  }
+  async function events(sid) {
+    const r = await api('events?sid=' + encodeURIComponent(sid));
+    $('#evs').innerHTML = `<div class="card" style="margin-top:14px"><h2>${t('events')} <code>${esc(sid.slice(0, 8))}</code></h2><table><thead><tr><th>${t('when')}</th><th>${t('kind')}</th><th>${t('item')}</th><th>${t('query')}</th><th class="r">${t('status')}</th></tr></thead><tbody>
+      ${r.rows.map(e => `<tr><td>${fmt(e.ts)}</td><td>${esc(e.kind)}</td><td>${e.item ? `<a href="#" data-item="${esc(e.item)}">${esc(e.label || e.item)}</a>` : ''}</td><td class="muted">${esc((e.q || '').slice(0, 160))}</td><td class="r">${e.status}</td></tr>`).join('')}
+      </tbody></table></div>`;
+    $('#evs').querySelectorAll('[data-item]').forEach(a => a.onclick = ev => { ev.preventDefault(); openItem(a.dataset.item); });
+    $('#evs').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function block() {
+    const r = await api('blocked');
+    $('#view').innerHTML = `<div class="card"><table><thead><tr><th>${t('key')}</th><th>${t('kind')}</th><th>${t('reason')}</th><th>${t('when')}</th><th></th></tr></thead><tbody>
+      ${r.rows.map(b => `<tr><td><code>${esc(b.key)}</code></td><td>${esc(b.kind)}${b.site === '*' ? ' (all sites)' : ''}</td><td>${esc(b.reason)}</td><td>${fmt(b.ts)}</td><td><button class="btn" data-u="${esc(b.key)}" data-k="${esc(b.kind)}">${t('unblock')}</button></td></tr>`).join('') || `<tr><td class="muted">${t('none')}</td></tr>`}
+      </tbody></table></div>`;
+    $('#view').querySelectorAll('[data-u]').forEach(b => b.onclick = async () => { await api('unblock', { method: 'POST', body: JSON.stringify({ key: b.dataset.u, kind: b.dataset.k }) }); block(); });
+  }
+
+  let dq = '', doff = 0, drows = [];
+  async function data(reset = true) {
+    if (reset) { doff = 0; drows = []; }
+    const r = await api(`data?q=${encodeURIComponent(dq)}&offset=${doff}`);
+    drows = drows.concat(r.rows);
+    doff = drows.length;
+    $('#view').innerHTML = `<div class="toolbar"><input type="search" id="dq" value="${esc(dq)}" placeholder="${t('data_ph')}" style="min-width:260px"><span class="muted">${r.total.toLocaleString()}</span></div>
+      <div class="card"><table><thead><tr>${r.cols.map(c => `<th>${esc(c[1])}</th>`).join('')}</tr></thead><tbody>
+      ${drows.map(row => `<tr class="click" data-item="${esc(row.id)}">${r.cols.map(c => `<td>${esc(row[c[0]] ?? '')}</td>`).join('')}</tr>`).join('')}
+      </tbody></table>${drows.length < r.total ? `<p><button class="btn" id="dmore">${t('more')}</button></p>` : ''}</div><div id="item"></div>`;
+    const inp = $('#dq');
+    let tm;
+    inp.oninput = () => { clearTimeout(tm); tm = setTimeout(() => { dq = inp.value; data(true).then(() => { const i = $('#dq'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }); }, 300); };
+    if ($('#dmore')) $('#dmore').onclick = () => data(false);
+    $('#view').querySelectorAll('tr[data-item]').forEach(tr => tr.onclick = () => openItem(tr.dataset.item));
+  }
+  async function openItem(id) {
+    const r = await api('item?id=' + encodeURIComponent(id));
+    let box = $('#item');
+    if (!box) { $('#view').insertAdjacentHTML('beforeend', '<div id="item"></div>'); box = $('#item'); }
+    box.innerHTML = `<div class="card" style="margin-top:14px"><h2>${esc(id)}</h2><pre>${esc(JSON.stringify(r, null, 2))}</pre></div>`;
+    box.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function show(v) {
+    view = v;
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    ({ over, sess, block, data })[v]().catch(e => { $('#view').innerHTML = `<p class="err">${esc(e.message)}</p>`; });
+  }
+  $('#tabs').onclick = e => { const b = e.target.closest('button'); if (b) show(b.dataset.v); };
+  $('#days').onchange = () => show(view);
+  $('#go').onclick = signIn;
+  $('#tok').onkeydown = e => { if (e.key === 'Enter') signIn(); };
+  $('#out').onclick = signOut;
+  $('#lang').onclick = () => { lang = lang === 'zh' ? 'en' : 'zh'; localStorage.setItem('adm:lang', lang); applyLang(); if (info) show(view); };
+  applyLang();
+  if (token) signIn();
+})();
+</script>
+</body>
+</html>

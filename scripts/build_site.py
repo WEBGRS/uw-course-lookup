@@ -138,9 +138,10 @@ def main():
         f = os.path.join(ROOT, "assets", stale)
         if os.path.exists(f):
             os.remove(f)
-    api = json.load(open(CONFIG, encoding="utf-8")).get("api", "") if os.path.exists(CONFIG) else ""
+    cfg = json.load(open(CONFIG, encoding="utf-8")) if os.path.exists(CONFIG) else {}
+    api, sitekey = cfg.get("api", ""), cfg.get("sitekey", "")  # sitekey: public key of the invisible human check
     with open(os.path.join(ROOT, "assets", "config.js"), "w", encoding="utf-8") as f:
-        f.write("window.UWCL = " + json.dumps({"api": api, "built": data["meta"]["built_at"][:10]}) + ";\n")
+        f.write("window.UWCL = " + json.dumps({"api": api, "sitekey": sitekey, "built": data["meta"]["built_at"][:10]}) + ";\n")
     print(f"{len(data['courses'])} courses ({len(js) // 1024} KB) -> worker/data.json, assets/config.js (api: {api or 'same origin'})")
 
 

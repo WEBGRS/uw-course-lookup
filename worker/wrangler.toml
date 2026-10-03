@@ -6,6 +6,20 @@ workers_dev = true
 [vars]
 ALLOW_ORIGINS = "https://webgrs.github.io"
 
+# Request log, sessions and blocklist shared with the other WEBGRS sites; secrets: SESSION_KEY, ADMIN_TOKEN, TURNSTILE_SECRET
+[[d1_databases]]
+binding = "DB"
+database_name = "webgrs-guard"
+database_id = "56acd46c-739c-440a-acb2-8818a2f2bad5"
+
+[triggers]
+crons = ["23 9 * * *"]
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
+
 # The in-page assistant (Workers AI; the free daily allowance applies)
 [ai]
 binding = "AI"

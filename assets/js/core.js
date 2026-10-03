@@ -30,9 +30,21 @@ const cfg = window.UWCL || {};
 export const API = (new URLSearchParams(location.search).get("api") || cfg.api || "").replace(/\/$/, "");
 export const BASE = new URL(".", location.href).href;
 
+// On the public site every data call carries a session token from an invisible human check (guard-client.js)
+const guard = API && cfg.sitekey && window.WebgrsGuard ? window.WebgrsGuard.create({ api: API, sitekey: cfg.sitekey, site: "courses" }) : null;
+if (guard) guard.session().catch(() => {});
+
 export async function api(path, params, opts = {}) {
   const u = new URL(API + path, location.href);
   if (params) u.search = new URLSearchParams(params).toString();
+  if (guard && path !== "/api/meta" && path !== "/api/insights") {
+    try {
+      return await guard.call(path + u.search, { method: opts.method, body: opts.body ? JSON.parse(opts.body) : undefined });
+    } catch (err) {
+      const e = new Error("HTTP " + (err.status || 0)); e.status = err.status; e.body = err.data;
+      throw e;
+    }
+  }
   const r = await fetch(u, { headers: { Accept: "application/json", ...(opts.body ? { "Content-Type": "application/json" } : {}) }, ...opts });
   if (!r.ok) {
     const e = new Error("HTTP " + r.status); e.status = r.status;

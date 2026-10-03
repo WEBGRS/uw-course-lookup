@@ -78,10 +78,17 @@ optimality.
 | `GET /api/plan?ids=…` | up to 40 courses with credits, requisites, instructor GPA and every package's meeting times; cross-listed ids resolve |
 | `GET /api/insights` | the aggregate panels of the Insights tab |
 | `POST /api/chat` | one model step for the assistant; the Worker owns the system prompt and the tool list |
+| `POST /api/session` | a signed session token, after an invisible Cloudflare Turnstile check in the page |
+| `GET /admin` | the owner's dashboard (token required): requests per day, most-viewed courses, searches, visitors, blocking |
 
-Only the page is meant to call the API: requests must come from the site's origin, each client is rate-limited per
-minute, and no endpoint returns the dataset in bulk. That raises the cost of copying everything; it cannot make copying
-impossible, because anything the page can show, a patient scraper can read too.
+Only the page is meant to call the API, and no endpoint returns the dataset in bulk. Every data request needs a session
+token that the page gets after an invisible human check; requests must come from the site's origin; each client is
+rate-limited per minute; and each visitor and each network has a daily allowance counted in course records, so one
+`/api/plan` call for 40 courses uses 40. Requests are logged to a Cloudflare D1 database (the course asked for, the
+search filters, a one-way hash of the IP, never the assistant conversation) so heavy copying shows up in the dashboard
+and can be blocked. That raises the cost of copying everything; it cannot make copying impossible, because anything the
+page can show, a patient scraper can read too. The guard code (`worker/src/guard.js`, `assets/js/guard-client.js`) is
+shared with the author's other data sites.
 
 ## Data sources
 
