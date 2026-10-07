@@ -219,3 +219,7 @@ dialog::backdrop{background:rgba(10,12,14,.4)}
 .cmp th:first-child{min-width:110px;color:var(--ink-3);font-weight:600;font-size:12.5px;position:sticky;left:0;background:var(--surface)}
 footer{color:var(--ink-3);font-size:12.5px;padding:24px 0 40px;border-top:1px solid var(--line)}
 footer p{margin:0 0 6px}
+/* Keep the Star / Feedback pill clear of the saved-courses bar and the side panels */
+body.has-plan{--wgfb-lift:78px}
+body.agent-open,body:has(#drawer.on){--wgfb-display:none}
+@media(max-width:640px){body.has-plan{--wgfb-lift:64px}}
