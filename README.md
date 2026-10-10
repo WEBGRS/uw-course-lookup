@@ -3,7 +3,7 @@
 Grades, instructors and seats for **every course in the Fall 2026 catalog (4,400+ UW–Madison courses)**, plus a
 degree-aware timetable planner and an assistant that can answer questions about all of it.
 
-👉 **[Open the tool](https://webgrs.github.io/uw-course-lookup/)**
+👉 **[Open the tool](https://courses.madisonstudents.com/)**
 
 ![Course list](docs/light.png)
 
