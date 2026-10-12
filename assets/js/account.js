@@ -30,7 +30,6 @@
     code: ['6-digit code', '6 位验证码'],
     verify: ['Sign in', '登录'],
     checking: ['Checking…', '验证中…'],
-    junk: ['Not there? Check junk mail.', '没收到？看看垃圾邮件。'],
     resend: ['Send again', '重新发送'],
     resendIn: ['Send again in {n}s', '{n} 秒后可重发'],
     other: ['Use another email', '换个邮箱'],
@@ -161,7 +160,6 @@
     '.ghost{background:transparent;color:inherit;border:1px solid var(--line)}',
     '.st{min-height:0;margin:8px 0 0;font-size:13px;color:var(--bad)}.st:empty{display:none}.st.ok{color:var(--sub)}',
     '.pwrow{margin:0 0 10px}',
-    '.fine{margin:10px 0 0;font-size:12.5px}',
     '.links{display:flex;justify-content:space-between;gap:10px;margin:10px 0 0;font-size:13px}',
     '.link{border:0;padding:0;background:none;color:inherit;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}',
     '.link:disabled{text-decoration:none;opacity:.6;cursor:default}',
@@ -231,8 +229,7 @@
       h = head(t(flow === 'signup' ? 'signup' : 'codeLogin')) + '<form novalidate><p>' + esc(t('codeSent')) + ' <span class="who">' + esc(email) + '</span></p>' +
         '<input name="code" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······" aria-label="' + esc(t('code')) + '">' +
         '<button type="submit" class="go">' + esc(t(flow === 'signup' ? 'signup' : 'verify')) + '</button>' + ST + '</form>' +
-        '<div class="links"><button type="button" class="link" data-a="resend"></button>' + link('other', 'other') + '</div>' +
-        '<p class="fine">' + esc(t('junk')) + '</p>';
+        '<div class="links"><button type="button" class="link" data-a="resend"></button>' + link('other', 'other') + '</div>';
     } else if (step === 'codeEmail') {
       h = head(t('codeLogin')) + '<form novalidate>' + emailInput() +
         '<button type="submit" class="go">' + esc(t('sendCode')) + '</button>' + ST + '</form>' +
