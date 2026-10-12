@@ -206,7 +206,7 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function head(title) { return '<div class="hd"><b id="ac-t">' + esc(title) + '</b><button type="button" class="x" data-a="close" aria-label="' + esc(t('close')) + '">&times;</button></div>'; }
   function emailInput() {
-    return '<input name="email" type="email" inputmode="email" autocomplete="username" placeholder="you@wisc.edu" aria-label="' + esc(t('email')) + '" value="' + esc(email) + '">';
+    return '<input name="email" type="email" inputmode="email" autocomplete="username" placeholder="' + esc(t('email')) + '" aria-label="' + esc(t('email')) + '" value="' + esc(email) + '">';
   }
   function pwInput(fresh) {
     var ph = fresh ? t('newPw') : t('password');
