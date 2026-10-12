@@ -8,6 +8,7 @@ import * as planner from "./planner/view.js";
 import * as planbar from "./planbar.js";
 import * as agent from "./agent.js";
 import { initBand, setBand, resetBand } from "./band.js";
+import { initSync } from "./sync.js";
 
 const TABS = ["courses", "plan", "insights", "about"];
 
@@ -67,6 +68,8 @@ on("not-found", (id) => {
   history.replaceState(null, "", location.pathname + location.search + "#/courses");
   show("courses"); courses.refresh();
 });
+
+initSync();
 
 /* ── Boot ────────────────────────────────────────────────── */
 async function boot() {

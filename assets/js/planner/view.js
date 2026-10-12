@@ -331,6 +331,7 @@ export async function init() {
     else if (b.id === "rsIcs") download(S.results.schedules[S.i]);
   });
   on("plan", () => { renderCourses(); renderDegree(); loadRows([...plan.must]).then(renderCourses).catch(() => {}); });
+  on("plan-sync", (d) => { if (d && d.programChanged) loadProgram(plan.program); });
   on("lang", localize);
 
   const dlg = $("#importDlg");

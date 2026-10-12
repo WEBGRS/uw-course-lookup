@@ -39,10 +39,12 @@ header{background:var(--surface)}
 .mark{width:34px;height:34px;border-radius:7px;background:var(--brand);display:flex;align-items:flex-end;padding:0 6px 7px;gap:2px;flex:none}
 .mark i{display:block;flex:1;background:#fff;border-radius:1px}
 h1{font-size:24px;line-height:1.15;margin:0;letter-spacing:-.01em}
-.hbtns{margin-left:auto;display:flex;gap:6px;flex:none}
+.hbtns{margin-left:auto;display:flex;gap:6px;flex:none;--msac-av:var(--brand)}
 .icon-btn{background:transparent;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--ink-2);font-size:13px;font-weight:600;line-height:1.2}
 .icon-btn:hover{background:var(--hover)}
 nav.tabs{display:flex;gap:4px;margin-top:6px}
+@media(max-width:640px){.top,.home{gap:10px}.hbtns{gap:4px}h1{font-size:21px}}
+@media(max-width:370px){h1{font-size:19px}}
 nav.tabs a{padding:10px 14px;text-decoration:none;color:var(--ink-2);font-weight:600;font-size:14px;border-bottom:2px solid transparent}
 nav.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--brand)}
 
