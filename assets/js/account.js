@@ -137,33 +137,34 @@
   var host, root, panel, btn = null, opener = null, isOpen = false, step = 'pw', flow = 'codeEmail', email = '', pendingPw = '', pwOpen = false, cool = 0, coolTimer = 0;
   var CSS = [
     ':host{all:initial}',
-    '.panel{position:fixed;z-index:2147483001;width:340px;max-width:calc(100vw - 24px);box-sizing:border-box;padding:16px;border-radius:12px;',
+    '.panel{position:fixed;z-index:2147483001;width:284px;max-width:calc(100vw - 24px);box-sizing:border-box;padding:12px 14px;border-radius:10px;',
     'background:var(--bg);color:var(--ink);border:1px solid var(--line);box-shadow:0 14px 44px rgba(0,0,0,.2),0 2px 6px rgba(0,0,0,.08);',
-    'font-size:14px;line-height:1.45;font-weight:400;letter-spacing:normal;text-transform:none;text-align:left;',
+    'font-size:13px;line-height:1.4;font-weight:400;letter-spacing:normal;text-transform:none;text-align:left;',
     'opacity:0;transform:translateY(6px);transition:opacity .16s ease,transform .16s ease}',
     '.panel.on{opacity:1;transform:none}',
     '.panel.sheet{left:8px!important;right:8px!important;top:max(10px,env(safe-area-inset-top))!important;bottom:auto!important;width:auto;max-width:none}',
     '.light{--bg:#fff;--ink:#15181d;--sub:#3d434b;--line:rgba(21,24,29,.16);--field:#fff;--wash:rgba(21,24,29,.07);--ph:rgba(21,24,29,.52);--bad:#b3261e}',
     '.dark{--bg:#1c2026;--ink:#eef1f4;--sub:#c9ced4;--line:rgba(238,241,244,.2);--field:#14171b;--wash:rgba(255,255,255,.09);--ph:rgba(238,241,244,.55);--bad:#ff8a80}',
-    '.hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px}',
-    '.hd b{font-size:16px;font-weight:650}',
-    '.x{width:30px;height:30px;margin:-4px -6px -4px 0;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:20px;line-height:1;cursor:pointer}',
+    '.hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px}',
+    '.hd b{font-size:14.5px;font-weight:650}',
+    '.x{width:26px;height:26px;margin:-4px -6px -4px 0;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:18px;line-height:1;cursor:pointer}',
     '.x:hover{background:var(--wash)}',
-    'p{margin:0 0 10px;color:var(--sub)}',
+    'p{margin:0 0 8px;color:var(--sub)}',
     '.who{color:var(--ink);font-weight:600;word-break:break-all}',
-    'input{display:block;width:100%;box-sizing:border-box;margin:0 0 10px;padding:9px 11px;font:inherit;font-size:15px;color:inherit;background:var(--field);border:1px solid var(--line);border-radius:8px}',
-    'input.code{font-size:22px;letter-spacing:.35em;text-align:center;font-variant-numeric:tabular-nums}',
+    'input{display:block;width:100%;box-sizing:border-box;margin:0 0 8px;padding:6px 9px;font:inherit;font-size:14px;color:inherit;background:var(--field);border:1px solid var(--line);border-radius:8px}',
+    'input.code{font-size:19px;letter-spacing:.35em;text-align:center;font-variant-numeric:tabular-nums}',
     'input:focus{outline:1.5px solid var(--ink);outline-offset:-1px;border-color:transparent}',
     '::placeholder{color:var(--ph);opacity:1;letter-spacing:normal}',
-    '.go{display:block;width:100%;font:inherit;font-weight:600;border-radius:999px;padding:9px 18px;cursor:pointer;background:var(--ink);color:var(--bg);border:1px solid var(--ink)}',
+    '.go{display:block;width:100%;font:inherit;font-weight:600;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;background:var(--ink);color:var(--bg);border:1px solid var(--ink)}',
     '.go:disabled{opacity:.55;cursor:default}',
     '.ghost{background:transparent;color:inherit;border:1px solid var(--line)}',
-    '.st{min-height:0;margin:8px 0 0;font-size:13px;color:var(--bad)}.st:empty{display:none}.st.ok{color:var(--sub)}',
-    '.pwrow{margin:0 0 10px}',
-    '.links{display:flex;justify-content:space-between;gap:10px;margin:10px 0 0;font-size:13px}',
+    '.st{min-height:0;margin:6px 0 0;font-size:12.5px;color:var(--bad)}.st:empty{display:none}.st.ok{color:var(--sub)}',
+    '.pwrow{margin:0 0 8px}',
+    '.row2{display:flex;gap:6px}.row2 .go{flex:1;width:auto;padding-left:6px;padding-right:6px;white-space:nowrap}',
+    '.links{display:flex;justify-content:space-between;gap:10px;margin:8px 0 0;font-size:12px}',
     '.link{border:0;padding:0;background:none;color:inherit;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}',
     '.link:disabled{text-decoration:none;opacity:.6;cursor:default}',
-    '.del{display:block;margin:12px auto 0;font-size:12.5px;color:var(--bad)}',
+    '.del{display:block;margin:8px auto 0;font-size:12px;color:var(--bad)}',
     'button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}',
     '@media (prefers-reduced-motion:reduce){.panel{transition:none}}',
   ].join('');
@@ -222,8 +223,9 @@
       h = head(t('account')) + '<p class="who">' + esc(user.email) + '</p>' +
         (pwOpen
           ? '<form novalidate class="pwrow">' + pwInput(true) + '<button type="submit" class="go">' + esc(t('save')) + '</button>' + ST + '</form>'
-          : '<div class="pwrow"><button type="button" class="go ghost" data-a="pw">' + esc(t(user.pw ? 'changePw' : 'setPw')) + '</button>' + ST + '</div>') +
-        '<button type="button" class="go ghost" data-a="signout">' + esc(t('signout')) + '</button>' +
+          : '<div class="row2"><button type="button" class="go ghost" data-a="pw">' + esc(t(user.pw ? 'changePw' : 'setPw')) + '</button>' +
+            '<button type="button" class="go ghost" data-a="signout">' + esc(t('signout')) + '</button></div>' + ST) +
+        (pwOpen ? '<button type="button" class="go ghost" data-a="signout">' + esc(t('signout')) + '</button>' : '') +
         '<button type="button" class="link del" data-a="delete">' + esc(t('del')) + '</button>';
     } else if (step === 'code') {
       h = head(t(flow === 'signup' ? 'signup' : 'codeLogin')) + '<form novalidate><p>' + esc(t('codeSent')) + ' <span class="who">' + esc(email) + '</span></p>' +
