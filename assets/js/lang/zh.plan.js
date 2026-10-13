@@ -33,9 +33,9 @@ export default {
   thLinks: "链接",
   thName: "姓名", thGpa: "GPA", thA: "A 比例", thN: "学生数", thLast: "最近", thin: "不足 30 人的样本偏小。",
   showAll: (n) => `显示全部 ${n} 位`, showFewer: "收起",
-  say: "同学怎么说", sayCatalog: "这门课没有群聊和 Reddit 数据。",
-  sayEnroll: "本学期人数最多的课之一。", sayChatFew: "在学生群里被提到不到 3 次。",
-  sayChat: (m, p, n) => `在学生群里被提到 <b>${m}</b> 次${p || n ? `（正面 ${p}，负面 ${n}）` : ""}`,
+  say: "同学怎么说", sayCatalog: "这门课没有讨论和 Reddit 数据。",
+  sayEnroll: "本学期人数最多的课之一。", sayChatFew: "在学生讨论中被提到不到 3 次。",
+  sayChat: (m, p, n) => `在学生讨论中被提到 <b>${m}</b> 次${p || n ? `（正面 ${p}，负面 ${n}）` : ""}`,
   sayReddit: (n, tone) => `${n ? `。r/UWMadison 上有 <b>${n}</b> 个帖子${tone ? `，${tone}` : ""}` : ""}。`,
   tonePos: "偏正面", toneNeg: "偏负面", toneMix: "褒贬不一",
   seatsOf: (o, c) => `${c} 个名额中 ${o} 个空位`,
@@ -97,12 +97,12 @@ export default {
   // insights
   insNote: (n, all) => `图表只覆盖 ${n} 门重点课，课程列表有全部 ${fmt(all)} 门。`,
   st_grades: "个字母成绩", st_instr: "位老师", st_reddit: "个 Reddit 帖", st_courses: "门重点课",
-  p1: "热门不等于好过", p1l: (r) => `每个点是一门课。群聊热度几乎说明不了给分松紧（${r}）。`,
-  xMent: "群聊提及次数（对数）", yGpa: "课程 GPA", chat: (n) => `群聊 ${n}`, chatFew: "群聊 <3",
+  p1: "热门不等于好过", p1l: (r) => `每个点是一门课。讨论热度几乎说明不了给分松紧（${r}）。`,
+  xMent: "讨论次数（对数）", yGpa: "课程 GPA", chat: (n) => `讨论 ${n}`, chatFew: "讨论 <3",
   p2: "老师比课本身更关键", p2l: "同一门课，不同老师能差一个字母等级以上。",
   most: "给分最松", least: "给分最严",
   p3: "同学的评价靠谱吗？", p3l: "Spearman 秩相关。只有 Reddit 的语气和给分对得上。",
-  c1: "群聊提及 vs GPA", c2: "群聊情绪 vs GPA", c3: "Reddit 语气 vs GPA", c4: "群聊 vs Reddit 热度", c5: "课号级别 vs GPA",
+  c1: "讨论次数 vs GPA", c2: "讨论情绪 vs GPA", c3: "Reddit 语气 vs GPA", c4: "讨论 vs Reddit 热度", c5: "课号级别 vs GPA",
   thSignal: "信号", thResult: "结果", thReading: "解读",
   none: "无关", weak: "弱", moderate: "中等", strong: "强", positive: "正相关", negative: "负相关", ns: "，不显著", nodata: "数据不足",
   p4: "不同级别的给分", p4l: "200 和 300 级给分最严。", wStudents: "按学生数加权", medCourse: "中位数课程",
@@ -121,7 +121,7 @@ export default {
       <li><b>成绩</b>：<a href="https://madgrades.com" target="_blank" rel="noopener">MadGrades</a>，UW 按学期、班级和老师公开的成绩报告。GPA 只算字母成绩。</li>
       <li><b>开课和名额</b>：公开的 <a href="https://public.enroll.wisc.edu" target="_blank" rel="noopener">Course Search &amp; Enroll</a> 接口。名额是快照，选课前请以 Enroll 为准。</li>
       <li><b>毕业要求</b>：抄自 <a href="https://guide.wisc.edu" target="_blank" rel="noopener">UW Guide</a>，只做参考，最终以 DARS 为准。</li>
-      <li><b>群聊和 Reddit</b>：学生群的汇总计数，以及 r/UWMadison 公开帖的标题。</li>
+      <li><b>讨论和 Reddit</b>：学生讨论的汇总计数，以及 r/UWMadison 公开帖的标题。</li>
     </ul>
     <h2 class="serif">指标怎么看</h2>
     <ul>

@@ -45,7 +45,7 @@ The **Insights** tab and [`docs/ANALYSIS.md`](docs/ANALYSIS.md) are generated fr
 
 - **Instructor beats course.** In MATH 320, MATH 340 and MATH 234, the most and least generous instructors are 1.4–1.7 GPA
   points apart, more than a full letter grade on the same syllabus.
-- **Popularity says nothing about difficulty.** Chat mentions vs. GPA: Spearman ρ = −0.07 (p = 0.30).
+- **Popularity says nothing about difficulty.** Mentions vs. GPA: Spearman ρ = −0.07 (p = 0.30).
 - **Reddit tone does.** Courses whose r/UWMadison threads read upbeat grade higher (ρ = +0.43, p < 0.001, n = 220).
 - **Grade inflation.** Weighted GPA across the 290 featured courses rose from 3.02 (Fall 2006) to 3.39 (Spring 2026).
 
@@ -98,7 +98,7 @@ shared with the author's other data sites.
 | [Course Search & Enroll](https://public.enroll.wisc.edu) | Catalog, credits, breadths, prerequisites, this term's sections with meeting times and seats | public API |
 | [UW Guide](https://guide.wisc.edu) | Degree requirement tables for 212 undergraduate programs | scraped by `scripts/fetch_programs.py` |
 | [r/UWMadison](https://www.reddit.com/r/UWMadison/) | Threads that name each course (title + link only) | web search via Firecrawl |
-| Student group chat | How often each course came up, +/− tone | aggregate counts, never the messages |
+| Student discussion | How often each course came up, +/− tone | aggregate counts, never the messages |
 | Rate My Professors | Not copied; each instructor links to an RMP search | link only |
 
 ## Run it yourself
@@ -139,7 +139,7 @@ courses.json  (private, chat counts)            scripts/extract_courses.py
 
 ### A few details worth knowing
 
-- **Three tiers.** `chat` (223 courses mentioned in student chat), `enrollment` (67 largest courses this term) and
+- **Three tiers.** `chat` (223 courses discussed by students), `enrollment` (67 largest courses this term) and
   `catalog` (the other ~4,150: grades and seats, no peer signal). The first two drive the Insights tab.
 - **Meeting times.** Enroll stores clock time as UTC shifted by a fixed six hours (even in September), which only the
   website can confirm: `python scripts/check_times.py` compares a sample of sections with public.enroll.wisc.edu and

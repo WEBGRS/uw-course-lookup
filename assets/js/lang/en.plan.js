@@ -33,9 +33,9 @@ export default {
   thLinks: "Links",
   thName: "Name", thGpa: "GPA", thA: "A's", thN: "Students", thLast: "Last", thin: "Under 30 students is a thin sample.",
   showAll: (n) => `Show all ${n}`, showFewer: "Show fewer",
-  say: "What students say", sayCatalog: "No chat or Reddit data for this course.",
-  sayEnroll: "One of the largest courses this term.", sayChatFew: "Mentioned fewer than three times in a student chat.",
-  sayChat: (m, p, n) => `Mentioned <b>${m}</b> time${m === 1 ? "" : "s"} in a student chat${p || n ? ` (${p} positive, ${n} negative)` : ""}`,
+  say: "What students say", sayCatalog: "No discussion or Reddit data for this course.",
+  sayEnroll: "One of the largest courses this term.", sayChatFew: "Mentioned fewer than three times in student discussion.",
+  sayChat: (m, p, n) => `Mentioned <b>${m}</b> time${m === 1 ? "" : "s"} in student discussion${p || n ? ` (${p} positive, ${n} negative)` : ""}`,
   sayReddit: (n, tone) => `${n ? `. <b>${n}</b> r/UWMadison thread${n === 1 ? "" : "s"}${tone ? `, ${tone}` : ""}` : ""}.`,
   tonePos: "mostly positive", toneNeg: "mostly negative", toneMix: "mixed",
   seatsOf: (o, c) => `${o} of ${c} seats open`,
@@ -97,12 +97,12 @@ export default {
   // insights
   insNote: (n, all) => `Charts cover the ${n} featured courses. The course list has all ${fmt(all)}.`,
   st_grades: "letter grades", st_instr: "instructors", st_reddit: "Reddit threads", st_courses: "featured courses",
-  p1: "Popular doesn't mean easy", p1l: (r) => `Each dot is a course. Chat volume says little about grading (${r}).`,
-  xMent: "Chat mentions (log)", yGpa: "Course GPA", chat: (n) => `${n} chat`, chatFew: "chat <3",
+  p1: "Popular doesn't mean easy", p1l: (r) => `Each dot is a course. Discussion volume says little about grading (${r}).`,
+  xMent: "Mentions (log)", yGpa: "Course GPA", chat: (n) => `${n} mentions`, chatFew: "mentions <3",
   p2: "The instructor can matter more than the course", p2l: "Same course, over a letter grade apart between instructors.",
   most: "Most generous", least: "Least generous",
   p3: "Do peer signals track grades?", p3l: "Spearman rank correlation. Only Reddit tone tracks grades.",
-  c1: "Chat mentions vs GPA", c2: "Chat sentiment vs GPA", c3: "Reddit tone vs GPA", c4: "Chat vs Reddit volume", c5: "Course number vs GPA",
+  c1: "Mentions vs GPA", c2: "Discussion sentiment vs GPA", c3: "Reddit tone vs GPA", c4: "Discussion vs Reddit volume", c5: "Course number vs GPA",
   thSignal: "Signal", thResult: "Result", thReading: "Reading",
   none: "no relationship", weak: "weak", moderate: "moderate", strong: "strong", positive: " positive", negative: " negative", ns: ", not significant", nodata: "not enough data",
   p4: "GPA by level", p4l: "The 200s and 300s grade hardest.", wStudents: "Weighted by students", medCourse: "Median course",
@@ -121,7 +121,7 @@ export default {
       <li><b>Grades</b>: <a href="https://madgrades.com" target="_blank" rel="noopener">MadGrades</a>, UW's public grade reports by term, section and instructor. GPA counts letter grades only.</li>
       <li><b>Sections and seats</b>: the public <a href="https://public.enroll.wisc.edu" target="_blank" rel="noopener">Course Search &amp; Enroll</a> API. Seats are a snapshot, so check Enroll before you register.</li>
       <li><b>Degree requirements</b>: copied from the <a href="https://guide.wisc.edu" target="_blank" rel="noopener">UW Guide</a>. They are a guide, not an audit; DARS decides.</li>
-      <li><b>Chat and Reddit</b>: aggregate counts from a student chat, and titles of public r/UWMadison threads.</li>
+      <li><b>Discussion and Reddit</b>: aggregate counts from student discussion, and titles of public r/UWMadison threads.</li>
     </ul>
     <h2 class="serif">Reading the numbers</h2>
     <ul>
