@@ -10,11 +10,12 @@ const page = await browser.newPage({ viewport: { width: 1340, height: 900 }, loc
 const problems = [];
 const apiCalls = [];
 page.on("pageerror", (e) => problems.push("pageerror: " + e.message));
-page.on("console", (m) => { if (m.type() === "error") problems.push("console: " + m.text()); });
+const beacon = (m) => /cloudflareinsights/.test(m.text() + (m.location().url || ""));  // analytics beacon, blocked on localhost
+page.on("console", (m) => { if (m.type() === "error" && !beacon(m)) problems.push("console: " + m.text()); });
 page.on("response", (r) => { if (r.url().includes("/api/")) apiCalls.push(`${r.status()} ${r.url().replace(/^https?:\/\/[^/]+/, "")}`); });
 
 console.log("GET", URL);
-await page.goto(URL, { waitUntil: "networkidle", timeout: 60000 });
+await page.goto(URL, { waitUntil: "load", timeout: 60000 });  // Turnstile keeps the network busy
 await page.waitForSelector(".row[data-id]", { timeout: 30000 });
 
 const s = await page.evaluate(() => ({
@@ -29,6 +30,12 @@ if (!s.rows) problems.push("no course rows rendered");
 const shipped = (await (await fetch(ORIGIN)).text()).length;
 if (shipped > 20000) problems.push(`index.html is ${shipped} bytes; is the dataset embedded again?`);
 if (s.hscroll) problems.push("page scrolls horizontally");
+
+// Default list: this term's courses by course number; then search every term
+const def = await page.evaluate(() => ({ now: document.querySelector("#fNow").checked, sort: document.querySelector("#sort").value }));
+if (!def.now || def.sort !== "code") problems.push(`default list is ${JSON.stringify(def)}, expected offered + code`);
+if (!(await page.isVisible("#fNow"))) await page.click("#fToggle");
+await page.uncheck("#fNow");
 
 const ids = async () => page.$$eval(".row[data-id]", (r) => r.map((x) => x.dataset.id));
 const search = async (q) => { await page.fill("#q", q); await page.waitForTimeout(700); return ids(); };
@@ -75,7 +82,7 @@ const d = await page.evaluate(() => ({
   charts: document.querySelectorAll("#drawer svg").length,
   instructors: document.querySelectorAll("#drawer .itable tbody tr").length,
   sections: document.querySelectorAll("#dSections tr").length,
-  talk: /group chat/i.test(document.querySelector("#drawer").innerText) && /r\/UWMadison thread/i.test(document.querySelector("#drawer").innerText),
+  talk: /student discussion/i.test(document.querySelector("#drawer").innerText) && /reddit/i.test(document.querySelector("#drawer").innerText),
   mg: document.querySelector('#drawer a[href*="madgrades.com"]')?.href,
   rmp: document.querySelector('#drawer a[href*="ratemyprofessors.com"]')?.href,
 }));
@@ -130,7 +137,7 @@ if (panels < 6) problems.push(`only ${panels} insight panels`);
 
 // Phone width
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
-await m.goto(URL, { waitUntil: "networkidle" });
+await m.goto(URL, { waitUntil: "load" });
 await m.waitForSelector(".row[data-id]", { timeout: 30000 });
 if (await m.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth))
   problems.push("phone layout scrolls horizontally");

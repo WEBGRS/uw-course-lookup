@@ -5,7 +5,8 @@ import { strip } from "./charts.js";
 import { setBand } from "./band.js";
 
 export const listState = { rows: [], total: 0, state: "loading" };
-const st = { q: "", sort: "m", subj: "", lvl: "", br: "", gpa: "", now: false, sv: false };
+const DEF = { sort: "code", now: true };  // default list: this term's courses by course number
+const st = { q: "", sort: DEF.sort, subj: "", lvl: "", br: "", gpa: "", now: DEF.now, sv: false };
 let seq = 0, typing;
 
 function readFilters() {
@@ -43,6 +44,7 @@ export function render() {
     `<div class="${i === 2 || i === 4 ? "num" : ""}"${i === 5 ? ` title="${esc(t("seatsAsOf", app.meta.built_at.slice(0, 10)))}"` : ""}>${k ? `<button data-sort="${k}"${st.sort === k ? ' aria-current="true"' : ""}>${esc(l)}</button>` : esc(l)}</div>`).join("") + "</div>";
   const body = state === "error" ? `<div class="empty">${esc(t("apiError"))} <button class="btn" id="retry">${esc(t("retry"))}</button></div>`
     : state === "loading" && !rows.length ? `<div class="empty">${esc(t("loading"))}</div>`
+    : !rows.length && st.now ? `<div class="empty">${esc(t("empty"))} <button class="btn" id="allTerms">${esc(t("emptyAll", termLabel(app.term)))}</button></div>`
     : rows.length ? `<div class="rows" role="list" aria-label="${esc(t("tabCourses"))}">` + rows.map((c) => `
     <div class="row" role="listitem" tabindex="0" data-id="${esc(c.id)}">
       <div class="c-star"><button class="star" data-star="${esc(c.id)}" aria-pressed="${plan.must.has(c.id)}" aria-label="${esc(t("save"))} ${esc(c.code)}">${plan.must.has(c.id) ? "★" : "☆"}</button></div>
@@ -75,16 +77,19 @@ export async function refresh(append) {
 }
 
 function syncQuery() {
+  readFilters();
   const p = new URLSearchParams();
-  for (const [k, v] of Object.entries(st)) if (v && k !== "sv") p.set(k, v === true ? "1" : v);
-  if (st.sort === "m") p.delete("sort");
+  for (const [k, v] of Object.entries(st)) if (v && k !== "sv" && k !== "now") p.set(k, v);
+  if (st.sort === DEF.sort) p.delete("sort");
+  if (st.now !== DEF.now) p.set("now", st.now ? "1" : "0");
   history.replaceState(null, "", location.pathname + (p.toString() ? "?" + p : "") + location.hash);
 }
 function loadQuery() {
   const p = new URLSearchParams(location.search);
   const map = { q: "#q", sort: "#sort", subj: "#fSubj", lvl: "#fLvl", br: "#fBr", gpa: "#fGpa" };
+  $("#sort").value = DEF.sort;
   for (const [k, s] of Object.entries(map)) if (p.get(k)) $(s).value = p.get(k);
-  if (p.get("now")) $("#fNow").checked = true;
+  $("#fNow").checked = p.has("now") ? p.get("now") !== "0" : DEF.now;
 }
 const onFilter = () => { syncQuery(); refresh(); };
 export function applyFilter(f) { if (f.subj) $("#fSubj").value = f.subj; onFilter(); }
@@ -106,12 +111,13 @@ export function init() {
   $("#fToggle").onclick = () => { const o = !$("#filters").classList.contains("open"); $("#filters").classList.toggle("open", o); $("#fToggle").setAttribute("aria-expanded", o); };
   $("#q").addEventListener("input", () => { syncQuery(); clearTimeout(typing); typing = setTimeout(refresh, 120); });
   ["#sort", "#fSubj", "#fLvl", "#fBr", "#fGpa", "#fNow", "#fSaved"].forEach((s) => $(s).addEventListener("change", onFilter));
-  $("#reset").onclick = () => { ["#q", "#fSubj", "#fLvl", "#fBr", "#fGpa"].forEach((s) => ($(s).value = "")); $("#fNow").checked = $("#fSaved").checked = false; $("#sort").value = "m"; onFilter(); };
+  $("#reset").onclick = () => { ["#q", "#fSubj", "#fLvl", "#fBr", "#fGpa"].forEach((s) => ($(s).value = "")); $("#fNow").checked = DEF.now; $("#fSaved").checked = false; $("#sort").value = DEF.sort; onFilter(); };
   $("#more").onclick = () => refresh(true);
 
   const list = $("#list");
   list.addEventListener("click", (e) => {
     if (e.target.closest("#retry")) { refresh(); return; }
+    if (e.target.closest("#allTerms")) { $("#fNow").checked = false; onFilter(); return; }
     const s = e.target.closest("[data-star]"); if (s) { plan.toggle(s.dataset.star); e.stopPropagation(); return; }
     const h = e.target.closest("[data-sort]"); if (h) { $("#sort").value = h.dataset.sort === "gpa" && st.sort === "gpa" ? "gpaL" : h.dataset.sort; onFilter(); return; }
     const r = e.target.closest(".row[data-id]"); if (r) emit("open", r.dataset.id);

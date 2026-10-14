@@ -22,7 +22,7 @@ const ORIG = {
     colCourse: "Course", colCr: "Cr", colGpa: "GPA · grades", colA: "A's", colTr: "Trend", colTalk: "Mentions",
     open: "Open", wait: "Waitlist", full: "Full", notTerm: "Not this term", teachingNow: t => t + ": ",
     chat: n => n + " mentions", reddit: n => n + " Reddit",
-    empty: "No course matches. Try a different search or fewer filters.",
+    empty: "No course matches. Try a different search or fewer filters.", emptyAll: t => "Include courses not offered in " + t,
     bandNoData: code => "<b>" + code + "</b> · no letter-grade history",
     save: "☆ Save", saved: "★ Saved", mg: "MadGrades", cse: "Course Search & Enroll", guide: "Guide", searchReddit: "Search Reddit",
     copy: "Copy link", copied: "Copied", prev: "Previous course", next: "Next course", close: "Close",

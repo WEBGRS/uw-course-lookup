@@ -22,7 +22,7 @@ const ORIG = {
     colCourse: "课程", colCr: "学分", colGpa: "GPA · 分布", colA: "A 比例", colTr: "趋势", colTalk: "讨论",
     open: "有空位", wait: "候补", full: "已满", notTerm: "本学期不开", teachingNow: t => t + "：",
     chat: n => "讨论 " + n, reddit: n => "Reddit " + n,
-    empty: "没有符合条件的课。换个关键词，或者减少筛选条件。",
+    empty: "没有符合条件的课。换个关键词，或者减少筛选条件。", emptyAll: t => "包括 " + t + " 不开的课",
     bandNoData: code => "<b>" + code + "</b> · 没有字母成绩记录",
     save: "☆ 收藏", saved: "★ 已收藏", mg: "MadGrades", cse: "选课系统", guide: "课程目录", searchReddit: "搜 Reddit",
     copy: "复制链接", copied: "已复制", prev: "上一门", next: "下一门", close: "关闭",
