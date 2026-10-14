@@ -272,10 +272,12 @@ a.rv-hint:hover{text-decoration:underline}
 .rv-dlg textarea{display:block;width:100%;box-sizing:border-box;font:inherit;font-size:14px;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 10px;resize:vertical;margin:0 0 8px}
 .rv-st{min-height:0;margin:0 0 6px;font-size:13px;color:var(--brand)}.rv-st:empty{display:none}
 .rv-foot{display:flex;justify-content:flex-end}
-.rv-list{display:flex;flex-direction:column}
-.rv-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:baseline;padding:12px 14px;border:0;border-top:1px solid var(--line-2);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
-.rv-row:first-child{border-top:0}
+.rv-bar{margin-bottom:6px}
+.rv-grp{font-size:13px;color:var(--ink-3);font-weight:600;margin:14px 2px 8px}
+.rv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,390px),1fr));gap:8px}
+.rv-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:9px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer}
 .rv-row:hover{background:var(--hover)}
-.rv-n{color:var(--ink-3);font-size:13px;white-space:nowrap}
+.rv-row.done{opacity:.55;cursor:default}
+.rv-n{color:var(--ink-3);font-size:12.5px;white-space:nowrap}
 .rv-row.taken{background:color-mix(in srgb,#1f9d55 9%,transparent)}
 .rv-row.taken b{color:color-mix(in srgb,#1f9d55 80%,var(--ink))}

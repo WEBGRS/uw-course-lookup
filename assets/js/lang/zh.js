@@ -10,7 +10,7 @@ const ORIG = {
     langTip: "Switch to English", langBtn: "EN", themeTip: "切换深浅色",
     tabCourses: "课程", tabInsights: "数据洞察", tabAbout: "数据说明",
     tabReviews: "评价", rvTitle: "评价", rvWrite: "写评价", rvAsk: "问问其他人", rvAsked: "已问", rvInstr: "教授", rvHours: "每周课外学习小时", rvAttend: "强制点名", rvYes: "是", rvNo: "否", rvGrade: "成绩构成", rvText: "补充", rvSubmit: "提交", rvClose: "关闭",
-    rvSent: "已提交，审核后显示", rvFail: "提交失败，请稍后再试", rvNone: "暂无", rvHint: "可以去「评价」里给上过的课评价吗？互相帮助 (｡･ω･｡)ﾉ♡", rvUndo: "撤销", rvMore: "给其他课程评价", rvWritten: "已评价", rvN: n => n + " 条评价", rvAskN: n => n + " 人问", rvAttendPct: p => "强制点名 " + p + "%",
+    rvSent: "已提交，审核后显示", rvFail: "提交失败，请稍后再试", rvNone: "暂无", rvMine: "我上过的", rvGrpMine: "你上过的课", rvGrpAsked: "大家想看评价的课", rvHint: "可以去「评价」里给上过的课评价吗？互相帮助 (｡･ω･｡)ﾉ♡", rvUndo: "撤销", rvMore: "给其他课程评价", rvWritten: "已评价", rvN: n => n + " 条评价", rvAskN: n => n + " 人问", rvAttendPct: p => "强制点名 " + p + "%",
     rvt_final: "期末", rvt_midterm: "期中", rvt_paper: "论文", rvt_project: "项目", rvt_homework: "作业", rvt_participation: "课堂参与",
     searchPh: "课号、课名或教授，例如 cs 577、calculus、Renault", sortBy: "排序",
     s_m: "热门", s_gpa: "GPA 最高", s_gpaL: "GPA 最低", s_pa: "拿 A 比例最高", s_tr: "给分变松", s_tl: "给分变严",

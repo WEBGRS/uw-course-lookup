@@ -1,7 +1,7 @@
 // Course reviews: write one, ask others for one, and the tab listing the courses people asked about most.
 // No login. One review and one ask per device and course (the server enforces it; this device remembers too).
-import { $, $$, esc, api, app, store, on, emit, loadDetail, loadRows, rec, plan } from "./core.js";
-import { t } from "./i18n.js";
+import { $, $$, esc, api, app, store, on, emit, loadDetail, loadRows, rec, plan, ROW, fill } from "./core.js";
+import { t, LANG } from "./i18n.js";
 
 const HOURS = ["0–3", "3–6", "6–9", "9–12", "12+"];
 const TAGS = ["final", "midterm", "paper", "project", "homework", "participation"];
@@ -169,25 +169,55 @@ export async function openForm(id) {
   dlg.showModal();
 }
 
-/* ── Tab: courses people asked about, most asked first ───── */
+/* ── Tab: pick a course to review; the ones people asked about come first ───── */
+const st = { q: "", mine: false };
+let seq = 0, typing = 0;
+
+// A course counts as taken under any of its cross-listed names
+const isTaken = (id) => plan.done.has(id) || ((rec(id) || {}).al || []).some((a) => plan.done.has(a.replace(/\s+/g, "-")));
+
+function bar(el) {
+  if (el.dataset.l === LANG && $("#rvQ", el)) return;
+  el.dataset.l = LANG;
+  el.innerHTML = `<div class="toolbar rv-bar"><label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="rvQ" type="search" autocomplete="off" placeholder="${esc(t("searchPh"))}" aria-label="${esc(t("searchPh"))}" value="${esc(st.q)}"></label>` +
+    `<label class="chk"><input type="checkbox" id="rvMine"${st.mine ? " checked" : ""}> ${esc(t("rvMine"))}</label></div><div id="rvBody"></div>`;
+  $("#rvQ", el).oninput = (e) => { st.q = e.target.value; clearTimeout(typing); typing = setTimeout(renderTab, 250); };
+  $("#rvMine", el).onchange = (e) => { st.mine = e.target.checked; renderTab(); };
+}
+
+const rowHtml = (r) => { const c = rec(r.id), done = reviewed.has(r.id); return `<button class="rv-row${r.taken ? " taken" : ""}${done ? " done" : ""}" data-id="${esc(r.id)}"${done ? " disabled" : ""}><b>${esc(c.code)}</b><span class="title">${esc(c.t)}</span><span class="rv-n">${done ? "✓" : `${esc(t("rvAskN", r.asks))} · ${esc(t("rvN", r.n))}`}</span></button>`; };
+
 export async function renderTab() {
   const el = $("#v-reviews");
-  const mine = [...plan.done].slice(0, 100);   // courses on the imported transcript
+  bar(el);
+  const body = $("#rvBody", el), my = ++seq, q = st.q.trim();
   let rows;
   try {
-    rows = (await api("/api/review-requests", mine.length ? { ids: mine.join(",") } : null)).rows.filter((r) => !reviewed.has(r.id));
-    await loadRows(rows.map((r) => r.id));
-  } catch { el.innerHTML = `<div class="empty">${esc(t("apiError"))}</div>`; return; }
-  if (app.tab !== "reviews") return;
-  // A course counts as taken under any of its cross-listed names
-  const isTaken = (id) => plan.done.has(id) || (rec(id).al || []).some((a) => plan.done.has(a.replace(/\s+/g, "-")));
-  rows = rows.filter((r) => rec(r.id)).map((r) => ({ ...r, taken: isTaken(r.id) }));
-  // Taken courses first, then the fewest reviews, then the most asked
-  rows.sort((a, b) => b.taken - a.taken || a.n - b.n || b.asks - a.asks || (rec(a.id).code < rec(b.id).code ? -1 : 1));
-  el.innerHTML = rows.length
-    ? `<div class="list rv-list">` + rows.map((r) => { const c = rec(r.id); return `<button class="rv-row${r.taken ? " taken" : ""}" data-id="${esc(r.id)}"><b>${esc(c.code)}</b><span class="title">${esc(c.t)}</span><span class="rv-n">${[r.asks ? t("rvAskN", r.asks) : "", r.n ? t("rvN", r.n) : ""].filter(Boolean).join(" · ")}</span></button>`; }).join("") + `</div>`
-    : `<div class="empty">${esc(t("rvNone"))}</div>`;
-  $$(".rv-row", el).forEach((b) => (b.onclick = () => openForm(b.dataset.id)));
+    let ids, found = null;
+    if (q) {
+      found = (await api("/api/courses", { q, limit: 40 })).rows;
+      found.forEach((x) => { ROW[x.id] = fill(x); });
+      ids = found.map((x) => x.id);
+    } else ids = [...plan.done].slice(0, 100);   // the imported transcript
+    const counts = new Map((await api("/api/review-requests", ids.length ? { ids: ids.join(",") } : null)).rows.map((r) => [r.id, r]));
+    const list = found ? ids.map((id) => counts.get(id) || { id, asks: 0, n: 0 }) : [...counts.values()];
+    if (!found) await loadRows(list.map((r) => r.id));
+    rows = list.filter((r) => rec(r.id)).map((r) => ({ ...r, taken: isTaken(r.id) }));
+  } catch { if (my === seq) body.innerHTML = `<div class="empty">${esc(t("apiError"))}</div>`; return; }
+  if (my !== seq || app.tab !== "reviews") return;
+  if (st.mine) rows = rows.filter((r) => r.taken);
+  // Taken courses first; then the fewest reviews, then the most asked (searching keeps the search order)
+  if (q) rows.sort((a, b) => b.taken - a.taken);
+  else {
+    rows = rows.filter((r) => !reviewed.has(r.id));
+    rows.sort((a, b) => b.taken - a.taken || a.n - b.n || b.asks - a.asks || (rec(a.id).code < rec(b.id).code ? -1 : 1));
+  }
+  const group = (label, list) => (list.length ? `${label ? `<h3 class="rv-grp">${esc(label)}</h3>` : ""}<div class="rv-grid">${list.map(rowHtml).join("")}</div>` : "");
+  const mine = rows.filter((r) => r.taken), rest = rows.filter((r) => !r.taken);
+  body.innerHTML = !rows.length ? `<div class="empty">${esc(t("rvNone"))}</div>`
+    : q || st.mine ? `<div class="rv-grid">${rows.map(rowHtml).join("")}</div>`
+      : group(t("rvGrpMine"), mine) + group(mine.length ? t("rvGrpAsked") : "", rest);
+  $$(".rv-row", body).forEach((b) => (b.onclick = () => openForm(b.dataset.id)));
 }
 
 on("plan", () => { if (app.tab === "reviews") renderTab(); });
