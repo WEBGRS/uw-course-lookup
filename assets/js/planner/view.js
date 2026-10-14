@@ -361,7 +361,9 @@ export async function build(override = {}) {
 
 /* ── Semester roadmap ─────────────────────────────────────────────────── */
 const DEGREE_CR = 120;
-const startTerm = () => (plan.ip.size ? nextTerm(app.term) : app.term);
+// The published term has started: in-progress courses are in it, so plan from the next one
+const termStarted = () => !(Date.parse((app.meta.term_range || "").split("/")[0] + "T00:00:00") > Date.now());
+const startTerm = () => (plan.ip.size && termStarted() ? nextTerm(app.term) : app.term);
 const idKey = (id) => id.replace(/\s+/g, "-");
 
 /** list rows for any id or cross-listing, keyed by every id they answer to */
