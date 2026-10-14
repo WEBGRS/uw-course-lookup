@@ -8,13 +8,13 @@ export default {
   foot: (d) => `数据构建于 ${d}，来自 MadGrades、Course Search & Enroll 和 r/UWMadison。与 UW–Madison 官方无关。`, src: "源码",
 
   // course list
-  searchPh: "搜课号、课名或老师", filters: (n) => (n ? `筛选 · ${n}` : "筛选"), sortBy: "排序",
+  searchPh: "搜课号、课名或教授", filters: (n) => (n ? `筛选 · ${n}` : "筛选"), sortBy: "排序",
   s_m: "讨论最多", s_gpa: "GPA 最高", s_gpaL: "GPA 最低", s_pa: "A 最多", s_tr: "给分变松", s_tl: "给分变严",
-  s_sp: "最看老师", s_rd: "Reddit 最多", s_en: "本学期最大", s_code: "按课号",
+  s_sp: "最看教授", s_rd: "Reddit 最多", s_en: "本学期最大", s_code: "按课号",
   subject: "学科", level: "级别", breadth: "Breadth", minGpa: "最低 GPA", lens: "查看",
   allSubj: "全部学科", anyLvl: "全部级别", anyBr: "全部 breadth", anyGpa: "不限", inPlan: "我的计划", clear: "清除",
   offered: (t) => `${t} 开课`, esOpt: "族裔研究 (Ethnic Studies)", geOpt: "Comm A/B 或 QR",
-  lens_: "全部课程", lens_easy: "高分大课", lens_intro: "大型入门课", lens_instr: "看老师的课",
+  lens_: "全部课程", lens_easy: "高分大课", lens_intro: "大型入门课", lens_instr: "看教授的课",
   lens_harder: "越来越难", lens_easier: "越来越松", lens_open: "现在有空位", lens_reddit: "Reddit 热议",
   count: (n, all) => (n === all ? `${fmt(all)} 门课` : `${fmt(all)} 门中的 ${fmt(n)} 门`), more: "显示更多",
   open: "有空位", wait: "候补", full: "已满", notTerm: "本学期不开", enrolledN: (n) => `${fmt(n)} 人`,
@@ -29,11 +29,11 @@ export default {
   lastTaught: (l) => (l ? `上次开课 ${l}。` : ""),
   grades: "成绩", studentsRange: (n, a, b) => `${fmt(n)} 名学生，${a} – ${b}`, thisCourse: "本课", allTracked: (n) => `全部 ${fmt(n)} 门课`,
   byTerm: "每学期 GPA", trackedAvg: (g) => `全校 ${g}`, noGrades: "没有字母成绩记录。",
-  instructors: "老师", spread: (s) => `相差 ${s} 绩点`, instrLegend: (t) => `点越大学生越多 · 描边 = ${t} 在教`,
+  instructors: "教授", spread: (s) => `相差 ${s} 绩点`, instrLegend: (t) => `点越大学生越多 · 描边 = ${t} 在教`,
   thLinks: "链接",
   thName: "姓名", thGpa: "GPA", thA: "A 比例", thN: "学生数", thLast: "最近", thin: "不足 30 人的样本偏小。",
   showAll: (n) => `显示全部 ${n} 位`, showFewer: "收起",
-  say: "同学怎么说", sayCatalog: "这门课没有讨论和 Reddit 数据。",
+  say: "同学讨论", sayCatalog: "这门课没有讨论和 Reddit 数据。",
   sayEnroll: "本学期人数最多的课之一。", sayChatFew: "在学生讨论中被提到不到 3 次。",
   sayChat: (m, p, n) => `在学生讨论中被提到 <b>${m}</b> 次${p || n ? `（正面 ${p}，负面 ${n}）` : ""}`,
   sayReddit: (n, tone) => `${n ? `。r/UWMadison 上有 <b>${n}</b> 个帖子${tone ? `，${tone}` : ""}` : ""}。`,
@@ -42,7 +42,7 @@ export default {
 
   // compare
   compare: "对比", cmpTitle: "对比课程", cmpTrend: "每学期 GPA",
-  rTitle: "课名", rCr: "学分", rGpa: "GPA", rA: "A 比例", rDF: "D 或 F", rTr: "趋势", rSp: "老师差距", rBr: "Breadth",
+  rTitle: "课名", rCr: "学分", rGpa: "GPA", rA: "A 比例", rDF: "D 或 F", rTr: "趋势", rSp: "教授差距", rBr: "Breadth",
 
   // plan
   planTitle: (t) => `${t} 排课`,
@@ -66,7 +66,7 @@ export default {
   fillLabel: "用剩余要求自动补满学分", targetCr: "学分", mustHave: "必修", mustEmpty: "在课程列表里点星标，或从要求里添加，或在下面搜索。",
   addCourse: "添加课程…", prefs: "偏好",
   noBefore: "不早于", noAfter: "不晚于", daysOff: "空出", seatsLbl: "名额", seatsOpen: "仅有空位", seatsWait: "空位或候补", seatsAny: "含已满",
-  anyTime: "不限", freeDays: "多空几天", compact: "课集中", quality: "优先给分高的老师",
+  anyTime: "不限", freeDays: "多空几天", compact: "课集中", quality: "优先给分高的教授",
   build: "生成课表", building: "计算中…", variant: (i, n) => `方案 ${i} / ${n}`,
   schedCredits: (c) => `${c} 学分`, schedFree: (d) => (d.length ? `空 ${d.join(" ")}` : "每天有课"),
   schedSpan: (a, b) => `${a} – ${b}`, schedWait: (n) => `${n} 门候补`, schedFull: (n) => `${n} 门已满`,
@@ -81,7 +81,7 @@ export default {
     dayoff: `${code}：所有班都排在你想空出的日子。`,
     seats: `${code}：没有任何一个班有空位。可以允许候补或已满的班。`,
     combo: `${code}：没有哪个班能同时满足你设的所有限制（名额和时间叠加）。放宽其中一项试试。`,
-    consent: `${code} 需要老师或系里同意，无法自动排。`,
+    consent: `${code} 需要教授或系里同意，无法自动排。`,
     unscheduled: `${code} 本学期没有开课。`,
   }[why] || `${code} 没有可用的班。`),
   why_clash: (a, b) => `${a} 和 ${b} 的时间始终冲突。`,
@@ -91,7 +91,7 @@ export default {
   planSummary: (n, c) => `${n} 门课 · ${c} 学分`,
 
   // agent
-  agentTitle: "问问", agentHello: "问课程、老师、毕业要求或你的课表。",
+  agentTitle: "问问", agentHello: "问课程、教授、毕业要求或你的课表。",
   agentPh: "随便问…", agentSend: "发送", agentBusy: "思考中…", agentErr: "助手暂时不可用。",
   agentLimit: "助手今天的免费额度用完了，明天再试。", agentNew: "新对话",
   agentSug: ["哪些好过的课能排进 9 点到 5 点？", "和 COMP SCI 577 搭配上什么课？", "MATH 340 谁教得最好？"],
@@ -99,10 +99,10 @@ export default {
 
   // insights
   insNote: (n, all) => `图表只覆盖 ${n} 门重点课，课程列表有全部 ${fmt(all)} 门。`,
-  st_grades: "个字母成绩", st_instr: "位老师", st_reddit: "个 Reddit 帖", st_courses: "门重点课",
+  st_grades: "个字母成绩", st_instr: "位教授", st_reddit: "个 Reddit 帖", st_courses: "门重点课",
   p1: "热门不等于好过", p1l: (r) => `每个点是一门课。讨论热度几乎说明不了给分松紧（${r}）。`,
   xMent: "讨论次数（对数）", yGpa: "课程 GPA", chat: (n) => `讨论 ${n}`, chatFew: "讨论 <3",
-  p2: "老师比课本身更关键", p2l: "同一门课，不同老师能差一个字母等级以上。",
+  p2: "教授比课本身更关键", p2l: "同一门课，不同教授能差一个字母等级以上。",
   most: "给分最松", least: "给分最严",
   p3: "同学的评价靠谱吗？", p3l: "Spearman 秩相关。只有 Reddit 的语气和给分对得上。",
   c1: "讨论次数 vs GPA", c2: "讨论情绪 vs GPA", c3: "Reddit 语气 vs GPA", c4: "讨论 vs Reddit 热度", c5: "课号级别 vs GPA",
@@ -121,7 +121,7 @@ export default {
   aboutHtml: `
     <h2 class="serif">数据从哪来</h2>
     <ul>
-      <li><b>成绩</b>：<a href="https://madgrades.com" target="_blank" rel="noopener">MadGrades</a>，UW 按学期、班级和老师公开的成绩报告。GPA 只算字母成绩。</li>
+      <li><b>成绩</b>：<a href="https://madgrades.com" target="_blank" rel="noopener">MadGrades</a>，UW 按学期、班级和教授公开的成绩报告。GPA 只算字母成绩。</li>
       <li><b>开课和名额</b>：公开的 <a href="https://public.enroll.wisc.edu" target="_blank" rel="noopener">Course Search &amp; Enroll</a> 接口。名额是快照，选课前请以 Enroll 为准。</li>
       <li><b>毕业要求</b>：抄自 <a href="https://guide.wisc.edu" target="_blank" rel="noopener">UW Guide</a>，只做参考，最终以 DARS 为准。</li>
       <li><b>讨论和 Reddit</b>：学生讨论的汇总计数，以及 r/UWMadison 公开帖的标题。</li>
@@ -130,7 +130,7 @@ export default {
     <ul>
       <li><b>调整后 GPA</b>：把小班课往学科平均拉，免得 12 人的研讨课压过 900 人的大课。</li>
       <li><b>趋势</b>：2016 秋以来 GPA 的年斜率。</li>
-      <li><b>老师差距</b>：同一门课里给分最松和最严（各 30+ 人）的老师之差。</li>
+      <li><b>教授差距</b>：同一门课里给分最松和最严（各 30+ 人）的教授之差。</li>
     </ul>
     <p>代码、数据库结构和分析都在 <a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">GitHub</a>。</p>`,
 };

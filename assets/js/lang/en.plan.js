@@ -33,7 +33,7 @@ export default {
   thLinks: "Links",
   thName: "Name", thGpa: "GPA", thA: "A's", thN: "Students", thLast: "Last", thin: "Under 30 students is a thin sample.",
   showAll: (n) => `Show all ${n}`, showFewer: "Show fewer",
-  say: "What students say", sayCatalog: "No discussion or Reddit data for this course.",
+  say: "Student discussion", sayCatalog: "No discussion or Reddit data for this course.",
   sayEnroll: "One of the largest courses this term.", sayChatFew: "Mentioned fewer than three times in student discussion.",
   sayChat: (m, p, n) => `Mentioned <b>${m}</b> time${m === 1 ? "" : "s"} in student discussion${p || n ? ` (${p} positive, ${n} negative)` : ""}`,
   sayReddit: (n, tone) => `${n ? `. <b>${n}</b> r/UWMadison thread${n === 1 ? "" : "s"}${tone ? `, ${tone}` : ""}` : ""}.`,

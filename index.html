@@ -118,11 +118,11 @@
     <div data-lang="zh">
       <h2 class="serif">数据从哪来</h2>
       <ul>
-        <li><b>成绩</b>：来自 <a href="https://madgrades.com" target="_blank" rel="noopener">MadGrades</a>，它按学期、section 和老师公开 UW–Madison 的官方成绩报告。GPA 只算字母成绩（A=4、AB=3.5、B=3、BC=2.5、C=2、D=1、F=0），S/U、学分制和 Incomplete 不计入。</li>
-        <li><b>课程目录和本学期开课</b>：来自公开的 <a href="https://public.enroll.wisc.edu" target="_blank" rel="noopener">Course Search &amp; Enroll</a> 接口，学分、breadth、先修要求和本学期老师都从这里拿。座位数是建站当天的快照，选课前请以选课系统为准。</li>
+        <li><b>成绩</b>：来自 <a href="https://madgrades.com" target="_blank" rel="noopener">MadGrades</a>，它按学期、section 和教授公开 UW–Madison 的官方成绩报告。GPA 只算字母成绩（A=4、AB=3.5、B=3、BC=2.5、C=2、D=1、F=0），S/U、学分制和 Incomplete 不计入。</li>
+        <li><b>课程目录和本学期开课</b>：来自公开的 <a href="https://public.enroll.wisc.edu" target="_blank" rel="noopener">Course Search &amp; Enroll</a> 接口，学分、breadth、先修要求和本学期教授都从这里拿。座位数是建站当天的快照，选课前请以选课系统为准。</li>
         <li><b>讨论次数</b>：某个课号在学生讨论中出现的次数。导出的只有汇总计数，没有任何消息内容、名字或 ID。</li>
         <li><b>Reddit</b>：<a href="https://www.reddit.com/r/UWMadison/" target="_blank" rel="noopener">r/UWMadison</a> 里提到这门课的公开帖子，通过网页搜索找到。只保存帖子标题和链接。语气是粗略的关键词打分（比如 "easy" 和 "cooked"）。</li>
-        <li><b>Rate My Professors</b>：没有复制任何内容，每位老师旁边只放了一个跳到 RMP 搜索的链接。</li>
+        <li><b>Rate My Professors</b>：没有复制任何内容，每位教授旁边只放了一个跳到 RMP 搜索的链接。</li>
       </ul>
       <h2 class="serif">课程是怎么核对的</h2>
       <p>讨论里的课号写法很乱（"cs300"、"comp sci 300"、"stats 240"）。每个课号都和真实的选课目录比对过，不存在的直接删掉，其中有几个其实是 "comp sci" 被误认成了营养学。交叉挂牌的课（比如 COMP SCI 240 / MATH 240）合并成一行。本学期人数最多的大课即使没人提过也一并收录；目录里的其余课程也都列出，有成绩和座位，但没有讨论和 Reddit 数据。</p>
@@ -130,7 +130,7 @@
       <ul>
         <li><b>近 6 学期 GPA</b>：只算最近六个有成绩的学期。</li>
         <li><b>趋势</b>：2016 年秋以来每学期 GPA 的加权最小二乘斜率，单位是每年多少绩点。</li>
-        <li><b>老师差距</b>：同一门课里给分最松和最严的两位老师之间的 GPA 差（每位至少 30 个学生）。</li>
+        <li><b>教授差距</b>：同一门课里给分最松和最严的两位教授之间的 GPA 差（每位至少 30 个学生）。</li>
         <li><b>调整后 GPA</b>（"GPA 最高"排序用的就是它）：把小班课往本学科平均值拉，免得 12 人的研讨课靠运气拿 4.0 排到 900 人、3.9 的大课前面。</li>
       </ul>
       <h2 class="serif">开放数据</h2>

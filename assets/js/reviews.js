@@ -20,7 +20,7 @@ const remember = () => { store.set("reviewed", [...reviewed]); store.set("asked"
 const post = (path, body) => api(path, null, { method: "POST", body: JSON.stringify({ ...body, dev: device }) });
 
 const cache = new Map();   // course id -> { at, data }
-let curCourse = null, justSent = null;
+let curCourse = null, justSent = null, justAsked = null, drawn = null;
 const summary = (id) => {
   const hit = cache.get(id);
   if (hit && Date.now() - hit.at < 60_000) return Promise.resolve(hit.data);
@@ -43,16 +43,17 @@ function draw(c, d) {
   }
   el.innerHTML = d.n ? `<div class="d-sec">${h}</div>` : "";
   const done = reviewed.has(id), sent = justSent === id;
-  top.innerHTML = `<div class="d-sec rv-top"><div class="rv-act"><button class="btn" data-rv="ask"${asked.has(id) ? " disabled" : ""}>${esc(t(asked.has(id) ? "rvAsked" : "rvAsk"))}${d.asks ? ` · ${d.asks}` : ""}</button>` +
+  const landed = justAsked && justAsked.id === id && Date.now() - justAsked.at < 2000;
+  top.innerHTML = `<div class="d-sec rv-top"><div class="rv-act"><button class="btn rv-ask${landed ? " rv-landed" : ""}" data-rv="ask"${asked.has(id) ? " disabled" : ""}>${esc(t(asked.has(id) ? "rvAsked" : "rvAsk"))}${d.asks ? ` · ${d.asks}` : ""}</button>` +
     `<button class="btn primary" data-rv="write"${done ? " disabled" : ""}>${done ? "✓ " : ""}${esc(t("rvWrite"))}</button>` +
     `<span class="rv-hint">${esc(t(sent ? "rvSent" : "rvHint"))}</span></div></div>`;
-  top.dataset.id = id;
+  top.dataset.id = id; drawn = { id, d };
   top.querySelector('[data-rv="write"]').onclick = () => openForm(id);
   top.querySelector('[data-rv="ask"]').onclick = async (e) => {
     e.currentTarget.disabled = true;
     try {
       const r = await post("/api/ask", { course: id });
-      asked.add(id); remember();
+      asked.add(id); remember(); justAsked = { id, at: Date.now() };
       cache.set(id, { at: Date.now(), data: { ...d, asks: r.asks } });
     } catch { e.currentTarget.disabled = false; return; }
     emit("reviews");
@@ -65,7 +66,10 @@ export function mount(c) {
   if (!$("#dRevTop")) return;
   const hit = cache.get(c.id);
   if (hit) draw(c, hit.data);
-  summary(c.id).then((d) => { if (curCourse === c) draw(c, d); }).catch(() => {});
+  summary(c.id).then((d) => {
+    const top = $("#dRevTop");
+    if (curCourse === c && !(top && top.dataset.id === c.id && drawn && drawn.d === d)) draw(c, d);   // same data already on screen: keep it, so the animation is not replayed
+  }).catch(() => {});
 }
 
 /* ── Form ────────────────────────────────────────────────── */
