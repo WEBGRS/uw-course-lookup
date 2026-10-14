@@ -2,8 +2,9 @@
 import DATA from "../data.json";
 import { createHandler } from "./handler.js";
 import ADMIN_HTML from "./admin.html";
+import REVIEWS_HTML from "./reviews-admin.html";
 
-const handle = createHandler(DATA, { adminHtml: ADMIN_HTML });
+const handle = createHandler(DATA, { adminHtml: ADMIN_HTML, reviewsHtml: REVIEWS_HTML });
 
 export default {
   fetch: (request, env, ctx) => handle(request, env, ctx),

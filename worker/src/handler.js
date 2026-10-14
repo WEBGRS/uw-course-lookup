@@ -2,6 +2,7 @@
 import { buildIndex, query, detail, details, planData, LIMITS } from "./engine.js";
 import { chatStep } from "./assistant.js";
 import { createGuard } from "./guard.js";
+import { createReviews } from "./reviews.js";
 
 const DEFAULT_ORIGINS = ["https://webgrs.github.io"];
 const LOCAL = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
@@ -14,6 +15,7 @@ export const QUOTAS = {
   list: { human: 6000, unverified: 1500, ip: 9000 },
   detail: { human: 2500, unverified: 400, ip: 2500 },
   chat: { human: 300, unverified: 60, ip: 500 },
+  review: { human: 40, unverified: 12, ip: 80 },   // reviews and asks written
 };
 
 export function createHandler(data, opts = {}) {
@@ -21,6 +23,7 @@ export function createHandler(data, opts = {}) {
   const limit = { ...LIMIT, ...opts.limits };
   const hits = new Map();
   const C = ix.C;
+  const rv = createReviews(ix, { adminHtml: opts.reviewsHtml });
   const guard = createGuard({
     site: "courses",
     quotas: opts.quotas || QUOTAS,
@@ -57,7 +60,7 @@ export function createHandler(data, opts = {}) {
     const url = new URL(request.url);
     // The admin page and its API (only where the request log exists)
     if (env.DB) {
-      const adm = await guard.handleAdmin(request, env, url);
+      const adm = (await rv.admin(request, env, url)) || (await guard.handleAdmin(request, env, url));
       if (adm) return adm;
     }
     const origin = request.headers.get("Origin");
@@ -81,7 +84,8 @@ export function createHandler(data, opts = {}) {
     }
     const isChat = request.method === "POST" && url.pathname === "/api/chat";
     const isSession = request.method === "POST" && url.pathname === "/api/session";
-    if (request.method !== "GET" && request.method !== "HEAD" && !isChat && !isSession) return fail(405, "method not allowed");
+    const isWrite = request.method === "POST" && (url.pathname === "/api/review" || url.pathname === "/api/ask");
+    if (request.method !== "GET" && request.method !== "HEAD" && !isChat && !isSession && !isWrite) return fail(405, "method not allowed");
     if (!url.pathname.startsWith("/api/")) return fail(404, "not found");
     if (url.pathname === "/api/health") return send(JSON.stringify({ ok: true, count: ix.n, built_at: ix.meta.built_at }), 200, 0);
 
@@ -98,7 +102,7 @@ export function createHandler(data, opts = {}) {
     }
 
     const ip = request.headers.get("CF-Connecting-IP") || "local";
-    const kind = isChat ? "chat" : url.pathname.startsWith("/api/course/") || url.pathname === "/api/compare" || url.pathname === "/api/plan" ? "detail" : "list";
+    const kind = isChat ? "chat" : isWrite ? "review" : url.pathname.startsWith("/api/course/") || url.pathname === "/api/compare" || url.pathname === "/api/plan" ? "detail" : "list";
     let g = null;
     if (env.DB) {
       // Public deployment: signed session, blocklist, per-minute rate and daily quota
@@ -113,6 +117,28 @@ export function createHandler(data, opts = {}) {
       if (limited) return fail(429, "slow down", { "Retry-After": "10" });
     }
     const note = (item, q, n, status = 200) => { if (g) guard.log(env, ctx, g.w, kind, item, q, status, n); };
+
+    // Reviews need the shared database (the public deployment); local dev has none
+    if (isWrite || url.pathname === "/api/reviews" || url.pathname === "/api/review-requests") {
+      if (!env.DB) return fail(404, "not found");
+      let r;
+      if (isWrite) {
+        const raw = await request.text();
+        let b;
+        if (raw.length > 4000) return fail(413, "too large");
+        try { b = JSON.parse(raw); } catch { return fail(400, "bad json"); }
+        if (!b || typeof b !== "object") return fail(400, "bad json");
+        r = await (url.pathname === "/api/ask" ? rv.ask : rv.submit)(env, b, g && g.w.ipH);
+        note(url.pathname.slice(5) + ": " + String(b.course || "").slice(0, 60), null, r.status === 200 ? 1 : 0, r.status);
+      } else if (url.pathname === "/api/reviews") {
+        r = await rv.summary(env, url.searchParams.get("course") || "");
+        note(null, null, 1, r.status);
+      } else {
+        r = await rv.requests(env);
+        note(null, null, 1, r.status);
+      }
+      return send(JSON.stringify(r.body), r.status, 0);
+    }
 
     if (isChat) {
       const raw = await request.text();

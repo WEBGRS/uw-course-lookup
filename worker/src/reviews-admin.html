@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Reviews</title>
+<style>
+:root { --bg: #fff; --ink: #14181d; --sub: #4a525b; --line: #dfe3e8; --ok: #1d7a3e; --bad: #b3261e; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+main { max-width: 820px; margin: 0 auto; padding: 20px 16px 60px; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+h1 { font-size: 20px; margin: 0 8px 0 0; }
+.tab { border: 1px solid var(--line); background: #fff; color: inherit; border-radius: 999px; padding: 5px 14px; font: inherit; cursor: pointer; }
+.tab[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 0 0 12px; }
+.card b { font-size: 16px; }
+.meta { color: var(--sub); font-size: 13.5px; margin: 2px 0 8px; }
+textarea { width: 100%; min-height: 68px; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; resize: vertical; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+button.act { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 6px 14px; font: inherit; cursor: pointer; }
+button.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+button.bad { color: var(--bad); }
+.empty { color: var(--sub); padding: 30px 0; text-align: center; }
+#gate { display: none; }
+input { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; width: 260px; }
+</style>
+</head>
+<body>
+<main>
+  <div id="gate"><p><input id="tok" type="password" placeholder="Admin token" autocomplete="off"> <button class="act" id="go">OK</button></p></div>
+  <section id="app" hidden>
+    <header>
+      <h1>Reviews</h1>
+      <button class="tab" data-s="pending"></button>
+      <button class="tab" data-s="ok"></button>
+      <button class="tab" data-s="hidden"></button>
+    </header>
+    <div id="list"></div>
+  </section>
+</main>
+<script>
+const HOURS = ["0–3", "3–6", "6–9", "9–12", "12+"];
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let status = "pending";
+const token = () => { try { return localStorage.getItem("adm:token") || ""; } catch { return ""; } };
+async function call(path, body) {
+  const r = await fetch("/api/rv-admin/" + path, { method: body ? "POST" : "GET", headers: { Authorization: "Bearer " + token(), ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  if (r.status === 401) { $("#gate").style.display = "block"; $("#app").hidden = true; throw new Error("auth"); }
+  return r.json();
+}
+async function load() {
+  const d = await call("list?status=" + status);
+  $("#gate").style.display = "none"; $("#app").hidden = false;
+  document.querySelectorAll(".tab").forEach((b) => { b.textContent = b.dataset.s + " " + (d.counts[b.dataset.s] || 0); b.setAttribute("aria-pressed", String(b.dataset.s === status)); });
+  $("#list").innerHTML = d.rows.length ? d.rows.map((r) => {
+    const bits = [r.instr, r.hours != null ? HOURS[r.hours] + " h/wk" : "", r.attend === 1 ? "attendance" : r.attend === 0 ? "no attendance" : "", r.tags || ""].filter(Boolean);
+    return `<div class="card" data-id="${r.id}"><b>${esc(r.label)}</b><div class="meta">${esc(bits.join(" · "))} · ${new Date(r.ts).toLocaleString()}</div>
+      <textarea>${esc(r.text || "")}</textarea>
+      <div class="row">${status !== "ok" ? '<button class="act ok" data-a="ok">Approve</button>' : ""}${status !== "hidden" ? '<button class="act" data-a="hidden">Hide</button>' : ""}<button class="act bad" data-a="delete">Delete</button></div></div>`;
+  }).join("") : '<p class="empty">–</p>';
+}
+$("#list").onclick = async (e) => {
+  const b = e.target.closest("button[data-a]"); if (!b) return;
+  const card = b.closest(".card");
+  if (b.dataset.a === "delete" && !confirm("Delete?")) return;
+  await call("set", { id: +card.dataset.id, status: b.dataset.a, text: b.dataset.a === "ok" ? card.querySelector("textarea").value : undefined });
+  load();
+};
+document.querySelectorAll(".tab").forEach((b) => (b.onclick = () => { status = b.dataset.s; load(); }));
+$("#go").onclick = () => { try { localStorage.setItem("adm:token", $("#tok").value.trim()); } catch {} load().catch(() => {}); };
+load().catch(() => {});
+</script>
+</body>
+</html>

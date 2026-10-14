@@ -5,12 +5,13 @@ import * as courses from "./courses.js";
 import * as drawer from "./drawer.js";
 import * as insights from "./insights.js";
 import * as planner from "./planner/view.js";
+import * as reviews from "./reviews.js";
 import * as planbar from "./planbar.js";
 import * as agent from "./agent.js";
 import { initBand, setBand, resetBand } from "./band.js";
 import { initSync } from "./sync.js";
 
-const TABS = ["courses", "plan", "insights", "about"];
+const TABS = ["courses", "plan", "reviews", "insights", "about"];
 
 /* ── Theme ───────────────────────────────────────────────── */
 (function theme() {
@@ -38,6 +39,7 @@ function applyLang() {
   planbar.render();
   insights.invalidate();
   if (app.tab === "insights") insights.render();
+  if (app.tab === "reviews") reviews.renderTab();
   if (drawer.cur) drawer.openDrawer(drawer.cur.id, true);
 }
 $("#langBtn").onclick = () => setLang(LANG === "zh" ? "en" : "zh");
@@ -51,6 +53,7 @@ function show(tab) {
   $("#band").hidden = tab === "plan";   // the grade strip says nothing useful while building a timetable
   $$("nav.tabs a").forEach((a) => (a.dataset.tab === tab ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
   if (tab === "insights") insights.render();
+  if (tab === "reviews") reviews.renderTab();
   emit("tab", tab);
 }
 function route() {
@@ -58,7 +61,7 @@ function route() {
   const m = h.match(/^#\/c\/(.+)$/);
   if (m) { drawer.openDrawer(decodeURIComponent(m[1])); return; }
   if (drawer.isOpen()) drawer.hideDrawer();
-  show((h.match(/^#\/(courses|plan|insights|about)/) || [, "courses"])[1]);
+  show((h.match(/^#\/(courses|plan|reviews|insights|about)/) || [, "courses"])[1]);
 }
 addEventListener("hashchange", route);
 on("route", route);

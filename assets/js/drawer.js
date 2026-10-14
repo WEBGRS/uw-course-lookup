@@ -6,6 +6,7 @@ import { nowTxt, listState } from "./courses.js";
 import { setBand } from "./band.js";
 import { loadPlanData, planOf } from "./planner/data.js";
 import { fmtRange, daysText, DAY_LETTERS } from "./planner/schedule.js";
+import { mount as mountReviews } from "./reviews.js";
 
 export let cur = null;
 let lastFocus = null, lastFocusId = null, showAllIns = false, seq = 0;
@@ -115,6 +116,7 @@ export async function openDrawer(id, keepScroll) {
     if (c.ins.some((i) => i[2] < 30)) h += `<p class="small muted" style="margin:8px 0 0">${esc(t("thin"))}</p>`;
     h += "</div>";
   }
+  h += '<div id="dRev"></div>';
   const tone = c.rdt == null ? "" : c.rdt > 0.15 ? t("tonePos") : c.rdt < -0.15 ? t("toneNeg") : t("toneMix");
   h += c.src === "catalog" ? `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0;color:var(--ink-2)">${esc(t("sayCatalog"))}</p></div>`
     : `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : c.ms ? esc(t("sayChatFew")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
@@ -124,6 +126,7 @@ export async function openDrawer(id, keepScroll) {
     h += "</div></div>";
   }
   dr.innerHTML = h; dr.scrollTop = top;
+  mountReviews(c);
   $("#dClose").onclick = closeDrawer;
   if ($("#dPrev")) { $("#dPrev").onclick = () => stepCourse(-1); $("#dNext").onclick = () => stepCourse(1); }
   $("#dSave").onclick = () => plan.toggle(c.id);
@@ -159,7 +162,7 @@ export function init() {
   $("#scrim").onclick = closeDrawer;
   on("plan", () => { if (cur && isOpen()) openDrawer(cur.id, true); });
   document.addEventListener("keydown", (e) => {
-    if (!isOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!isOpen() || e.ctrlKey || e.metaKey || e.altKey || document.querySelector("dialog[open]")) return;
     const typing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
     if (e.key === "Escape") closeDrawer();
     else if (!typing && (e.key === "ArrowRight" || e.key === "ArrowLeft")) stepCourse(e.key === "ArrowRight" ? 1 : -1);
