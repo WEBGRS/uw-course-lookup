@@ -56,6 +56,14 @@ const TOOL_IMPL = {
       c = await loadDetail(r.rows[0].id);
     }
     const p = c.now ? (await loadPlanData([c.id]), planOf(c.id)) : null;
+    let student_reviews;   // written by students, approved by the site owner; absent when the reviews service is unreachable
+    try {
+      const r = await api("/api/reviews", { course: c.id }), HRS = ["0-3", "3-6", "6-9", "9-12", "12+"], a = r.attend.yes + r.attend.no;
+      student_reviews = r.n
+        ? { count: r.n, typical_hours_per_week_outside_class: r.hours.some(Boolean) ? HRS[r.hours.indexOf(Math.max(...r.hours))] : null, share_saying_attendance_required: a ? +(r.attend.yes / a).toFixed(2) : null,
+          grading_parts_mentioned: Object.entries(r.tags).filter(([, n]) => n).map(([k, n]) => `${k} ×${n}`), comments: r.items.slice(0, 3).map((x) => (x.instr ? x.instr + ": " : "") + x.text.slice(0, 200)), people_who_asked_for_reviews: r.asks }
+        : { count: 0, people_who_asked_for_reviews: r.asks };
+    } catch { /* leave it out */ }
     return {
       ...summary(c), description: (c.d || "").slice(0, 500), prerequisites: c.prq || null, level: c.lvl, breadth: c.br, usually_offered: c.typ,
       recent_gpa: c.gr ?? null, share_D_or_F: c.pdf ?? null, gpa_trend_per_year: c.tr ?? null, instructor_gap_in_gpa_points: c.sp ?? null,
@@ -63,6 +71,7 @@ const TOOL_IMPL = {
       other_instructors: c.ins.filter((i) => !i[5] && i[2] >= 30).slice(0, 6).map((i) => ({ name: i[0], gpa: i[1], students: i[2] })),
       sections_this_term: p ? lectureLines(p.pk) : [],
       reddit_threads: c.rd.slice(0, 3).map((x) => x[0]),
+      student_reviews,
     };
   },
   async get_my_plan() { return planApi.state(); },
