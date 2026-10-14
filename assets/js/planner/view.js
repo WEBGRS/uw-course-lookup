@@ -235,6 +235,7 @@ export async function build(override = {}) {
   if (S.building) return S.results;
   S.building = true; S.results = null; S.i = 0; S.swap = null; renderCourses(); renderResults();
   try {
+    if (!plan.must.size && !plan.fill && plan.program) { plan.fill = true; plan.save(); }  // nothing picked: fill from the program
     const mustIds = [...plan.must], st = statuses(), cands = plan.fill && st ? candidatesFrom(st) : [];
     await loadPlanData([...mustIds, ...cands.flatMap((c) => c.ids)]);
     const must = mustIds.map((id) => planOf(id)).filter(Boolean).map((p) => asCourse(p));
