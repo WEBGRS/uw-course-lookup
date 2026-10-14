@@ -195,7 +195,7 @@ function resultsHtml() {
   if (!r) return `<div class="empty-state"><p>${esc(t("resultEmpty"))}</p></div>`;
   if (!r.ok) {
     return `<ul class="reasons">${r.reasons.map((x) => `<li>${esc(
-      x.type === "none" ? t("why_none", x.code, x.why) : x.type === "clash" ? t("why_clash", x.a, x.b) : x.type === "over" ? t("why_credits", x.have, x.hi) : t("why_nofit"))}</li>`).join("")}</ul>`;
+      x.type === "empty" ? t("why_empty") : x.type === "none" ? t("why_none", x.code, x.why) : x.type === "clash" ? t("why_clash", x.a, x.b) : x.type === "over" ? t("why_credits", x.have, x.hi) : t("why_nofit"))}</li>`).join("")}</ul>`;
   }
   const sch = r.schedules[S.i] || r.schedules[0], n = r.schedules.length;
   const days = LANG === "zh" ? "一二三四五" : "MTWRF";
@@ -250,7 +250,9 @@ export async function build(override = {}) {
     S.courses = new Map([...must, ...pool].map((c) => [c.id, c]));
     const mustCr = must.reduce((a, c) => a + crOf(c.cr), 0), lo = plan.credits;
     const credits = plan.fill ? [lo, Math.max(lo + 3, mustCr)] : [0, 99];
-    const res = await runSolve({ must, pool: plan.fill ? pool : [], prefs: { ...prefs(), ...override }, credits, caps: blockCaps(st || []), limit: 6 });
+    const res = must.length || (plan.fill && pool.length)  // nothing to place: say so instead of an empty timetable
+      ? await runSolve({ must, pool: plan.fill ? pool : [], prefs: { ...prefs(), ...override }, credits, caps: blockCaps(st || []), limit: 6 })
+      : { ok: false, schedules: [], reasons: [{ type: "empty" }] };
     for (const s of res.schedules || []) for (const p of s.picks) p.risk = !!(S.courses.get(p.course) || {}).risk;
     S.results = res;
   } catch (e) {

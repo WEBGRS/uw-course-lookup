@@ -86,6 +86,7 @@ export default {
   }[why] || `${code} 没有可用的班。`),
   why_clash: (a, b) => `${a} 和 ${b} 的时间始终冲突。`,
   why_nofit: "没有能同时放下的组合。去掉一门，或放宽时间限制。",
+  why_empty: "还没有要排的课。先加一门课，或者选好专业并勾选「用剩余要求自动补满学分」。",
   why_credits: (have, lo) => `最多只能排到 ${have} 学分，不到 ${lo}。降低目标或放宽限制。`,
   needTerm: "这个学期的上课时间还没公布。",
   planSummary: (n, c) => `${n} 门课 · ${c} 学分`,

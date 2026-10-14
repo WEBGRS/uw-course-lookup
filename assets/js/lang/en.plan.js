@@ -86,6 +86,7 @@ export default {
   }[why] || `${code} has no usable section.`),
   why_clash: (a, b) => `${a} and ${b} always overlap.`,
   why_nofit: "No combination fits together. Drop a course or loosen the time limits.",
+  why_empty: "Nothing to schedule yet. Add a course, or pick a program and turn on “Fill the rest from my remaining requirements”.",
   why_credits: (have, lo) => `The most that fits is ${have} credits, short of ${lo}. Lower the target or loosen the limits.`,
   needTerm: "Section times are not published for this term yet.",
   planSummary: (n, c) => `${n} course${n === 1 ? "" : "s"} · ${c} credits`,
