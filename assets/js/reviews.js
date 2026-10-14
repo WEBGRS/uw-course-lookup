@@ -179,7 +179,9 @@ export async function renderTab() {
     await loadRows(rows.map((r) => r.id));
   } catch { el.innerHTML = `<div class="empty">${esc(t("apiError"))}</div>`; return; }
   if (app.tab !== "reviews") return;
-  rows = rows.filter((r) => rec(r.id)).map((r) => ({ ...r, taken: plan.done.has(r.id) }));
+  // A course counts as taken under any of its cross-listed names
+  const isTaken = (id) => plan.done.has(id) || (rec(id).al || []).some((a) => plan.done.has(a.replace(/\s+/g, "-")));
+  rows = rows.filter((r) => rec(r.id)).map((r) => ({ ...r, taken: isTaken(r.id) }));
   // Taken courses first, then the fewest reviews, then the most asked
   rows.sort((a, b) => b.taken - a.taken || a.n - b.n || b.asks - a.asks || (rec(a.id).code < rec(b.id).code ? -1 : 1));
   el.innerHTML = rows.length
