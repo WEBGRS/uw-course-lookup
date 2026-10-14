@@ -247,11 +247,17 @@ body.agent-open,body:has(#drawer.on){--wgfb-display:none}
 .rv-top{padding:12px 0}
 .rv-top .rv-act{align-items:center}
 .rv-hint{font-size:13px;color:var(--ink-2);flex:1 1 200px}
-.rv-ask:not([disabled]){animation:rv-breathe 3.4s ease-out 1.4s infinite}
-@keyframes rv-breathe{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--brand) 34%,transparent)}38%,100%{box-shadow:0 0 0 9px transparent}}
-.rv-ask.rv-landed{animation:rv-pop .55s cubic-bezier(.2,.9,.3,1.35)}
-@keyframes rv-pop{0%{transform:scale(.93)}50%{transform:scale(1.07);box-shadow:0 0 0 0 color-mix(in srgb,var(--brand) 40%,transparent)}100%{transform:scale(1);box-shadow:0 0 0 14px transparent}}
-@media (prefers-reduced-motion:reduce){.rv-ask:not([disabled]),.rv-ask.rv-landed{animation:none}}
+.rv-pair{position:relative;display:inline-flex;align-items:center;gap:8px}
+.rv-undo{font-weight:500;color:var(--ink-3);text-decoration:underline;text-underline-offset:2px}
+a.rv-hint{text-decoration:none}
+a.rv-hint:hover{text-decoration:underline}
+.rv-ask{position:relative;overflow:hidden}
+.rv-ask:not([disabled])::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,color-mix(in srgb,var(--ink) 14%,transparent) 50%,transparent 65%);transform:translateX(-130%);animation:rv-sheen 4.4s ease-in-out 1.4s infinite}
+@keyframes rv-sheen{0%{transform:translateX(-130%)}34%,100%{transform:translateX(130%)}}
+.rv-fly{position:absolute;bottom:55%;font-size:16px;line-height:1;pointer-events:none;opacity:0;animation:rv-fly 1.3s ease-out forwards}
+@keyframes rv-fly{0%{opacity:0;transform:translateY(6px) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translateY(-38px) scale(1.1) rotate(8deg)}}
+.rv-after{justify-content:space-between;align-items:center;gap:12px}
+@media (prefers-reduced-motion:reduce){.rv-ask::after,.rv-fly{display:none;animation:none}}
 .rv-dlg{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:16px 18px;width:min(460px,calc(100vw - 24px));box-shadow:var(--shadow)}
 .rv-dlg::backdrop{background:rgba(0,0,0,.4)}
 .rv-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin:0 0 12px;font-size:15px}

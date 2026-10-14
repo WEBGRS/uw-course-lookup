@@ -84,7 +84,8 @@ export function createHandler(data, opts = {}) {
     }
     const isChat = request.method === "POST" && url.pathname === "/api/chat";
     const isSession = request.method === "POST" && url.pathname === "/api/session";
-    const isWrite = request.method === "POST" && (url.pathname === "/api/review" || url.pathname === "/api/ask");
+    const WRITES = { "/api/review": rv.submit, "/api/ask": rv.ask, "/api/review/undo": rv.undoReview, "/api/ask/undo": rv.undoAsk };
+    const isWrite = request.method === "POST" && Object.hasOwn(WRITES, url.pathname);
     if (request.method !== "GET" && request.method !== "HEAD" && !isChat && !isSession && !isWrite) return fail(405, "method not allowed");
     if (!url.pathname.startsWith("/api/")) return fail(404, "not found");
     if (url.pathname === "/api/health") return send(JSON.stringify({ ok: true, count: ix.n, built_at: ix.meta.built_at }), 200, 0);
@@ -128,7 +129,7 @@ export function createHandler(data, opts = {}) {
         if (raw.length > 4000) return fail(413, "too large");
         try { b = JSON.parse(raw); } catch { return fail(400, "bad json"); }
         if (!b || typeof b !== "object") return fail(400, "bad json");
-        r = await (url.pathname === "/api/ask" ? rv.ask : rv.submit)(env, b, g && g.w.ipH);
+        r = await WRITES[url.pathname](env, b, g && g.w.ipH);
         note(url.pathname.slice(5) + ": " + String(b.course || "").slice(0, 60), null, r.status === 200 ? 1 : 0, r.status);
       } else if (url.pathname === "/api/reviews") {
         r = await rv.summary(env, url.searchParams.get("course") || "");

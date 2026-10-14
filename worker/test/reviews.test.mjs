@@ -180,6 +180,28 @@ test("asks: once per device, ranked by how many asked", async () => {
   assert.equal(s.asks, 2);
 });
 
+test("a device can take back its own ask and review, and write again", async () => {
+  const { h, env } = setup();
+  const tok = await session(h, env, "1.1.1.1");
+  const post = (path, body) => call(h, env, tok, path, { method: "POST", body });
+  await post("/api/ask", { course: "MATH-234", dev: DEV_A });
+  await post("/api/ask", { course: "MATH-234", dev: DEV_B });
+  assert.equal((await post("/api/ask/undo", { course: "MATH-234", dev: DEV_A })).body.asks, 1);
+  assert.equal((await post("/api/ask/undo", { course: "MATH-234", dev: DEV_A })).body.asks, 1, "undoing twice changes nothing");
+  assert.equal((await post("/api/ask", { course: "MATH-234", dev: DEV_A })).body.asks, 2, "asking again works");
+  assert.equal((await post("/api/review", { course: "MATH-234", dev: DEV_A, hours: 1 })).status, 200);
+  assert.equal((await post("/api/review", { course: "MATH-234", dev: DEV_A, hours: 2 })).status, 409);
+  // approved ones can be withdrawn too, and only by the same device
+  const [row] = (await adm(h, env, "/api/rv-admin/list")).body.rows;
+  await adm(h, env, "/api/rv-admin/set", { id: row.id, status: "ok" });
+  await post("/api/review/undo", { course: "MATH-234", dev: DEV_B });
+  assert.equal((await call(h, env, tok, "/api/reviews?course=MATH-234")).body.n, 1, "another device cannot withdraw it");
+  assert.equal((await post("/api/review/undo", { course: "MATH-234", dev: DEV_A })).status, 200);
+  assert.equal((await call(h, env, tok, "/api/reviews?course=MATH-234")).body.n, 0);
+  assert.equal((await post("/api/review", { course: "MATH-234", dev: DEV_A, hours: 3 })).status, 200, "can write again");
+  assert.equal((await post("/api/ask/undo", { course: "NOPE", dev: DEV_A })).status, 404);
+});
+
 test("requests also report the courses the page asks about, asked or not", async () => {
   const { h, env } = setup();
   const tok = await session(h, env, "1.1.1.1");

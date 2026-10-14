@@ -42,14 +42,17 @@ function draw(c, d) {
     if (d.items.length) h += `<ul class="rv-items">` + d.items.map((x) => `<li><p>${esc(x.text)}</p>${x.instr ? `<span class="muted small">${esc(x.instr)}</span>` : ""}</li>`).join("") + `</ul>`;
   }
   el.innerHTML = d.n ? `<div class="d-sec">${h}</div>` : "";
-  const done = reviewed.has(id), sent = justSent === id;
+  const done = reviewed.has(id), isAsked = asked.has(id);
   const landed = justAsked && justAsked.id === id && Date.now() - justAsked.at < 2000;
-  top.innerHTML = `<div class="d-sec rv-top"><div class="rv-act"><button class="btn rv-ask${landed ? " rv-landed" : ""}" data-rv="ask"${asked.has(id) ? " disabled" : ""}>${esc(t(asked.has(id) ? "rvAsked" : "rvAsk"))}${d.asks ? ` · ${d.asks}` : ""}</button>` +
-    `<button class="btn primary" data-rv="write"${done ? " disabled" : ""}>${done ? "✓ " : ""}${esc(t("rvWrite"))}</button>` +
-    `<span class="rv-hint">${esc(t(sent ? "rvSent" : "rvHint"))}</span></div></div>`;
+  const undo = (k) => `<button class="linkbtn rv-undo" data-rv="${k}">${esc(t("rvUndo"))}</button>`;
+  top.innerHTML = `<div class="d-sec rv-top"><div class="rv-act">` +
+    `<span class="rv-pair"><button class="btn rv-ask" data-rv="ask"${isAsked ? " disabled" : ""}>${esc(t(isAsked ? "rvAsked" : "rvAsk"))}${d.asks ? ` · ${d.asks}` : ""}</button>${isAsked ? undo("unask") : ""}</span>` +
+    `<span class="rv-pair"><button class="btn primary" data-rv="write"${done ? " disabled" : ""}>${done ? "✓ " : ""}${esc(t(done ? "rvWritten" : "rvWrite"))}</button>${done ? undo("unreview") : ""}</span>` +
+    `<a class="rv-hint" href="#/reviews">${esc(t("rvHint"))}</a></div></div>`;
   top.dataset.id = id; drawn = { id, d };
-  top.querySelector('[data-rv="write"]').onclick = () => openForm(id);
-  top.querySelector('[data-rv="ask"]').onclick = async (e) => {
+  const on_ = (k, fn) => { const b = top.querySelector(`[data-rv="${k}"]`); if (b) b.onclick = fn; };
+  on_("write", () => openForm(id));
+  on_("ask", async (e) => {
     e.currentTarget.disabled = true;
     try {
       const r = await post("/api/ask", { course: id });
@@ -57,7 +60,33 @@ function draw(c, d) {
       cache.set(id, { at: Date.now(), data: { ...d, asks: r.asks } });
     } catch { e.currentTarget.disabled = false; return; }
     emit("reviews");
-  };
+  });
+  on_("unask", async () => {
+    try {
+      const r = await post("/api/ask/undo", { course: id });
+      asked.delete(id); remember(); justAsked = null;
+      cache.set(id, { at: Date.now(), data: { ...d, asks: r.asks } });
+    } catch { return; }
+    emit("reviews");
+  });
+  on_("unreview", async () => {
+    try { await post("/api/review/undo", { course: id }); } catch { return; }
+    reviewed.delete(id); remember(); cache.delete(id);
+    emit("reviews");
+  });
+  if (landed && !matchMedia("(prefers-reduced-motion: reduce)").matches) burst(top.querySelector(".rv-pair"));
+}
+
+/** A few small emoji float up from the button that was just pressed. */
+function burst(host) {
+  if (!host) return;
+  ["🙋", "💬", "✨", "🙌", "💬", "✨"].forEach((e, i) => {
+    const s = document.createElement("span");
+    s.className = "rv-fly"; s.textContent = e;
+    s.style.left = 8 + i * 15 + "%"; s.style.animationDelay = i * 70 + "ms";
+    host.append(s);
+    setTimeout(() => s.remove(), 1700);
+  });
 }
 
 /** Fill #dRevTop (buttons) and #dRev (summary) in the open drawer; both stay empty when the reviews service is unreachable. */
@@ -124,7 +153,15 @@ export async function openForm(id) {
       if (err.status !== 409) { st.textContent = t("rvFail"); go.disabled = false; return; }
     }
     reviewed.add(c.id); remember(); cache.delete(c.id);
-    dlg.close();
+    dlg.innerHTML = `<div class="rv-hd"><b>✓ ${esc(t("rvSent"))}</b><button type="button" class="x" data-x aria-label="${esc(t("rvClose"))}">×</button></div>
+      <div class="rv-foot rv-after"><button type="button" class="linkbtn" data-undo>${esc(t("rvUndo"))}</button><button type="button" class="btn primary" data-more>${esc(t("rvMore"))}</button></div>`;
+    dlg.querySelector("[data-x]").onclick = () => dlg.close();
+    dlg.querySelector("[data-more]").onclick = () => { dlg.close(); location.hash = "#/reviews"; };
+    dlg.querySelector("[data-undo]").onclick = async () => {
+      try { await post("/api/review/undo", { course: c.id }); } catch { return; }
+      reviewed.delete(c.id); remember(); cache.delete(c.id);
+      dlg.close(); emit("reviews");
+    };
     emit("reviews");
   };
   dlg.addEventListener("close", () => dlg.remove());

@@ -112,6 +112,22 @@ export function createReviews(ix, { adminHtml } = {}) {
     return { status: 200, body: { ok: true } };
   }
 
+  // POST /api/ask/undo and /api/review/undo {course, dev}: take back this device's own ask or review (whatever its status)
+  async function undoAsk(env, b) {
+    if (typeof b.dev !== "string" || b.dev.length < 16 || b.dev.length > 64) return { status: 400, body: { error: "dev" } };
+    if (idx(b.course) == null) return { status: 404, body: { error: "course" } };
+    const id = canon(b.course);
+    await env.DB.prepare("DELETE FROM review_asks WHERE course = ?1 AND dev_h = ?2").bind(id, await devHash(env, b.dev)).run();
+    const asks = (await env.DB.prepare("SELECT COUNT(*) AS n FROM review_asks WHERE course = ?1").bind(id).first()).n;
+    return { status: 200, body: { ok: true, asks } };
+  }
+  async function undoReview(env, b) {
+    if (typeof b.dev !== "string" || b.dev.length < 16 || b.dev.length > 64) return { status: 400, body: { error: "dev" } };
+    if (idx(b.course) == null) return { status: 404, body: { error: "course" } };
+    await env.DB.prepare("DELETE FROM reviews WHERE course = ?1 AND dev_h = ?2").bind(canon(b.course), await devHash(env, b.dev)).run();
+    return { status: 200, body: { ok: true } };
+  }
+
   // ---------- admin (same ADMIN_TOKEN as /admin): /admin/reviews page and /api/rv-admin/*
   const authed = (request, env) => !!env.ADMIN_TOKEN && sameText((request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""), env.ADMIN_TOKEN);
   const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
@@ -144,5 +160,5 @@ export function createReviews(ix, { adminHtml } = {}) {
     return json({ error: "not found" }, 404);
   }
 
-  return { summary, requests, ask, submit, admin, clean };
+  return { summary, requests, ask, submit, undoAsk, undoReview, admin, clean };
 }
