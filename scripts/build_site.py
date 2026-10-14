@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Export data/uwcourses.db -> worker/data.json (private, deployed to the cloud API) and write assets/config.js.
 
-The page itself carries no course data: it asks the API for pages of results. Chat-derived counts
+The page itself carries no course data: it asks the API for pages of results. Discussion-derived counts
 below K_ANON are withheld everywhere in the export.
 
 Usage:
@@ -17,7 +17,7 @@ DB = os.path.join(ROOT, "data", "uwcourses.db")
 INSIGHTS = os.path.join(ROOT, "data", "insights.json")
 WORKER_DATA = os.path.join(ROOT, "worker", "data.json")
 CONFIG = os.path.join(ROOT, "site.config.json")
-K_ANON = 3  # chat counts below this are never published per course
+K_ANON = 3  # discussion counts below this are never published per course
 MAX_INSTR = 14
 MAX_INSTR_CATALOG = 10
 MAX_THREADS = 8
@@ -37,7 +37,7 @@ def r3(v):
 
 
 def strip_low(o):
-    """Drop per-course chat counts below K_ANON from the aggregate lists."""
+    """Drop per-course discussion counts below K_ANON from the aggregate lists."""
     if isinstance(o, dict):
         return {k: strip_low(v) for k, v in o.items() if not (k == "mentions" and isinstance(v, int) and v < K_ANON)}
     if isinstance(o, list):

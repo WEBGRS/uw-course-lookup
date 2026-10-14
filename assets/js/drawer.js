@@ -76,19 +76,14 @@ export async function openDrawer(id, keepScroll) {
     <div class="d-code">${esc(c.code)}${c.al.length ? " · " + esc(t("alsoAs")) + " " + esc(c.al.join(", ")) : ""} · ${esc(c.sn)}</div>
     <h2 class="d-title serif" id="dTitle">${esc(c.t)}</h2>
     <div class="chips">${chips.map((x) => `<span class="chip">${esc(x)}</span>`).join("")}</div></div><div class="d-body">`;
-  h += `<div class="d-sec"><div class="linkrow">
-    <button class="btn${saved ? " primary" : ""}" id="dSave" aria-pressed="${saved}">${esc(saved ? t("saved") : t("save"))}</button>
-    <a class="btn" target="_blank" rel="noopener" href="${mgUrl(c)}">${esc(t("mg"))}</a>
-    <a class="btn" target="_blank" rel="noopener" href="${enrollUrl(c.code)}">${esc(t("cse"))}</a>
-    <a class="btn" target="_blank" rel="noopener" href="${guideUrl(c.code)}">${esc(t("guide"))}</a>
-    <a class="btn" target="_blank" rel="noopener" href="${redditUrl(c)}">${esc(t("searchReddit"))}</a>
-    <button class="btn" id="dShare">${esc(t("copy"))}</button></div></div>`;
+  const prq = c.prq ? String(c.prq).split(/(?<=\.)\s+/).filter(Boolean) : [];
+  h += `<div class="d-sec d-actions"><button class="btn big${saved ? "" : " primary"}" id="dSave" aria-pressed="${saved}">${esc(saved ? t("saved") : t("save"))}</button>
+    <div class="d-links"><a target="_blank" rel="noopener" href="${mgUrl(c)}">${esc(t("mg"))}</a><a target="_blank" rel="noopener" href="${enrollUrl(c.code)}">${esc(t("cse"))}</a><a target="_blank" rel="noopener" href="${guideUrl(c.code)}">${esc(t("guide"))}</a><a target="_blank" rel="noopener" href="${redditUrl(c)}">${esc(t("searchReddit"))}</a><button class="linkbtn" id="dShare">${esc(t("copy"))}</button></div></div>`;
   h += '<div id="dRevTop"></div>';
+  if (c.d || prq.length) h += `<div class="d-sec">${c.d ? `<p class="desc">${esc(c.d)}</p>` : ""}${prq.length ? `<div class="prq-card"><b>${esc(t("prqTitle"))}</b> ${prq.map((x, i) => `<span${i ? ' class="more"' : ""}>${esc(x)}</span>`).join(" ")}</div>` : ""}</div>`;
   if (c.dist) h += `<div class="d-sec"><div class="kpis">
     <div class="kpi"><b>${f2(c.gpa)}</b><span>${esc(t("kGpa"))}</span></div><div class="kpi"><b>${f2(c.gr)}</b><span>${esc(t("kRecent"))}</span></div>
-    <div class="kpi"><b>${pct(c.pa)}</b><span>${esc(t("kA"))}</span></div><div class="kpi"><b>${c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"}</b><span>${esc(t("kDF"))}</span></div>
-    <div class="kpi"><b>${c.now && c.en ? fmt(c.en) : "–"}</b><span>${esc(t("kNow", termShort(app.term)))}</span></div></div></div>`;
-  if (c.d || c.prq) h += `<div class="d-sec">${c.d ? `<p class="desc">${esc(c.d)}</p>` : ""}${c.prq ? `<p class="prq"><b>${esc(t("req"))}</b> ${esc(c.prq)}</p>` : ""}</div>`;
+    <div class="kpi"><b>${pct(c.pa)}</b><span>${esc(t("kA"))}</span></div><div class="kpi"><b>${c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"}</b><span>${esc(t("kDF"))}</span></div></div></div>`;
   h += `<div class="d-sec"><h3>${esc(termLabel(app.term))}${c.now ? ` <span class="muted">${esc(t("snapshot", app.meta.built_at.slice(0, 10)))}</span>` : ""}</h3>`;
   if (c.now) {
     h += `<p style="margin:0 0 6px">${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, c.now.lec, c.now.open, c.now.pk, c.now.wait))}</p>`;
@@ -100,32 +95,34 @@ export async function openDrawer(id, keepScroll) {
   } else h += `<p class="muted" style="margin:0">${esc(t("notOffered", c.last ? termLabel(c.last) : ""))}</p>`;
   h += "</div>";
   if (c.dist) {
-    h += `<div class="d-sec"><h3>${esc(t("grades"))} <span class="muted">${esc(t("studentsRange", c.n, termLabel(c.terms[0][0]), termLabel(c.terms[c.terms.length - 1][0])))}</span></h3>${distChart(c)}`;
+    h += `<div class="d-sec"><h3>${esc(t("grades"))} <span class="muted">${esc(t("studentsRange", c.n, termLabel(c.terms[0][0]), termLabel(c.terms[c.terms.length - 1][0])))}</span></h3>${distChart(c)}</div>`;
     const pts = c.terms.filter((x) => x[2] >= 10 && x[0] % 10 !== 6).map((x) => ({ x: termYear(x[0]), y: x[1], label: `<b>${termLabel(x[0])}</b><br>GPA ${x[1].toFixed(2)} · ${fmt(x[2])}` }));
     if (pts.length >= 3) {
-      h += `<h3 style="margin-top:16px">${esc(t("byTerm"))} ${c.tr != null ? `<span class="muted">${trendTxt(c.tr)} ${esc(t("since2016"))}</span>` : ""}</h3>`;
+      h += `<details class="d-sec d-fold"><summary><span>${esc(t("byTerm"))}</span><span class="muted">${c.tr != null ? `${trendTxt(c.tr)} ${esc(t("since2016"))}` : ""}</span></summary>`;
       h += lineChart([{ name: c.code, color: "var(--series)", points: pts }], { label: c.code, ref: app.campusGpa, refLabel: t("trackedAvg", f2(app.campusGpa)) });
+      h += "</details>";
     }
-    h += "</div>";
   } else h += `<div class="d-sec"><h3>${esc(t("grades"))}</h3><p class="muted">${esc(t("noGrades"))}</p></div>`;
   if (c.ins.length) {
     const mxN = Math.max(...c.ins.map((i) => i[2])), LIM = 8, rows = showAllIns ? c.ins : c.ins.slice(0, LIM);
-    h += `<div class="d-sec"><h3>${esc(t("instructors"))} <span class="muted">${c.sp != null ? esc(t("spread", c.sp.toFixed(2))) : ""}</span></h3>${instrChart(c)}`;
+    h += `<div class="d-sec"><h3>${esc(t("instructors"))} <span class="muted">${c.sp != null ? esc(t("spread", c.sp.toFixed(2))) : ""}</span></h3>`;
     h += `<table class="itable"><thead><tr><th>${esc(t("thName"))}</th><th class="r">${esc(t("thGpa"))}</th><th class="r">${esc(t("thA"))}</th><th>${esc(t("thN"))}</th><th class="r">${esc(t("thLast"))}</th><th><span class="sr">${esc(t("thLinks"))}</span></th></tr></thead><tbody>` +
       rows.map((i) => `<tr><td>${esc(i[0])}${i[5] ? `<span class="badge">${termShort(app.term)}</span>` : ""}</td><td class="r"><b>${f2(i[1])}</b></td><td class="r">${pct(i[3])}</td><td><div class="bar" data-tip="${fmt(i[2])}"><i style="width:${(i[2] / mxN) * 100}%"></i></div></td><td class="r small muted">${termShort(i[4])}</td><td class="small"><a target="_blank" rel="noopener" href="${rmpUrl(i[0])}">RMP</a></td></tr>`).join("") + "</tbody></table>";
     if (c.ins.length > LIM) h += `<p style="margin:8px 0 0"><button class="linkbtn" id="dAllIns">${esc(showAllIns ? t("showFewer") : t("showAll", c.ins.length))}</button></p>`;
     if (c.ins.some((i) => i[2] < 30)) h += `<p class="small muted" style="margin:8px 0 0">${esc(t("thin"))}</p>`;
     h += "</div>";
+    if (c.ins.length > 1) h += `<details class="d-sec d-fold"><summary><span>${esc(t("instrChartTitle"))}</span></summary>${instrChart(c)}</details>`;
   }
   h += '<div id="dRev"></div>';
   const tone = c.rdt == null ? "" : c.rdt > 0.15 ? t("tonePos") : c.rdt < -0.15 ? t("toneNeg") : t("toneMix");
-  h += c.src === "catalog" ? `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0;color:var(--ink-2)">${esc(t("sayCatalog"))}</p></div>`
-    : `<div class="d-sec"><h3>${esc(t("say"))}</h3><p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : c.ms ? esc(t("sayChatFew")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
-  if (c.src === "catalog") h += "</div>";
+  const sayHead = `<summary><span>${esc(t("say"))}</span><span class="muted">${c.src === "catalog" ? "" : esc(t("reddit", c.rdn))}</span></summary>`;
+  if (c.src === "catalog") h += `<details class="d-sec d-fold">${sayHead}<p class="small" style="margin:0;color:var(--ink-2)">${esc(t("sayCatalog"))}</p></details>`;
   else {
+    h += `<details class="d-sec d-fold">${sayHead}<p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : c.ms ? esc(t("sayChatFew")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
     if (c.rd.length) h += `<ul class="threads">` + c.rd.map((x) => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${x[3] > 0 ? "+ " : x[3] < 0 ? "− " : ""}${x[2] || ""}</span></li>`).join("") + "</ul>";
-    h += "</div></div>";
+    h += "</details>";
   }
+  h += "</div>";
   dr.innerHTML = h; dr.scrollTop = top;
   mountReviews(c);
   $("#dClose").onclick = closeDrawer;

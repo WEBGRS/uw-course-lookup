@@ -110,6 +110,7 @@ test("planData: facts, instructor GPA and meeting times by id or alias", () => {
   assert.deepEqual(out["COMP-SCI-300"].pk, []);
   assert.deepEqual(out["COMP-SCI-577"].ins[0], ["Grace Hopper", 2.9, 2000]);
   assert.deepEqual(JSON.parse(planData(ix, [])), { courses: {}, map: {} });
+  assert.equal(out["COMP-SCI-300"].ts, "FS");   // taught in fall and spring over the last three years
 });
 
 test("cross-listed designations resolve as ids", () => {

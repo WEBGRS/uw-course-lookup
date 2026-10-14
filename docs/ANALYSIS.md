@@ -8,16 +8,16 @@ All correlations are Spearman rank correlations with a 2,000-shuffle permutation
 
 | Signal | vs. course GPA |
 |---|---|
-| Chat mentions (popularity) | ρ = -0.07 (p = 0.303, n = 215) |
-| Chat sentiment (net +/−) | ρ = -0.23 (p = 0.156, n = 40) |
+| Discussion mentions (popularity) | ρ = -0.07 (p = 0.303, n = 215) |
+| Discussion sentiment (net +/−) | ρ = -0.23 (p = 0.156, n = 40) |
 | Reddit thread tone (≥3 threads) | ρ = +0.43 (p = 0.001, n = 220) |
 | Course number (level) | ρ = -0.09 (p = 0.146, n = 278) |
 
-Chat volume vs. Reddit volume: ρ = +0.44 (p = 0.001, n = 225).
+Discussion volume vs. Reddit volume: ρ = +0.44 (p = 0.001, n = 225).
 
 Reading: how often a course is discussed says nothing about its grades, but the tone of public Reddit threads does track them. The two communities do talk about largely the same courses.
 
-Mean GPA by chat-sentiment group: chat positive 3.421 (37 courses), chat negative 3.852 (1 courses), no sentiment 3.424 (177 courses).
+Mean GPA by discussion-sentiment group: discussion positive 3.421 (37 courses), discussion negative 3.852 (1 courses), no sentiment 3.424 (177 courses).
 
 ## GPA by course level
 
@@ -84,7 +84,7 @@ Most-discussed courses (≥8 mentions) with the lowest GPA:
 
 ## Caveats
 
-- Chat mentions come from one student community and over-represent its members' majors.
+- Discussion mentions come from one student community and over-represent its members' majors.
 - Sentiment is keyword-based on short text; treat it as a weak signal.
 - Reddit years are estimated from sequential post ids (±a few months).
 - MadGrades lags the registrar by a term or two; S/U and pass/fail grades are excluded from GPA.

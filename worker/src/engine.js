@@ -188,6 +188,17 @@ export function details(ix, ids) {
 
 // Everything the planner needs per course: facts, instructors' past GPA and this term's packages with meeting times.
 // `map` says which primary id answers each requested alias (MATH-240 -> COMP-SCI-240).
+// Which semesters (F = fall, S = spring) the course ran in over the last three years, e.g. "FS" or "F".
+function seasons(ix, c) {
+  const now = Number(ix.meta.term) || 0, from = now ? now - 60 : 0;
+  let f = 0, s = 0;
+  for (const x of c.terms) {
+    if (x[0] < from || !(x[2] >= 5)) continue;
+    if (x[0] % 10 === 2) f = 1; else if (x[0] % 10 === 4) s = 1;
+  }
+  return (f ? "F" : "") + (s ? "S" : "");
+}
+
 export function planData(ix, ids) {
   const courses = new Map(), map = {};
   for (const id of ids.slice(0, LIMITS.plan)) {
@@ -196,7 +207,7 @@ export function planData(ix, ids) {
     const c = ix.C[i];
     if (c.id !== id) map[id] = c.id;
     if (courses.has(c.id)) continue;
-    courses.set(c.id, JSON.stringify({ code: c.code, t: c.t, cr: c.cr || null, gpa: c.gs ?? c.gpa ?? null, prq: c.prq || null, br: c.br,
+    courses.set(c.id, JSON.stringify({ code: c.code, t: c.t, cr: c.cr || null, gpa: c.gs ?? c.gpa ?? null, prq: c.prq || null, br: c.br, ts: seasons(ix, c),
       ins: c.ins.slice(0, 14).map((x) => [x[0], x[1], x[2]]), pk: ix.secPk.get(c.id) || [] }));
   }
   return `{"courses":{${[...courses].map(([k, v]) => JSON.stringify(k) + ":" + v).join(",")}},"map":${JSON.stringify(map)}}`;

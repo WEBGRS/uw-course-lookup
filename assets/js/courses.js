@@ -47,7 +47,7 @@ export function render() {
     : !rows.length && st.now ? `<div class="empty">${esc(t("empty"))} <button class="btn" id="allTerms">${esc(t("emptyAll", termLabel(app.term)))}</button></div>`
     : rows.length ? `<div class="rows" role="list" aria-label="${esc(t("tabCourses"))}">` + rows.map((c) => `
     <div class="row" role="listitem" tabindex="0" data-id="${esc(c.id)}">
-      <div class="c-star"><button class="star" data-star="${esc(c.id)}" aria-pressed="${plan.must.has(c.id)}" aria-label="${esc(t("save"))} ${esc(c.code)}">${plan.must.has(c.id) ? "★" : "☆"}</button></div>
+      <div class="c-star"><button class="addbtn" data-star="${esc(c.id)}" aria-pressed="${plan.must.has(c.id)}" title="${esc(t(plan.must.has(c.id) ? "inTip" : "addTip"))}" aria-label="${esc(t(plan.must.has(c.id) ? "saved" : "save"))} ${esc(c.code)}">${plan.must.has(c.id) ? "✓" : "+"}</button></div>
       <div class="cname"><div><span class="code">${esc(c.code)}</span>${c.al.length ? ` <span class="alias">= ${esc(c.al.join(", "))}</span>` : ""}</div><div class="title">${esc(c.t)}</div>${whoLine(c)}</div>
       <div class="c-cr num small">${esc(c.cr || "–")}</div>
       <div class="c-gpa gcell"><b>${f2(c.gpa)}</b>${strip(c.dist)}</div>

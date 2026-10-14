@@ -144,3 +144,14 @@ test("every shipped program parses into blocks the status code understands", { s
     statusOf(p, new Set(), new Set());
   }
 });
+
+test("transcript: credits earned and in progress are summed once per course", () => {
+  const r = parseTranscript(TRANSCRIPT, SUBJ);
+  // 4+4+5+3+3(T)+0 for the failed 1-credit MUSIC course
+  assert.equal(r.credits.done, 19);
+  assert.equal(r.credits.ip, 3);
+});
+
+test("transcript: a typed list has no credit information", () => {
+  assert.equal(parseTranscript("cs 300, math 221", SUBJ).credits, null);
+});

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Extract UW-Madison course codes from a decrypted WeChat group chat.
+"""Extract UW-Madison course codes from a decrypted student discussion group.
 
 Outputs an ANONYMIZED courses.json (course code + aggregate counts only).
 No message text, names, or ids are ever written out. Courses mentioned by fewer
@@ -51,7 +51,7 @@ SUBJ = {"CS": "computer sciences", "MATH": "mathematics", "STAT": "statistics", 
 MULTI_RE = re.compile(r"(?<![A-Za-z])(comp|poli|nutr|nutri|ed|com|gen|atm|l\s?i|e\s?c|e\s?m|m\s?e|b\s?m)\s+"
                       r"(sci|psych|pol|arts|bus|ocn|s|e|a)(?![A-Za-z])(?=\s?-?\s?\d{3})", re.I)
 CODE_RE = re.compile(r"(?<![A-Za-z])([A-Za-z]{2,8}(?:\s?[/&]\s?[A-Za-z]{2,8})?)\s?[-]?\s?(\d{3})(?![0-9A-Za-z])")
-# Sentiment keywords (Chinese peer chat). Used only for aggregate +/- counts.
+# Sentiment keywords (Chinese peer discussion). Used only for aggregate +/- counts.
 POS = ["推荐", "好过", "简单", "水课", "很水", "给分", "甜", "捞", "轻松", "划水", "值得", "easy", "gpa",
        "无脑", "好拿", "高分", "神课", "包a", "包A"]
 NEG = ["劝退", "别选", "坑", "慎", "挂科", "变态", "杀手", "折磨", "地狱", "难拿", "版本陷阱", "耗时"]

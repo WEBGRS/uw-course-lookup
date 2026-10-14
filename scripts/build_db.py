@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Build data/uwcourses.db from the (private) chat seed list + public sources.
+"""Build data/uwcourses.db from the (private) student-discussion seed list + public sources.
 
 Steps: resolve every seed code against the real catalog (drops false positives,
 merges cross-listings) -> add the term's large courses -> add every other catalog course
@@ -30,7 +30,7 @@ SEED = os.path.join(ROOT, "courses.json")
 REDDIT = os.path.join(ROOT, "data", "reddit.json")
 REJECTED = os.path.join(ROOT, "data", "rejected_codes.json")
 
-# Chat shorthand -> official subject (letters only, spaces stripped)
+# Student shorthand -> official subject (letters only, spaces stripped)
 SEED_ALIAS = {"CS": "COMPSCI", "NUTRISCI": "NUTRSCI", "EDUPSY": "EDPSYCH", "BIO": "BIOLOGY",
               "HIST": "HISTORY", "COMMARTS": "COMARTS", "AFRICA": "AFRICAN", "ANAT": "ANATOMY",
               "INTERDIS": "INTERLS", "MARKETING": "MARKETNG", "ACCT": "ACCTIS", "ARTS": "ART",
@@ -108,7 +108,7 @@ def last_enrollment(keep_term, h):
 
 
 def expansion(catalog, term, min_enrolled, have, refresh, keep_term=None):
-    """Large courses this term (or the kept term) that the chat never mentioned (all undergrad-level offerings scanned)."""
+    """Large courses this term (or the kept term) that students never discussed (all undergrad-level offerings scanned)."""
     uniq = {}
     for h in catalog:
         if h.get("currentlyTaught") and int(h["catalogNumber"]) < 700:
@@ -197,7 +197,7 @@ def main():
     ap.add_argument("--refresh", action="store_true", help="re-fetch current sections (seats change daily)")
     ap.add_argument("--min-enrolled", type=int, default=250,
                     help="also add unmentioned courses with at least this many enrolled this term (0 = off)")
-    ap.add_argument("--featured-only", action="store_true", help="skip the catalog tier (chat + large courses only)")
+    ap.add_argument("--featured-only", action="store_true", help="skip the catalog tier (discussed + large courses only)")
     a = ap.parse_args()
 
     seeds = json.load(open(SEED, encoding="utf-8")) if os.path.exists(SEED) else []  # private; without it only the other tiers are built
@@ -250,7 +250,7 @@ def main():
         ("built_at", now), ("term", a.term), ("seed_rows", str(len(seeds))),
         ("term_range", f"{offerings.day_date(base[0])}/{offerings.day_date(base[1])}" if base else ""),
         ("sources", "Course Search & Enroll; MadGrades (UW public records); r/UWMadison via web search; "
-                    "anonymized WeChat group-chat counts")])
+                    "anonymized student-discussion counts")])
 
     subjects = {}
     for h in catalog:

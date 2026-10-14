@@ -1,5 +1,5 @@
 // The saved-courses bar at the bottom: totals, plus the way into the Plan tab.
-import { $, esc, app, plan, rec, on } from "./core.js";
+import { $, esc, app, plan, rec, on, toast } from "./core.js";
 import { t, brName } from "./i18n.js";
 import { openCompare } from "./compare.js";
 
@@ -23,6 +23,7 @@ export function render() {
 }
 
 export function init() {
+  on("plan-change", ({ id, added }) => { const c = rec(id); toast(t(added ? "toastAdded" : "toastRemoved", c ? c.code : id.replace(/-/g, " "))); });
   on("plan", render);
   on("list", render);
   on("tab", render);

@@ -3,7 +3,7 @@
 
 const PASSED = new Set(["A", "AB", "B", "BC", "C", "D", "S", "CR", "P", "T"]);
 const NOT_PASSED = new Set(["F", "U", "NR", "NW", "I"]);
-const GRADE_RE = /(\d{1,2}\.\d{1,3})\s+(?:\d{1,2}\.\d{1,3}\s+)?(AB|BC|CR|NR|NW|IP|[ABCDFSUPTI])(?![A-Za-z])/;
+const GRADE_RE = /(\d{1,2}\.\d{1,3})\s+(?:(\d{1,2}\.\d{1,3})\s+)?(AB|BC|CR|NR|NW|IP|[ABCDFSUPTI])(?![A-Za-z])/;
 const SHORT = { CS: "COMP SCI", STATS: "STAT", ECE: "E C E", BIO: "BIOLOGY", NUTRISCI: "NUTR SCI", POLISCI: "POLI SCI", PSYCH: "PSYCH" };
 
 export const toId = (designation) => designation.trim().replace(/\s+/g, "-");
@@ -28,6 +28,7 @@ export function parseTranscript(text, designations) {
   const out = { done: new Set(), ip: new Set(), failed: new Set(), mentions: 0, structured: false };
   const groups = { done: new Map(), ip: new Map() };      // a cross-listed course (COMP SCI/MATH 240) is one group of ids
   const note = (kind, ids) => { if (!groups[kind].has(ids[0])) groups[kind].set(ids[0], ids); };
+  const cr = new Map();                                   // first id of a course -> credits on its line
   const flat = String(text || "").replace(/​/g, "").replace(/[ \t]+/g, " ");
   const re = subjectRegex(designations);
   const hits = [...flat.matchAll(re)];
@@ -39,7 +40,8 @@ export function parseTranscript(text, designations) {
     const g = win.match(GRADE_RE);
     if (g) {
       out.structured = true;
-      const grade = g[2];
+      const grade = g[3];
+      cr.set(ids[0], parseFloat(g[2] ?? g[1]));
       const bucket = PASSED.has(grade) ? out.done : grade === "IP" ? out.ip : NOT_PASSED.has(grade) ? out.failed : null;
       if (bucket) ids.forEach((id) => bucket.add(id));
       if (bucket === out.done) note("done", ids); else if (bucket === out.ip) note("ip", ids);
@@ -47,6 +49,7 @@ export function parseTranscript(text, designations) {
       out.structured = true;
       ids.forEach((id) => out.ip.add(id));
       note("ip", ids);
+      cr.set(ids[0], parseFloat(win.match(/\d{1,2}\.\d{2,3}/)[0]));
     }
   });
   if (!out.structured) hits.forEach((m) => { const ids = expand(m[1].replace(/\s+/g, " "), m[2]); ids.forEach((id) => out.done.add(id)); note("done", ids); });
@@ -61,8 +64,11 @@ export function parseTranscript(text, designations) {
     }
   }
   for (const id of out.failed) if (out.done.has(id)) out.failed.delete(id);  // retaken and passed
+  const sum = (list) => list.reduce((a, ids) => a + (cr.get(ids[0]) || 0), 0);
   return { done: [...out.done], ip: [...out.ip].filter((id) => !out.done.has(id)), failed: [...out.failed], mentions: out.mentions,
-    doneGroups: [...groups.done.values()], ipGroups: [...groups.ip.values()].filter((ids) => !ids.some((id) => out.done.has(id))) };
+    doneGroups: [...groups.done.values()], ipGroups: [...groups.ip.values()].filter((ids) => !ids.some((id) => out.done.has(id))),
+    creditOf: Object.fromEntries(cr),
+    credits: out.structured ? { done: sum([...groups.done.values()]), ip: sum([...groups.ip.values()].filter((ids) => !ids.some((id) => out.done.has(id)))) } : null };
 }
 
 const credit = (c) => { const n = parseFloat(String(c ?? "").split(/[–-]/)[0]); return Number.isFinite(n) ? n : 0; };
@@ -191,4 +197,21 @@ export function prereqRisk(prqText, designations, taken) {
   const first = String(prqText).replace(/​/g, "").split(/\.\s/)[0];
   if (/\bconsent of (the )?(instructor|department|program)\b/i.test(first)) return true;
   return evalRequisite(first, designations, taken) === false;
+}
+
+const firstSentence = (prqText) => String(prqText || "").replace(/​/g, "").split(/\.\s/)[0];
+
+/** true / false / null (unknown) for a requisite sentence given the courses `have`; consent-only requisites are unknown. */
+export function requisiteState(prqText, designations, have) {
+  if (!prqText) return true;
+  const first = firstSentence(prqText);
+  const v = evalRequisite(first, designations, have);
+  if (v === null && /\bconsent of (the )?(instructor|department|program)\b/i.test(first)) return null;
+  return v;
+}
+
+/** Every course id named by the first sentence of a requisite. */
+export function requisiteIds(prqText, designations) {
+  if (!prqText) return [];
+  return [...firstSentence(prqText).matchAll(subjectRegex(designations))].flatMap((m) => expand(m[1].replace(/\s+/g, " "), m[2]));
 }

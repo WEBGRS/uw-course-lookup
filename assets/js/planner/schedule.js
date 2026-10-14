@@ -16,6 +16,10 @@ export const DEFAULT_PREFS = {
   compact: 1,           // soft weight: penalise long gaps
   quality: 0,           // soft weight: prefer instructors who grade higher in this course
   buffer: 0,            // minutes that must separate two classes
+  overlap: 0,           // hard: minutes two classes may overlap (Infinity = any)
+  maxDays: 5,           // hard: weekdays with class
+  format: "any",        // hard: "inperson" drops sections with no meeting time
+  lunch: 0,             // soft weight: keep 11:30-1:00 free
 };
 
 export const fmtMin = (m) => { const h = Math.floor(m / 60), mm = m % 60; return `${(h + 11) % 12 + 1}:${String(mm).padStart(2, "0")}${h < 12 ? "a" : "p"}`; };
@@ -48,16 +52,29 @@ export function prepPackage(pkg, course) {
 
 const datesOverlap = (a, b) => !a || !b || (a[0] <= b[1] && b[0] <= a[1]);
 
-export function packagesConflict(p, q, buffer = 0) {
+/** Minutes two packages spend in the same room-time, summed over meetings. */
+export function overlapMinutes(p, q) {
+  let n = 0;
   for (const a of p.meets) for (const b of q.meets) {
-    if (a.d === b.d && a.s < b.e + buffer && b.s < a.e + buffer && datesOverlap(a.w, b.w)) return true;
+    if (a.d === b.d && datesOverlap(a.w, b.w)) n += Math.max(0, Math.min(a.e, b.e) - Math.max(a.s, b.s));
+  }
+  return n;
+}
+
+/** A clash is an overlap (plus the wanted passing time) longer than `tol` minutes. */
+export function packagesConflict(p, q, buffer = 0, tol = 0) {
+  for (const a of p.meets) for (const b of q.meets) {
+    if (a.d === b.d && datesOverlap(a.w, b.w) && Math.min(a.e, b.e) - Math.max(a.s, b.s) + buffer > tol) return true;
   }
   return false;
 }
 
+export const dayCount = (picks) => new Set(picks.flatMap((p) => p.meets.map((m) => m.d))).size;
+
 /** Why a package is excluded under hard preferences, or "" if it is fine. */
 function rejection(p, prefs) {
   if (p.consent) return "consent";
+  if (prefs.format === "inperson" && p.online) return "online";
   if (p.status === CLOSED && prefs.seats !== "any") return "full";
   if (p.status === WAIT && prefs.seats === "open") return "waitlist";
   for (const m of p.meets) {
@@ -78,6 +95,7 @@ function instructorGpa(course, p) {
 function localScore(p, course, prefs) {
   let s = 0;
   for (const m of p.meets) {
+    if (prefs.lunch && m.s < 13 * 60 && m.e > 11 * 60 + 30) s -= 1.5 * prefs.lunch;
     if (m.s < prefs.start) s -= (prefs.start - m.s) / 60;
     if (m.e > prefs.end) s -= (m.e - prefs.end) / 90;
   }
@@ -102,7 +120,9 @@ export function scoreSchedule(picks, prefs) {
     if (!ms.length) { free++; continue; }
     for (let i = 1; i < ms.length; i++) gaps += Math.max(0, ms[i].s - ms[i - 1].e - 60);
   }
-  return s + prefs.freeDays * free * 1.5 - prefs.compact * gaps / 45;
+  let ov = 0;
+  if (prefs.overlap > 0) for (let i = 0; i < picks.length; i++) for (let j = i + 1; j < picks.length; j++) ov += overlapMinutes(picks[i], picks[j]);
+  return s + prefs.freeDays * free * 1.5 - prefs.compact * gaps / 45 - ov / 6;
 }
 
 export function describe(picks) {
@@ -111,11 +131,12 @@ export function describe(picks) {
   const days = byDay.map((ms) => ms.sort((a, b) => a.s - b.s));
   const used = days.flatMap((ms, d) => (ms.length ? [d] : []));
   const all = days.flat();
-  let gap = 0;
+  let gap = 0, overlapMin = 0;
   for (const ms of days) for (let i = 1; i < ms.length; i++) gap += Math.max(0, ms[i].s - ms[i - 1].e);
+  for (let i = 0; i < picks.length; i++) for (let j = i + 1; j < picks.length; j++) overlapMin += overlapMinutes(picks[i], picks[j]);
   return { freeDays: [0, 1, 2, 3, 4].filter((d) => !days[d].length), daysUsed: used,
     earliest: all.length ? Math.min(...all.map((m) => m.s)) : null, latest: all.length ? Math.max(...all.map((m) => m.e)) : null,
-    gapMinutes: gap, waitlisted: picks.filter((p) => p.status === WAIT).length, full: picks.filter((p) => p.status === CLOSED).length };
+    gapMinutes: gap, overlapMin, waitlisted: picks.filter((p) => p.status === WAIT).length, full: picks.filter((p) => p.status === CLOSED).length };
 }
 
 /** Prepare a course's options once: filter by hard preferences, then keep the best package per distinct timetable. */
@@ -123,13 +144,14 @@ function options(course, prefs) {
   const all = (course.packages || []).map((pk) => prepPackage(pk, course));
   const removed = {};
   // How many packages each *kind* of limit would remove on its own, so a failure can be explained honestly
-  const alone = { consent: 0, seats: 0, closed: 0, wait: 0, time: 0, early: 0, late: 0, dayoff: 0 };
+  const alone = { consent: 0, online: 0, seats: 0, closed: 0, wait: 0, time: 0, early: 0, late: 0, dayoff: 0 };
   const kept = [];
   for (const p of all) {
     const why = rejection(p, prefs);
     if (why) removed[why] = (removed[why] || 0) + 1;
     else kept.push(p);
     if (p.consent) alone.consent++;
+    if (prefs.format === "inperson" && p.online) alone.online++;
     if (p.status === CLOSED && prefs.seats !== "any") { alone.seats++; alone.closed++; }
     if (p.status === WAIT && prefs.seats === "open") { alone.seats++; alone.wait++; }
     const early = p.meets.some((m) => m.s < prefs.earliest), late = p.meets.some((m) => m.e > prefs.latest), off = p.meets.some((m) => prefs.daysOff.includes(m.d));
@@ -157,6 +179,7 @@ function whyEmpty(o) {
   const n = o.all.length, a = o.alone;
   if (!n) return "unscheduled";
   if (a.consent === n) return "consent";
+  if (a.online === n) return "online";
   if (a.seats === n) return a.wait === 0 ? "full" : a.closed === 0 ? "waitlist" : "seats";
   if (a.time === n) return ["early", "late", "dayoff"].sort((x, y) => a[y] - a[x])[0];
   return "combo";   // each limit leaves some sections, but no section passes all of them
@@ -178,7 +201,7 @@ export function solve({ must = [], pool = [], prefs = {}, credits = [0, 99], lim
   if (reasons.length) return { ok: false, schedules: [], reasons };
 
   for (let i = 0; i < M.length; i++) for (let j = i + 1; j < M.length; j++) {
-    const clash = M[i].opts.every((a) => M[j].opts.every((b) => packagesConflict(a, b, prefs.buffer)));
+    const clash = M[i].opts.every((a) => M[j].opts.every((b) => packagesConflict(a, b, prefs.buffer, prefs.overlap)));
     if (clash) reasons.push({ type: "clash", a: M[i].course.code, b: M[j].course.code });
   }
   if (reasons.length) return { ok: false, schedules: [], reasons };
@@ -186,7 +209,7 @@ export function solve({ must = [], pool = [], prefs = {}, credits = [0, 99], lim
   const leaves = [];
   let nodes = 0;
   const maxLeaves = 1500;
-  const fits = (p, picks) => !picks.some((q) => packagesConflict(p, q, prefs.buffer));
+  const fits = (p, picks) => !picks.some((q) => packagesConflict(p, q, prefs.buffer, prefs.overlap)) && dayCount([...picks, p]) <= prefs.maxDays;
 
   // Depth-first with forward checking; the most constrained course goes first
   (function dfs(picks, domains) {
@@ -201,19 +224,19 @@ export function solve({ must = [], pool = [], prefs = {}, credits = [0, 99], lim
       const next = [];
       let dead = false;
       for (const d of rest) {
-        const nd = d.dom.filter((q) => !packagesConflict(p, q, prefs.buffer));
+        const nd = d.dom.filter((q) => !packagesConflict(p, q, prefs.buffer, prefs.overlap));
         if (!nd.length) { dead = true; break; }
         next.push({ dom: nd });
       }
       if (dead) continue;
       picks.push(p);
-      dfs(picks, next);
+      if (dayCount(picks) <= prefs.maxDays) dfs(picks, next);
       picks.pop();
       if (leaves.length >= maxLeaves || nodes > budget) return;
     }
   })([], M.map((o) => ({ dom: o.opts })));
 
-  if (!leaves.length) return { ok: false, schedules: [], reasons: [{ type: "nofit" }] };
+  if (!leaves.length) return { ok: false, schedules: [], reasons: [prefs.maxDays < 5 ? { type: "days", n: prefs.maxDays } : { type: "nofit" }] };
 
   const lo = credits[0], hi = credits[1];
   const P = pool.map((c) => options(c, prefs)).filter((o) => o.opts.length);
@@ -273,7 +296,7 @@ export function swapOptions(schedule, courseId, course, prefs = {}) {
   prefs = { ...DEFAULT_PREFS, ...prefs };
   const others = schedule.picks.filter((p) => p.course !== courseId);
   return (course.packages || []).map((pk) => prepPackage(pk, course))
-    .filter((p) => !p.consent && !packagesConflict(p, { meets: others.flatMap((o) => o.meets) }, prefs.buffer))
+    .filter((p) => !p.consent && !(prefs.format === "inperson" && p.online) && !packagesConflict(p, { meets: others.flatMap((o) => o.meets) }, prefs.buffer, prefs.overlap) && dayCount([...others, p]) <= prefs.maxDays)
     .map((p) => ({ ...p, local: localScore(p, course, prefs), cr: credit(course.cr), code: course.code, title: course.title, weight: course.weight || 0 }))
     .sort((a, b) => b.local - a.local);
 }

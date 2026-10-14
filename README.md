@@ -119,13 +119,13 @@ cd worker && npx wrangler dev           # API with the assistant (Workers AI run
 python scripts/pipeline.py --deploy     # rebuild and deploy the API
 ```
 
-Without a chat seed file (`courses.json`, kept private) the build still works and simply has no chat-sourced tier.
+Without a chat seed file (`courses.json`, kept private) the build still works and simply has no discussion-sourced tier.
 Python 3 uses the standard library plus `beautifulsoup4` and `lxml` (`pip install -r requirements.txt`) for the program scraper; the page is vanilla
 HTML/CSS/JS modules with hand-drawn SVG charts. `site.config.json` holds the public API URL that `build_site.py` writes
 into `assets/config.js`. CI runs the tests on every push and fails if a private data file is ever committed.
 
 ```
-courses.json  (private, chat counts)            scripts/extract_courses.py
+courses.json  (private, discussion counts)            scripts/extract_courses.py
    │
    ├─ build_db.py      match every code against the real catalog: drop non-courses,
    │                   merge cross-listings (CS 240 = MATH 240), add the term's largest
@@ -156,7 +156,7 @@ courses.json  (private, chat counts)            scripts/extract_courses.py
   local storage and never sent to the course API.
 - The assistant sends your messages, and what its tools return, to the Worker, which forwards them to Cloudflare Workers
   AI. If you ask about your plan, the plan summary is part of that. Nothing is stored server-side.
-- The chat data never leaves the machine it was exported on. What the site publishes from it is limited to aggregates:
+- The discussion data never leaves the machine it was exported on. What the site publishes from it is limited to aggregates:
   a course mentioned fewer than three times shows no count and no tone, and the dataset itself is gitignored.
 - Reddit data is limited to thread titles and links, with no usernames or comment text. Instructor grade data is public
   record, republished by MadGrades.

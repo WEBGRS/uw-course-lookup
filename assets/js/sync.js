@@ -9,7 +9,7 @@ let seen = store.get("syncSeen", 0);         // server time of the copy last pul
 let owner = store.get("syncOwner", "");      // account this device's copy came from ("" = never synced)
 let timer = 0, applying = false, lastPull = 0;
 
-const snapshot = () => ({ must: [...plan.must], done: [...plan.done], ip: [...plan.ip], program: plan.program, credits: plan.credits, fill: plan.fill, prefs: plan.prefs });
+const snapshot = () => ({ must: [...plan.must], done: [...plan.done], ip: [...plan.ip], program: plan.program, crMin: plan.crMin, crMax: plan.crMax, mainMax: plan.mainMax, creditOf: plan.creditOf, grad: plan.grad, earned: plan.earned, fill: plan.fill, prefs: plan.prefs });
 const setDirty = (v) => { dirty = v; store.set("syncDirty", v); };
 const setSeen = (v) => { seen = v; store.set("syncSeen", v); };
 const setOwner = (v) => { owner = v; store.set("syncOwner", v); };
@@ -27,7 +27,12 @@ function apply(d) {
   applying = true;
   for (const k of ["must", "done", "ip"]) { plan[k].clear(); (d[k] || []).forEach((id) => typeof id === "string" && plan[k].add(id)); }
   plan.program = typeof d.program === "string" ? d.program : "";
-  plan.credits = +d.credits || 15;
+  plan.crMin = +d.crMin || +d.credits || 12;
+  plan.crMax = Math.max(plan.crMin, +d.crMax || 16);
+  plan.grad = +d.grad || 0;
+  plan.mainMax = +d.mainMax || 0;
+  plan.creditOf = d.creditOf && typeof d.creditOf === "object" ? d.creditOf : {};
+  plan.earned = d.earned == null ? null : +d.earned;
   plan.fill = d.fill !== false;
   plan.prefs = d.prefs && typeof d.prefs === "object" ? d.prefs : {};
   plan.save();
@@ -43,7 +48,9 @@ function merge(server) {
   return {
     must: u("must"), done: u("done"), ip: u("ip"),
     program: local.program || server.program || "",
-    credits: local.credits !== 15 ? local.credits : server.credits || 15,
+    crMin: local.crMin !== 12 ? local.crMin : +server.crMin || +server.credits || 12,
+    crMax: local.crMax !== 16 ? local.crMax : +server.crMax || 16,
+    mainMax: local.mainMax || +server.mainMax || 0, creditOf: { ...(server.creditOf || {}), ...local.creditOf }, grad: local.grad || +server.grad || 0, earned: local.earned ?? server.earned ?? null,
     fill: local.fill, prefs: { ...(server.prefs || {}), ...local.prefs },
   };
 }

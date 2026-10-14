@@ -99,7 +99,8 @@ const TOOL_IMPL = {
     if (Array.isArray(a.days_off)) pr.daysOff = a.days_off.map((d) => "MTWRF".indexOf(String(d).toUpperCase())).filter((d) => d >= 0);
     if (a.seats) pr.seats = a.seats;
     if (Object.keys(pr).length) { planApi.setPrefs(pr); out.changed.push("preferences"); }
-    if (a.target_credits) { planApi.setTarget(Math.max(1, Math.min(24, +a.target_credits))); out.changed.push("credit target " + a.target_credits); }
+    if (a.min_credits || a.max_credits) { planApi.setCreditRange(a.min_credits ? +a.min_credits : undefined, a.max_credits ? +a.max_credits : undefined); out.changed.push("credit range"); }
+    else if (a.target_credits) { planApi.setTarget(Math.max(1, Math.min(24, +a.target_credits))); out.changed.push("credit target " + a.target_credits); }
     if (a.fill_from_requirements !== undefined) { plan.fill = !!a.fill_from_requirements; plan.save(); out.changed.push("fill from requirements: " + plan.fill); }
     emit("plan");
     out.plan = planApi.state();
@@ -109,7 +110,7 @@ const TOOL_IMPL = {
   async build_timetable() {
     if (app.tab !== "plan") location.hash = "#/plan";
     const r = await planApi.build();
-    if (!r.ok) return { possible: false, reasons: r.reasons.map((x) => (x.type === "none" ? `${x.code}: no usable section (${x.why})` : x.type === "clash" ? `${x.a} and ${x.b} always overlap` : x.type === "over" ? `required courses alone exceed the credit ceiling (${x.have} > ${x.hi})` : "no combination fits")) };
+    if (!r.ok) return { possible: false, reasons: r.reasons.map((x) => (x.type === "none" ? `${x.code}: no usable section (${x.why})` : x.type === "clash" ? `${x.a} and ${x.b} always overlap` : x.type === "over" ? `required courses alone exceed the credit ceiling (${x.have} > ${x.hi})` : x.type === "days" ? `no combination fits within ${x.n} days a week` : "no combination fits")) };
     const s = planApi.state();
     return { possible: true, options_found: r.schedules.length, shown: "option 1", credits: r.schedules[0].credits, short_of_target: r.schedules[0].short || 0, free_weekdays: r.schedules[0].freeDays.map((d) => "MTWRF"[d]), timetable: s.timetable };
   },

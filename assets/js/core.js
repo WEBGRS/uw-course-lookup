@@ -85,6 +85,18 @@ export const guideUrl = (code) => "https://guide.wisc.edu/search/?P=" + encodeUR
 export const rmpUrl = (n) => "https://www.ratemyprofessors.com/search/professors/18418?q=" + encodeURIComponent(n);
 export const redditUrl = (c) => "https://www.reddit.com/r/UWMadison/search/?q=" + encodeURIComponent('"' + c.code + '"');
 
+// Toast: one short line at the bottom that says an action went through
+let toastTimer = 0;
+const toastEl = document.createElement("div");
+toastEl.id = "toast"; toastEl.setAttribute("role", "status"); toastEl.setAttribute("aria-live", "polite");
+document.body.append(toastEl);
+export function toast(msg, kind = "") {
+  toastEl.className = "toast on" + (kind ? " " + kind : "");
+  toastEl.textContent = msg;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("on"), 3400);
+}
+
 // Tooltip: any element with data-tip
 const tip = document.createElement("div");
 tip.className = "tip"; tip.setAttribute("aria-hidden", "true");
@@ -108,11 +120,23 @@ export const plan = {
   done: new Set(saved.done || []),
   ip: new Set(saved.ip || []),
   program: saved.program || "",
-  credits: saved.credits || 15,
+  crMin: saved.crMin ?? saved.credits ?? 12,
+  crMax: saved.crMax ?? (saved.credits ? Math.max(saved.credits, 16) : 16),
+  mainMax: saved.mainMax || 0,   // most main courses per semester in the roadmap; 0 = no limit
+  creditOf: saved.creditOf && typeof saved.creditOf === "object" ? saved.creditOf : {},   // credits per imported course, keyed by its first id
+  grad: saved.grad || 0,         // last semester (term code); 0 = estimate from credits earned
+  earned: saved.earned ?? null,  // credits earned so far when the user typed them (AP, transfer); null = estimate
   fill: saved.fill !== false,
   prefs: saved.prefs || {},
-  save() { store.set("plan", { must: [...this.must], done: [...this.done], ip: [...this.ip], program: this.program, credits: this.credits, fill: this.fill, prefs: this.prefs }); },
-  toggle(id) { this.must.has(id) ? this.must.delete(id) : this.must.add(id); this.save(); emit("plan"); },
-  add(id) { if (!this.must.has(id)) { this.must.add(id); this.save(); emit("plan"); } },
-  remove(id) { if (this.must.delete(id)) { this.save(); emit("plan"); } },
+  save() { store.set("plan", { must: [...this.must], done: [...this.done], ip: [...this.ip], program: this.program, crMin: this.crMin, crMax: this.crMax, mainMax: this.mainMax, creditOf: this.creditOf, grad: this.grad, earned: this.earned, fill: this.fill, prefs: this.prefs }); },
+  toggle(id) { const added = !this.must.has(id); added ? this.must.add(id) : this.must.delete(id); this.save(); emit("plan"); emit("plan-change", { id, added }); },
+  add(id) { if (!this.must.has(id)) { this.must.add(id); this.save(); emit("plan"); emit("plan-change", { id, added: true }); } },
+  remove(id) { if (this.must.delete(id)) { this.save(); emit("plan"); emit("plan-change", { id, added: false }); } },
+  /** Credits from the imported transcript: null when it carried none (a typed list). */
+  transcriptCredits() {
+    const ids = Object.keys(this.creditOf);
+    if (!ids.length) return null;
+    const sum = (set) => ids.filter((id) => set.has(id)).reduce((a, id) => a + (+this.creditOf[id] || 0), 0);
+    return { done: sum(this.done), ip: sum(this.ip) };
+  },
 };

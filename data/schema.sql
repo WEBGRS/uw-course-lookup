@@ -35,7 +35,7 @@ CREATE TABLE courses (
   offered_now      INTEGER DEFAULT 0,      -- has sections this term
   enroll_course_id TEXT,
   madgrades_uuid   TEXT,
-  source           TEXT,                   -- chat (peer-mentioned), enrollment (large this term) or catalog (everything else)
+  source           TEXT,                   -- chat tier = discussed by students, enrollment (large this term) or catalog (everything else)
   enrolled_now     INTEGER,                -- lecture enrollment this term, at build time
   enrolled_last    INTEGER                 -- lecture enrollment in the kept earlier term (build_db --keep-term)
 );
@@ -45,7 +45,7 @@ CREATE TABLE course_aliases (             -- every designation incl. cross-listi
   course_id INTEGER NOT NULL REFERENCES courses(id)
 );
 
--- Peer signal 1: anonymized WeChat group-chat counts (aggregate only)
+-- Peer signal 1: anonymized student-discussion counts (aggregate only)
 CREATE TABLE chat_mentions (
   course_id INTEGER PRIMARY KEY REFERENCES courses(id),
   mentions  INTEGER NOT NULL,

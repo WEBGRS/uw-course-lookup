@@ -23,7 +23,9 @@ export const TOOLS = [
   fn("update_plan", "Change the user's plan. Use it to add or remove must-take courses, set the credit target or timetable preferences, or choose a program.", {
     add_courses: { type: "array", items: { type: "string" }, description: "Course codes to add to must-take" },
     remove_courses: { type: "array", items: { type: "string" }, description: "Course codes to remove" },
-    target_credits: { type: "number", description: "Credits wanted this term, e.g. 15" },
+    target_credits: { type: "number", description: "Minimum credits wanted this term (the maximum stays unless set), e.g. 15" },
+    min_credits: { type: "number", description: "Lowest credits per semester the student accepts, e.g. 12" },
+    max_credits: { type: "number", description: "Highest credits per semester the student accepts, e.g. 16" },
     program: { type: "string", description: "Program name, e.g. 'Computer Sciences, BS'" },
     no_class_before: { type: "string", description: "Earliest start as HH:MM 24h, e.g. '09:00'; '' for any" },
     no_class_after: { type: "string", description: "Latest end as HH:MM 24h, e.g. '17:00'; '' for any" },

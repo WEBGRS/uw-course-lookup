@@ -125,3 +125,51 @@ test("real data smoke test: a typical sophomore-year load", { skip: !existsSync(
   assert.equal(r.ok, true);
   for (const s of r.schedules) for (let i = 0; i < s.picks.length; i++) for (let j = i + 1; j < s.picks.length; j++) assert.equal(packagesConflict(s.picks[i], s.picks[j]), false);
 });
+
+test("overlap tolerance: short overlaps allowed, long ones not", () => {
+  const a = prepPackage(pk("a", "MWF", 540, 600), { id: "A" }), b = prepPackage(pk("b", "MWF", 585, 645), { id: "B" });
+  assert.equal(packagesConflict(a, b), true);
+  assert.equal(packagesConflict(a, b, 0, 15), false);     // 15 minutes overlap
+  assert.equal(packagesConflict(a, b, 0, 10), true);
+  assert.equal(packagesConflict(a, b, 0, Infinity), false);
+});
+
+test("allow overlap: an otherwise impossible pair is solved, flagged, and ranked below clean ones", () => {
+  const must = [course("A-1", [pk("a1", "MWF", 540, 600)]), course("B-1", [pk("b1", "MWF", 585, 645)])];
+  assert.equal(solve({ must }).ok, false);
+  const r = solve({ must, prefs: { overlap: 30 } });
+  assert.equal(r.ok, true);
+  assert.equal(r.schedules[0].overlapMin, 45);   // 15 minutes on each of three days
+  const must2 = [course("A-1", [pk("a1", "MWF", 540, 600)]), course("B-1", [pk("clash", "MWF", 585, 645), pk("clean", "TR", 585, 645)])];
+  assert.equal(solve({ must: must2, prefs: { overlap: 30 } }).schedules[0].picks.find((p) => p.course === "B-1").id, "clean");
+});
+
+test("max days on campus is a hard limit", () => {
+  const must = [course("A-1", [pk("a1", "MW", 540, 590)]), course("B-1", [pk("b1", "TR", 540, 590), pk("b2", "MW", 600, 650)])];
+  const days = solve({ must, prefs: { maxDays: 2 } });
+  assert.equal(days.ok, true);
+  assert.ok(days.schedules.every((s) => s.daysUsed.length <= 2));
+  assert.deepEqual(days.schedules.map((s) => s.picks.find((p) => p.course === "B-1").id), ["b2"]);
+  const none = solve({ must: [course("A-1", [pk("a1", "MW", 540, 590)]), course("B-1", [pk("b1", "TR", 540, 590)])], prefs: { maxDays: 3 } });
+  assert.equal(none.ok, false);
+  assert.equal(none.reasons[0].type, "days");
+});
+
+test("in-person only drops sections without a meeting time", () => {
+  const online = { id: "on", st: "O", seats: 5, s: [{ t: "LEC", n: "001", m: [], i: [] }] };
+  const must = [course("A-1", [online, pk("a1", "MWF", 540, 590)])];
+  assert.deepEqual(solve({ must, prefs: { format: "inperson" } }).schedules.map((s) => s.picks[0].id), ["a1"]);
+  const only = solve({ must: [course("A-1", [online])], prefs: { format: "inperson" } });
+  assert.equal(only.ok, false);
+  assert.equal(only.reasons[0].why, "online");
+});
+
+test("lunch preference moves classes out of 11:30-1:00", () => {
+  const must = [course("A-1", [pk("noon", "MWF", 700, 750), pk("early", "MWF", 540, 590)])];
+  assert.equal(solve({ must, prefs: { lunch: 1, start: 0, end: 1440 } }).schedules[0].picks[0].id, "early");
+});
+
+test("passing time keeps classes apart", () => {
+  const must = [course("A-1", [pk("a1", "MWF", 540, 590)]), course("B-1", [pk("tight", "MWF", 590, 640), pk("loose", "MWF", 610, 660)])];
+  assert.equal(solve({ must, prefs: { buffer: 15, freeDays: 0, compact: 0 } }).schedules[0].picks.find((p) => p.course === "B-1").id, "loose");
+});

@@ -284,15 +284,15 @@ def write_report(ins):
          "Only courses with at least 50 graded students are used.", "",
          "## Do peer signals track actual grades?", "",
          "| Signal | vs. course GPA |", "|---|---|",
-         f"| Chat mentions (popularity) | {rho(c['mentions_vs_gpa'])} |",
-         f"| Chat sentiment (net +/−) | {rho(c['chat_sentiment_vs_gpa'])} |",
+         f"| Discussion mentions (popularity) | {rho(c['mentions_vs_gpa'])} |",
+         f"| Discussion sentiment (net +/−) | {rho(c['chat_sentiment_vs_gpa'])} |",
          f"| Reddit thread tone (≥3 threads) | {rho(c['reddit_tone_vs_gpa'])} |",
          f"| Course number (level) | {rho(c['course_level_vs_gpa'])} |", "",
-         f"Chat volume vs. Reddit volume: {rho(c['chat_vs_reddit_volume'])}.", "",
+         f"Discussion volume vs. Reddit volume: {rho(c['chat_vs_reddit_volume'])}.", "",
          "Reading: how often a course is discussed says nothing about its grades, but the tone of public "
          "Reddit threads does track them. The two communities do talk about largely the same courses.", "",
-         "Mean GPA by chat-sentiment group: " + ", ".join(
-             f"{g.replace('_', ' ')} {v['mean_gpa']} ({v['courses']} courses)"
+         "Mean GPA by discussion-sentiment group: " + ", ".join(
+             f"{g.replace('_', ' ').replace('chat', 'discussion')} {v['mean_gpa']} ({v['courses']} courses)"
              for g, v in ins["sentiment_groups"].items()) + ".", "",
          "## GPA by course level", "", "| Level | Courses | Weighted GPA | Median course GPA |", "|---|---|---|---|"]
     L += [f"| {x['level']} | {x['courses']} | {x['gpa']} | {x['median_course_gpa']} |" for x in ins["by_level"]]
@@ -317,7 +317,7 @@ def write_report(ins):
     L += [f"| {x['code']} {x['title']} | {x['gpa']} | {x['pct_df'] * 100:.1f}% | {x['mentions']} |"
           for x in ins["popular_and_tough"]]
     L += ["", "## Caveats", "",
-          "- Chat mentions come from one student community and over-represent its members' majors.",
+          "- Discussion mentions come from one student community and over-represent its members' majors.",
           "- Sentiment is keyword-based on short text; treat it as a weak signal.",
           "- Reddit years are estimated from sequential post ids (±a few months).",
           "- MadGrades lags the registrar by a term or two; S/U and pass/fail grades are excluded from GPA.",
