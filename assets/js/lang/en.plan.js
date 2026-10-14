@@ -46,8 +46,11 @@ export default {
 
   // plan
   planTitle: (t) => `Plan ${t}`,
-  stepDegree: "Degree", stepCourses: "Courses", stepSchedule: "Timetable",
-  program: "Program", programPh: "Search your major, e.g. Computer Sciences", noProgram: "Choose a program to see what is left.",
+  stepSchedule: "Timetable", cardProgram: "Program", cardTranscript: "Transcript", cardBuild: "Build a timetable",
+  reqTitle: "Requirements", transcriptHelp: "Upload your unofficial transcript or DARS to mark what you have already taken. It stays in your browser.",
+  importedSub: (d, i) => `${d} taken${i ? `, ${i} in progress` : ""}`, resultEmpty: "Add the courses you must take, set your limits, then press Build. Your timetable shows up here.",
+  notice: "The Spring 2027 schedule will be updated on Oct 14. Stay tuned.",
+  program: "Program", programPh: "Search your major, e.g. Computer Sciences",
   importBtn: "Import transcript", importedN: (n) => `${n} courses imported`, importEdit: "Edit",
   importTitle: "Import what you have taken",
   importHelp: "Upload your unofficial transcript or DARS (PDF or text), or paste it. Nothing leaves your browser.",

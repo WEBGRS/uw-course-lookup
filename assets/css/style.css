@@ -48,6 +48,11 @@ nav.tabs{display:flex;gap:4px;margin-top:6px}
 nav.tabs a{padding:10px 14px;text-decoration:none;color:var(--ink-2);font-weight:600;font-size:14px;border-bottom:2px solid transparent}
 nav.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--brand)}
 
+/* Notice strip */
+.notice{background:color-mix(in srgb,var(--brand) 9%,var(--surface));border-top:1px solid var(--line-2);border-bottom:1px solid var(--line);font-size:13.5px;font-weight:600}
+.notice .wrap{display:flex;align-items:center;gap:10px;padding-top:9px;padding-bottom:9px}
+.notice .dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none}
+
 /* Live grade band (sticky) */
 .band{position:sticky;top:0;z-index:10;background:var(--surface);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line);padding:10px 0 8px}
 .band-row{display:flex;height:30px;border-radius:6px;overflow:hidden;gap:2px;position:relative}

@@ -72,20 +72,63 @@ function blockHtml(s) {
     <ul class="req-items">${s.items.map(itemHtml).join("")}</ul></details>`;
 }
 
-function renderDegree() {
+function renderDegree() { renderProgram(); renderTranscript(); renderReqs(); }
+
+function renderProgram() {
   const pm = programMeta(), st = statuses();
-  const imported = plan.done.size + plan.ip.size;
-  let h = `<div class="field-row"><label class="field grow"><span>${esc(t("program"))}</span><input id="pgInput" list="pgList" autocomplete="off" placeholder="${esc(t("programPh"))}" value="${esc(pm ? pm.name : "")}"><datalist id="pgList">${S.index.map((p) => `<option value="${esc(p.name)}"></option>`).join("")}</datalist></label>
-    <button class="btn" id="pgImport">${esc(t("importBtn"))}</button></div>`;
-  h += `<p class="line">${imported ? `${esc(t("importedN", imported))} · <button class="linkbtn" id="pgEdit">${esc(t("importEdit"))}</button>` : ""}</p>`;
-  if (!S.program) h += `<p class="muted">${esc(t("noProgram"))}</p>`;
-  else {
+  let h = `<div class="combo"><input id="pgInput" role="combobox" aria-expanded="false" aria-controls="pgList" aria-label="${esc(t("program"))}" autocomplete="off" spellcheck="false" placeholder="${esc(t("programPh"))}" value="${esc(pm ? pm.name : "")}"><div id="pgList" class="suggest" role="listbox" hidden></div></div>`;
+  if (S.program && st) {
     const pr = progress(st);
     h += `<div class="prog-sum"><b>${esc(t("reqDone", pr.met, pr.total))}</b> <a href="${esc(S.program.url)}" target="_blank" rel="noopener">${esc(t("viewGuide"))}</a><i class="meter wide"><b class="ip" style="width:${pr.total ? (pr.planned / pr.total) * 100 : 0}%"></b><b style="width:${pr.total ? (pr.met / pr.total) * 100 : 0}%"></b></i></div>`;
-    const order = [...st].sort((a, b) => Number(a.met) - Number(b.met) || a.index - b.index);
-    h += `<div class="reqs">${order.map(blockHtml).join("")}</div><p class="muted">${esc(t("reqNote"))}</p>`;
   }
   $("#stDegree").innerHTML = h;
+}
+
+function renderTranscript() {
+  const n = plan.done.size + plan.ip.size;
+  $("#stTranscript").innerHTML = n
+    ? `<p class="tr-n"><b>${esc(t("importedN", n))}</b></p><p class="muted">${esc(t("importedSub", plan.done.size, plan.ip.size))}</p><button class="btn" id="pgEdit">${esc(t("importEdit"))}</button>`
+    : `<p class="muted">${esc(t("transcriptHelp"))}</p><button class="btn" id="pgImport">${esc(t("importBtn"))}</button>`;
+}
+
+function renderReqs() {
+  const card = $("#reqCard"), st = statuses();
+  card.hidden = !S.program || !st;
+  if (card.hidden) return;
+  const pr = progress(st);
+  $("#reqSum").innerHTML = `<span class="req-h">${esc(t("reqTitle"))}</span><span class="muted">${esc(t("reqDone", pr.met, pr.total))}</span>`;
+  const order = [...st].sort((a, b) => Number(a.met) - Number(b.met) || a.index - b.index);
+  $("#stReqs").innerHTML = `<div class="reqs">${order.map(blockHtml).join("")}</div><p class="muted">${esc(t("reqNote"))}</p>`;
+}
+
+/* Program picker: a listbox exactly as wide as the field */
+function pgOptions(q) {
+  const k = q.trim().toLowerCase(), pm = programMeta();
+  const list = k && !(pm && pm.name.toLowerCase() === k) ? S.index.filter((p) => p.name.toLowerCase().includes(k)) : S.index;
+  return list.slice(0, 40);
+}
+function pgOpen() {
+  const box = $("#pgList"), inp = $("#pgInput");
+  const rows = pgOptions(inp.value);
+  box.innerHTML = rows.map((p, i) => `<button type="button" role="option" id="pgo${i}" data-pg="${esc(p.id)}"${p.id === plan.program ? ' aria-selected="true"' : ""}>${esc(p.name)}</button>`).join("") || `<span class="muted pad">${esc(t("empty"))}</span>`;
+  box.hidden = false; inp.setAttribute("aria-expanded", "true");
+}
+function pgClose() {
+  const b = $("#pgList"), i = $("#pgInput");
+  if (b) b.hidden = true;
+  if (i) i.setAttribute("aria-expanded", "false");
+}
+function pgChoose(id) { plan.program = id; plan.save(); pgClose(); loadProgram(id); }
+function pgMove(dir) {
+  const box = $("#pgList");
+  if (box.hidden) { pgOpen(); return; }
+  const opts = [...box.querySelectorAll("[data-pg]")];
+  if (!opts.length) return;
+  let i = opts.findIndex((o) => o.classList.contains("hl"));
+  opts.forEach((o) => o.classList.remove("hl"));
+  i = i < 0 ? (dir > 0 ? 0 : opts.length - 1) : (i + dir + opts.length) % opts.length;
+  opts[i].classList.add("hl"); opts[i].scrollIntoView({ block: "nearest" });
+  $("#pgInput").setAttribute("aria-activedescendant", opts[i].id);
 }
 
 /* ── Step 2: courses and preferences ──────────────────────────────────── */
@@ -98,12 +141,14 @@ function renderCourses() {
     return `<span class="pill c${colorOf(id) % COLORS + 1}"><b>${esc(c ? c.code : idText(id))}</b>${c && (c.cr || c.cr === 0) ? `<span class="muted"> ${esc(t("cr", c.cr))}</span>` : ""}<button data-rm="${esc(id)}" aria-label="${esc(t("remove"))} ${esc(c ? c.code : id)}">×</button></span>`;
   }).join("");
   const mustCr = ids.reduce((a, id) => a + crOf((rec(id) || planOf(id) || {}).cr), 0);
-  let h = `<div class="musts"><div class="label">${esc(t("mustHave"))}${ids.length ? ` <span class="muted">${esc(t("planSummary", ids.length, +mustCr.toFixed(1)))}</span>` : ""}</div>${chips || `<span class="muted">${esc(t("mustEmpty"))}</span>`}
-    ${ids.length > 1 ? `<button class="linkbtn" id="plCompare">${esc(t("compare"))}</button>` : ""}</div>
-    <div class="add"><input id="addQ" type="search" autocomplete="off" placeholder="${esc(t("addCourse"))}" aria-label="${esc(t("addCourse"))}"><div id="addRes" class="suggest" hidden></div></div>
-    <div class="fill-row"><label class="chk"><input type="checkbox" id="fillBox"${plan.fill ? " checked" : ""}> ${esc(t("fillLabel"))}</label>
-      <label class="num-field">${esc(t("targetCr"))} <input id="crInput" type="number" min="1" max="24" value="${plan.credits}"></label></div>
-    <div class="prefs"><div class="label">${esc(t("prefs"))}</div><div class="prefs-grid">
+  const h = `<div class="blk"><div class="label">${esc(t("mustHave"))}${ids.length ? ` <span class="muted">${esc(t("planSummary", ids.length, +mustCr.toFixed(1)))}</span>` : ""}</div>
+      <div class="chips-row">${chips || `<span class="muted">${esc(t("mustEmpty"))}</span>`}</div>
+      <div class="add"><input id="addQ" type="search" autocomplete="off" placeholder="${esc(t("addCourse"))}" aria-label="${esc(t("addCourse"))}"><div id="addRes" class="suggest" hidden></div></div>
+      ${ids.length > 1 ? `<button class="linkbtn" id="plCompare">${esc(t("compare"))}</button>` : ""}</div>
+    <div class="blk"><div class="label">${esc(t("targetCr"))}</div>
+      <div class="cr-row"><input id="crInput" type="number" min="1" max="24" value="${plan.credits}" aria-label="${esc(t("targetCr"))}">
+      <label class="chk"><input type="checkbox" id="fillBox"${plan.fill ? " checked" : ""}> ${esc(t("fillLabel"))}</label></div></div>
+    <div class="blk"><div class="label">${esc(t("prefs"))}</div><div class="prefs-grid">
       <label class="field"><span>${esc(t("noBefore"))}</span><select id="pEarly">${TIMES([[0, ""], [480, "8:00"], [540, "9:00"], [600, "10:00"], [660, "11:00"]], "anyTime")}</select></label>
       <label class="field"><span>${esc(t("noAfter"))}</span><select id="pLate">${TIMES([[1440, ""], [900, "3:00 pm"], [960, "4:00 pm"], [1020, "5:00 pm"], [1080, "6:00 pm"], [1140, "7:00 pm"]], "anyTime")}</select></label>
       <label class="field"><span>${esc(t("seatsLbl"))}</span><select id="pSeats"><option value="open">${esc(t("seatsOpen"))}</option><option value="open+wait">${esc(t("seatsWait"))}</option><option value="any">${esc(t("seatsAny"))}</option></select></label>
@@ -111,7 +156,7 @@ function renderCourses() {
       <div class="prefs-checks"><label class="chk"><input type="checkbox" data-pref="freeDays"${p.freeDays ? " checked" : ""}> ${esc(t("freeDays"))}</label>
       <label class="chk"><input type="checkbox" data-pref="compact"${p.compact ? " checked" : ""}> ${esc(t("compact"))}</label>
       <label class="chk"><input type="checkbox" data-pref="quality"${p.quality ? " checked" : ""}> ${esc(t("quality"))}</label></div></div>
-    <button class="btn primary big" id="build"${S.building ? " disabled" : ""}>${esc(t(S.building ? "building" : "build"))}</button>`;
+    <button class="btn primary big wide" id="build"${S.building ? " disabled" : ""}>${esc(t(S.building ? "building" : "build"))}</button>`;
   $("#stCourses").innerHTML = h;
   $("#pEarly").value = p.earliest; $("#pLate").value = p.latest; $("#pSeats").value = p.seats;
 }
@@ -147,7 +192,7 @@ function secLines(p, c) {
 function resultsHtml() {
   const r = S.results;
   if (S.building) return `<p class="muted">${esc(t("building"))}</p>`;
-  if (!r) return "";
+  if (!r) return `<div class="empty-state"><p>${esc(t("resultEmpty"))}</p></div>`;
   if (!r.ok) {
     return `<ul class="reasons">${r.reasons.map((x) => `<li>${esc(
       x.type === "none" ? t("why_none", x.code, x.why) : x.type === "clash" ? t("why_clash", x.a, x.b) : x.type === "over" ? t("why_credits", x.have, x.hi) : t("why_nofit"))}</li>`).join("")}</ul>`;
@@ -276,28 +321,55 @@ function renderAll() { renderDegree(); renderCourses(); renderResults(); }
 
 export function localize() {
   $("#plTitle").textContent = t("planTitle", termNow());
-  $("#plD").textContent = t("stepDegree"); $("#plC").textContent = t("stepCourses"); $("#plS").textContent = t("stepSchedule");
+  $("#plP").textContent = t("cardProgram"); $("#plT").textContent = t("cardTranscript");
+  $("#plC").textContent = t("cardBuild"); $("#plS").textContent = t("stepSchedule");
   renderAll();
 }
 
 export async function init() {
   const root = $("#v-plan");
   root.innerHTML = `<div class="page-head"><h1 class="serif" id="plTitle"></h1></div>
-    <section class="step"><h2><span class="n">1</span><span id="plD"></span></h2><div id="stDegree"></div></section>
-    <section class="step"><h2><span class="n">2</span><span id="plC"></span></h2><div id="stCourses"></div></section>
-    <section class="step"><h2><span class="n">3</span><span id="plS"></span></h2><div id="stResults" aria-live="polite"></div></section>`;
+    <div class="plan-top">
+      <section class="card"><h2 id="plP"></h2><div id="stDegree"></div></section>
+      <section class="card"><h2 id="plT"></h2><div id="stTranscript"></div></section>
+    </div>
+    <details class="card reqcard" id="reqCard" hidden><summary id="reqSum"></summary><div id="stReqs"></div></details>
+    <div class="plan-work">
+      <section class="card build"><h2 id="plC"></h2><div id="stCourses"></div></section>
+      <section class="card result"><h2 id="plS"></h2><div id="stResults" aria-live="polite"></div></section>
+    </div>`;
   try { S.index = await (await fetch(new URL("assets/programs/index.json", BASE))).json(); } catch { S.index = []; }
   if (plan.program) await loadProgram(plan.program);
 
   root.addEventListener("input", (e) => {
+    if (e.target.id === "pgInput") pgOpen();
     if (e.target.id === "addQ") { clearTimeout(suggestTimer); suggestTimer = setTimeout(() => suggest(e.target.value), 150); }
     if (e.target.id === "crInput") { plan.credits = Math.min(24, Math.max(1, +e.target.value || 15)); plan.save(); }
+  });
+  root.addEventListener("focusin", (e) => { if (e.target.id === "pgInput") { e.target.select(); pgOpen(); } });
+  root.addEventListener("focusout", (e) => {
+    if (e.target.id !== "pgInput") return;
+    setTimeout(() => {
+      const i = $("#pgInput"), pm = programMeta();
+      if (!i || document.activeElement === i) return;
+      pgClose();
+      if (pm && i.value.trim() && !S.index.some((p) => p.name.toLowerCase() === i.value.trim().toLowerCase())) i.value = pm.name;
+    }, 120);
+  });
+  root.addEventListener("mousedown", (e) => { if (e.target.closest("#pgList")) e.preventDefault(); });
+  root.addEventListener("keydown", (e) => {
+    if (e.target.id !== "pgInput") return;
+    if (e.key === "ArrowDown") { e.preventDefault(); pgMove(1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); pgMove(-1); }
+    else if (e.key === "Enter") { const h = $("#pgList .hl") || (pgOptions(e.target.value).length === 1 ? $("#pgList [data-pg]") : null); if (h) { e.preventDefault(); pgChoose(h.dataset.pg); } }
+    else if (e.key === "Escape") pgClose();
   });
   root.addEventListener("change", (e) => {
     const el = e.target;
     if (el.id === "pgInput") {
       const m = S.index.find((p) => p.name.toLowerCase() === el.value.trim().toLowerCase());
-      if (m || !el.value.trim()) { plan.program = m ? m.id : ""; plan.save(); loadProgram(plan.program); }
+      if (m) { if (m.id !== plan.program) pgChoose(m.id); }
+      else if (!el.value.trim() && plan.program) { plan.program = ""; plan.save(); loadProgram(""); }
     } else if (el.id === "fillBox") { plan.fill = el.checked; plan.save(); }
     else if (el.id === "pEarly") setPref("earliest", +el.value);
     else if (el.id === "pLate") setPref("latest", +el.value);
@@ -311,12 +383,13 @@ export async function init() {
     d.open ? S.open.add(bi) : S.open.delete(bi);
     if (d.open && S.program) {
       const ids = S.program.blocks[bi].items.flatMap((i) => i.o.map((o) => o.i[0]));
-      loadPlanData(ids).then(() => { if (S.open.has(bi)) { const keep = new Set(S.open); renderDegree(); S.open = keep; } }).catch(() => {});
+      loadPlanData(ids).then(() => { if (S.open.has(bi)) { const keep = new Set(S.open); renderReqs(); S.open = keep; } }).catch(() => {});
     }
   }, true);
   root.addEventListener("click", async (e) => {
     const b = e.target.closest("button, a"); if (!b) { if (!e.target.closest(".add")) $("#addRes") && ($("#addRes").hidden = true); return; }
-    if (b.id === "pgImport" || b.id === "pgEdit") openImport();
+    if (b.dataset.pg) pgChoose(b.dataset.pg);
+    else if (b.id === "pgImport" || b.id === "pgEdit") openImport();
     else if (b.dataset.addreq) { const p = planOf(b.dataset.addreq); const id = p ? p.id : b.dataset.addreq; plan.must.has(id) ? plan.remove(id) : plan.add(id); }
     else if (b.dataset.took) { const id = b.dataset.took; plan.done.add(id); plan.save(); renderDegree(); }
     else if (b.dataset.rm) plan.remove(b.dataset.rm);
