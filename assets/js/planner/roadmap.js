@@ -59,9 +59,10 @@ export function pickRequired(statuses, rows, prefer = new Set(), exclude = new S
  *   picks   [{id, ids, cr, kind, user, ...}]   data(id) -> {prq, ts, cr, num, gpa} | null
  *   terms   term codes, first = the semester being planned now
  *   lo, hi  credits per semester;  freeCr  credits still needed beyond the picks (free electives)
+ *   now     the term whose sections are published: a course goes there only if it has sections
  * Returns { semesters: [{term, main, mainCr, lightCr, short}], unplaced, needCr, capacity, over, earliest }.
  */
-export function layout({ picks, data, taken = new Set(), designations = [], terms, lo, hi, freeCr = 0, maxMain = Infinity }) {
+export function layout({ picks, data, taken = new Set(), designations = [], terms, lo, hi, freeCr = 0, maxMain = Infinity, now = 0 }) {
   const info = (p) => data(p.id) || {};
   const cr = (p) => (info(p).cr ? crNum(info(p).cr) : p.cr);
   const prq = (p) => info(p).prq || "";
@@ -89,7 +90,8 @@ export function layout({ picks, data, taken = new Set(), designations = [], term
     const remainingReq = [...left].reduce((a, p) => a + cr(p), 0);
     const target = clamp(Math.round((remainingReq + freeLeft) / termsLeft), lo, hi);
     const minMain = Math.max(0, remainingReq - hi * (termsLeft - 1));
-    const ok = (p) => requisiteState(prq(p), designations, have) !== false && (!info(p).ts || info(p).ts.includes(season));
+    const runs = (d) => (term === now ? !!(d.pk && d.pk.length) : !d.ts || d.ts.includes(season));
+    const ok = (p) => requisiteState(prq(p), designations, have) !== false && runs(info(p));
     const order = [...left].filter(ok).sort((a, b) => Number(b.user) - Number(a.user) || depth(b) - depth(a) || Number(b.kind === "core") - Number(a.kind === "core") || numOf(a) - numOf(b));
     const main = [];
     let sum = 0;

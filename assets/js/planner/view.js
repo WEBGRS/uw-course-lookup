@@ -427,7 +427,7 @@ async function planRoad() {
       requiredCr = picks.reduce((a, p) => a + (planOf(p.id) ? crNum(planOf(p.id).cr) : p.cr), 0);
       n = auto ? Math.min(10, Math.max(1, Math.ceil(remaining / ((lo + hi) / 2)), Math.ceil(requiredCr / hi))) : termsBetween(start, plan.grad).length;
       terms = termsFrom(start, n); freeCr = Math.max(0, remaining - requiredCr);
-      res = layout({ picks, data: planOf, taken, designations: app.designations, terms, lo, hi, freeCr, maxMain: plan.mainMax || Infinity });
+      res = layout({ picks, data: planOf, taken, designations: app.designations, terms, lo, hi, freeCr, maxMain: plan.mainMax || Infinity, now: app.term });
       const bad = res.unplaced.filter((u) => u.pick.kind === "elective");
       if (!bad.length) break;
       bad.forEach((u) => u.pick.ids.forEach((id) => exclude.add(id)));

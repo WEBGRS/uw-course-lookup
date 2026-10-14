@@ -121,3 +121,11 @@ test("chooseLight: skips 1-credit fillers while 2 or more credits are open", () 
   const out = chooseLight({ semesters: [{ term: 1272, season: "F", main: [], lightCr: 3 }], pools: [rowsX] });
   assert.deepEqual(out[0].light.map((r) => r.id), ["N-100"]);
 });
+
+test("layout: the published term only takes courses with sections", () => {
+  const d = { "X-300": { prq: "", ts: "FS", pk: [] }, "Y-300": { prq: "", ts: "FS", pk: [{ id: "1274-1" }] } };
+  const picks = ["X-300", "Z-300", "Y-300"].map((id) => ({ id, ids: [id], cr: 3, kind: "core" }));  // Z-300: no data at all
+  const r = layout({ picks, data: (id) => d[id] || null, designations: DES, terms: [1274, 1282, 1284], lo: 3, hi: 3, freeCr: 0, now: 1274 });
+  assert.deepEqual(r.semesters[0].main.map((p) => p.id), ["Y-300"]);
+  assert.deepEqual(r.semesters.slice(1).flatMap((s) => s.main.map((p) => p.id)).sort(), ["X-300", "Z-300"]);
+});
