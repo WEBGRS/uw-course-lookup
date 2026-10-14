@@ -78,11 +78,14 @@ export function createReviews(ix, { adminHtml } = {}) {
   }
 
   // GET /api/review-requests: courses people asked about, most asked first
-  async function requests(env) {
-    const rows = (await env.DB.prepare("SELECT course, COUNT(*) AS asks, MAX(ts) AS last FROM review_asks GROUP BY course ORDER BY asks DESC, last DESC LIMIT 100").all()).results;
+  // ids: extra courses the page wants counts for (the visitor's transcript), asked about or not
+  async function requests(env, ids = []) {
+    const asked = (await env.DB.prepare("SELECT course, COUNT(*) AS asks, MAX(ts) AS last FROM review_asks GROUP BY course ORDER BY asks DESC, last DESC").all()).results;
     const done = (await env.DB.prepare("SELECT course, COUNT(*) AS n FROM reviews WHERE status = 'ok' GROUP BY course").all()).results;
-    const nOk = new Map(done.map((r) => [r.course, r.n]));
-    return { status: 200, body: { rows: rows.filter((r) => idx(r.course) != null).map((r) => ({ id: r.course, asks: r.asks, n: nOk.get(r.course) || 0 })) } };
+    const nOk = new Map(done.map((r) => [r.course, r.n])), asks = new Map(asked.map((r) => [r.course, r.asks]));
+    const want = new Set(asked.slice(0, 100).map((r) => r.course));
+    for (const id of ids.slice(0, 100)) if (idx(id) != null) want.add(canon(id));
+    return { status: 200, body: { rows: [...want].map((id) => ({ id, asks: asks.get(id) || 0, n: nOk.get(id) || 0 })) } };
   }
 
   // POST /api/ask {course, dev}: one per device and course; repeating changes nothing

@@ -83,6 +83,7 @@ export async function openDrawer(id, keepScroll) {
     <a class="btn" target="_blank" rel="noopener" href="${guideUrl(c.code)}">${esc(t("guide"))}</a>
     <a class="btn" target="_blank" rel="noopener" href="${redditUrl(c)}">${esc(t("searchReddit"))}</a>
     <button class="btn" id="dShare">${esc(t("copy"))}</button></div></div>`;
+  h += '<div id="dRevTop"></div>';
   if (c.dist) h += `<div class="d-sec"><div class="kpis">
     <div class="kpi"><b>${f2(c.gpa)}</b><span>${esc(t("kGpa"))}</span></div><div class="kpi"><b>${f2(c.gr)}</b><span>${esc(t("kRecent"))}</span></div>
     <div class="kpi"><b>${pct(c.pa)}</b><span>${esc(t("kA"))}</span></div><div class="kpi"><b>${c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"}</b><span>${esc(t("kDF"))}</span></div>

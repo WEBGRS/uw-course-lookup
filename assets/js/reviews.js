@@ -1,6 +1,6 @@
 // Course reviews: write one, ask others for one, and the tab listing the courses people asked about most.
 // No login. One review and one ask per device and course (the server enforces it; this device remembers too).
-import { $, $$, esc, api, app, store, on, emit, loadDetail, loadRows, rec } from "./core.js";
+import { $, $$, esc, api, app, store, on, emit, loadDetail, loadRows, rec, plan } from "./core.js";
 import { t } from "./i18n.js";
 
 const HOURS = ["0–3", "3–6", "6–9", "9–12", "12+"];
@@ -28,8 +28,9 @@ const summary = (id) => {
 };
 
 /* ── Drawer section ──────────────────────────────────────── */
-function draw(el, c, d) {
-  const id = c.id;
+function draw(c, d) {
+  const id = c.id, top = $("#dRevTop"), el = $("#dRev");
+  if (!top || !el) return;
   let h = `<h3>${esc(t("rvTitle"))} <span class="muted">${d.n || ""}</span></h3>`;
   if (d.n) {
     const mx = Math.max(1, ...d.hours);
@@ -40,14 +41,14 @@ function draw(el, c, d) {
     if (tg.length) h += `<p class="rv-tags">` + tg.map((k) => `<span class="rv-tag">${esc(t("rvt_" + k))} <b>${d.tags[k]}</b></span>`).join("") + `</p>`;
     if (d.items.length) h += `<ul class="rv-items">` + d.items.map((x) => `<li><p>${esc(x.text)}</p>${x.instr ? `<span class="muted small">${esc(x.instr)}</span>` : ""}</li>`).join("") + `</ul>`;
   }
+  el.innerHTML = d.n ? `<div class="d-sec">${h}</div>` : "";
   const done = reviewed.has(id), sent = justSent === id;
-  h += `<div class="rv-act"><button class="btn primary" data-rv="write"${done ? " disabled" : ""}>${done ? "✓ " : ""}${esc(t("rvWrite"))}</button>` +
-    `<button class="btn" data-rv="ask"${asked.has(id) ? " disabled" : ""}>${esc(t(asked.has(id) ? "rvAsked" : "rvAsk"))}${d.asks ? ` · ${d.asks}` : ""}</button></div>`;
-  if (sent) h += `<p class="muted small rv-sent">${esc(t("rvSent"))}</p>`;
-  el.innerHTML = `<div class="d-sec">${h}</div>`;
-  el.dataset.id = id;
-  el.querySelector('[data-rv="write"]').onclick = () => openForm(id);
-  el.querySelector('[data-rv="ask"]').onclick = async (e) => {
+  top.innerHTML = `<div class="d-sec rv-top"><div class="rv-act"><button class="btn" data-rv="ask"${asked.has(id) ? " disabled" : ""}>${esc(t(asked.has(id) ? "rvAsked" : "rvAsk"))}${d.asks ? ` · ${d.asks}` : ""}</button>` +
+    `<button class="btn primary" data-rv="write"${done ? " disabled" : ""}>${done ? "✓ " : ""}${esc(t("rvWrite"))}</button>` +
+    `<span class="rv-hint">${esc(t(sent ? "rvSent" : "rvHint"))}</span></div></div>`;
+  top.dataset.id = id;
+  top.querySelector('[data-rv="write"]').onclick = () => openForm(id);
+  top.querySelector('[data-rv="ask"]').onclick = async (e) => {
     e.currentTarget.disabled = true;
     try {
       const r = await post("/api/ask", { course: id });
@@ -58,14 +59,13 @@ function draw(el, c, d) {
   };
 }
 
-/** Fill #dRev in the open drawer; stays empty when the reviews service is unreachable. */
+/** Fill #dRevTop (buttons) and #dRev (summary) in the open drawer; both stay empty when the reviews service is unreachable. */
 export function mount(c) {
   curCourse = c;
-  const el = $("#dRev");
-  if (!el) return;
+  if (!$("#dRevTop")) return;
   const hit = cache.get(c.id);
-  if (hit) draw(el, c, hit.data);
-  summary(c.id).then((d) => { const e = $("#dRev"); if (e && curCourse === c) draw(e, c, d); }).catch(() => {});
+  if (hit) draw(c, hit.data);
+  summary(c.id).then((d) => { if (curCourse === c) draw(c, d); }).catch(() => {});
 }
 
 /* ── Form ────────────────────────────────────────────────── */
@@ -131,20 +131,24 @@ export async function openForm(id) {
 /* ── Tab: courses people asked about, most asked first ───── */
 export async function renderTab() {
   const el = $("#v-reviews");
+  const mine = [...plan.done].slice(0, 100);   // courses on the imported transcript
   let rows;
   try {
-    rows = (await api("/api/review-requests")).rows.filter((r) => !reviewed.has(r.id));
-    await loadRows(rows.map((r) => r.id).slice(0, 100));
+    rows = (await api("/api/review-requests", mine.length ? { ids: mine.join(",") } : null)).rows.filter((r) => !reviewed.has(r.id));
+    await loadRows(rows.map((r) => r.id));
   } catch { el.innerHTML = `<div class="empty">${esc(t("apiError"))}</div>`; return; }
   if (app.tab !== "reviews") return;
-  rows = rows.filter((r) => rec(r.id));
+  rows = rows.filter((r) => rec(r.id)).map((r) => ({ ...r, taken: plan.done.has(r.id) }));
+  // Taken courses first, then the fewest reviews, then the most asked
+  rows.sort((a, b) => b.taken - a.taken || a.n - b.n || b.asks - a.asks || (rec(a.id).code < rec(b.id).code ? -1 : 1));
   el.innerHTML = rows.length
-    ? `<div class="list rv-list">` + rows.map((r) => { const c = rec(r.id); return `<button class="rv-row" data-id="${esc(r.id)}"><b>${esc(c.code)}</b><span class="title">${esc(c.t)}</span><span class="rv-n">${esc(t("rvAskN", r.asks))}</span></button>`; }).join("") + `</div>`
+    ? `<div class="list rv-list">` + rows.map((r) => { const c = rec(r.id); return `<button class="rv-row${r.taken ? " taken" : ""}" data-id="${esc(r.id)}"><b>${esc(c.code)}</b><span class="title">${esc(c.t)}</span><span class="rv-n">${[r.asks ? t("rvAskN", r.asks) : "", r.n ? t("rvN", r.n) : ""].filter(Boolean).join(" · ")}</span></button>`; }).join("") + `</div>`
     : `<div class="empty">${esc(t("rvNone"))}</div>`;
   $$(".rv-row", el).forEach((b) => (b.onclick = () => openForm(b.dataset.id)));
 }
 
+on("plan", () => { if (app.tab === "reviews") renderTab(); });
 on("reviews", () => {
   if (app.tab === "reviews") renderTab();
-  if (curCourse && $("#dRev")) mount(curCourse);
+  if (curCourse && $("#dRevTop")) mount(curCourse);
 });

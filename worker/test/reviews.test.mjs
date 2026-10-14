@@ -180,6 +180,19 @@ test("asks: once per device, ranked by how many asked", async () => {
   assert.equal(s.asks, 2);
 });
 
+test("requests also report the courses the page asks about, asked or not", async () => {
+  const { h, env } = setup();
+  const tok = await session(h, env, "1.1.1.1");
+  await call(h, env, tok, "/api/ask", { method: "POST", body: { course: "MATH-234", dev: DEV_A } });
+  await call(h, env, tok, "/api/review", { method: "POST", body: { course: "PHYSICS-241", dev: DEV_A, hours: 1 } });
+  const [pending] = (await adm(h, env, "/api/rv-admin/list")).body.rows;
+  await adm(h, env, "/api/rv-admin/set", { id: pending.id, status: "ok" });
+  const rows = (await call(h, env, tok, "/api/review-requests?ids=PHYSICS-241,COMP-SCI-300,MATH-234,NOPE")).body.rows;
+  const by = Object.fromEntries(rows.map((r) => [r.id, [r.asks, r.n]]));
+  assert.deepEqual(by, { "MATH-234": [1, 0], "PHYSICS-241": [0, 1], "COMP-SCI-300": [0, 0] });
+  assert.equal((await call(h, env, tok, "/api/review-requests")).body.rows.length, 1, "without ids only asked courses");
+});
+
 test("the admin side needs the token; the page is served", async () => {
   const { h, env } = setup();
   assert.equal((await adm(h, env, "/api/rv-admin/list", null, "wrong")).status, 401);

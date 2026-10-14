@@ -134,7 +134,7 @@ export function createHandler(data, opts = {}) {
         r = await rv.summary(env, url.searchParams.get("course") || "");
         note(null, null, 1, r.status);
       } else {
-        r = await rv.requests(env);
+        r = await rv.requests(env, (url.searchParams.get("ids") || "").split(",").filter(Boolean));
         note(null, null, 1, r.status);
       }
       return send(JSON.stringify(r.body), r.status, 0);
