@@ -5,20 +5,27 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join, extname, normalize } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { createHandler } from "./src/handler.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
 const port = +(process.argv[2] || process.env.PORT || 8787);
 const unlimited = process.env.NO_LIMIT ? { list: 1e9, detail: 1e9, chat: 1e9 } : {};  // for browser test runs
-const handle = createHandler(JSON.parse(await readFile(join(here, "data.json"), "utf8")), { limits: unlimited });
+// Reviews, the request log and sessions live in a local SQLite file (worker/.dev.db, ignored by git), as D1 does in the cloud.
+// NO_DB=1 turns them off (the review routes then answer 404 and the page hides them). Admin token for /admin/reviews: dev
+const sql = new DatabaseSync(join(here, ".dev.db"));
+sql.exec(await readFile(join(here, "dev-schema.sql"), "utf8"));
+const stmt = (q, args = []) => ({ bind: (...a) => stmt(q, a), first: async () => sql.prepare(q).get(...args) ?? null, all: async () => ({ results: sql.prepare(q).all(...args) }), run: async () => { const r = sql.prepare(q).run(...args); return { meta: { changes: r.changes } }; } });
+const DEV_ENV = process.env.NO_DB ? {} : { DB: { prepare: (q) => stmt(q), batch: async (l) => Promise.all(l.map((x) => x.run())) }, SESSION_KEY: "dev-session-key", ADMIN_TOKEN: "dev" };
+const handle = createHandler(JSON.parse(await readFile(join(here, "data.json"), "utf8")), { limits: unlimited, reviewsHtml: await readFile(join(here, "src", "reviews-admin.html"), "utf8") });
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8", ".png": "image/png", ".md": "text/plain; charset=utf-8" };
 
 createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  if (url.pathname.startsWith("/api/")) {
+  if (url.pathname.startsWith("/api/") || url.pathname === "/admin/reviews") {
     const body = req.method === "POST" ? await new Promise((ok) => { const c = []; req.on("data", (d) => c.push(d)); req.on("end", () => ok(Buffer.concat(c))); }) : undefined;
-    const r = await handle(new Request(url, { method: req.method, headers: req.headers, body }), process.env.FAKE_AI ? { AI: { run: async () => ({ choices: [{ message: { content: "(local stub: run `npx wrangler dev` for the real assistant)" } }] }) } } : {});
+    const r = await handle(new Request(url, { method: req.method, headers: req.headers, body }), { ...DEV_ENV, ...(process.env.FAKE_AI ? { AI: { run: async () => ({ choices: [{ message: { content: "(local stub: run `npx wrangler dev` for the real assistant)" } }] }) } } : {}) });
     res.writeHead(r.status, Object.fromEntries(r.headers));
     res.end(Buffer.from(await r.arrayBuffer()));
     return;
@@ -27,7 +34,8 @@ createServer(async (req, res) => {
   if (!/^(index\.html|(assets|docs)\/[\w./-]+)$/.test(file) || file.includes("..")) { res.writeHead(404); res.end("not found"); return; }
   try {
     let body = await readFile(join(root, file));
-    if (file === "assets/config.js") body = body.toString("utf8").replace(/"api":\s*"[^"]*"/, '"api": ""');  // use this server's API
+    // Use this server's API; with a database the page needs a session, so give it a test sitekey (never passes, falls back to unverified after a few seconds)
+    if (file === "assets/config.js") body = body.toString("utf8").replace(/"api":\s*"[^"]*"/, process.env.NO_DB ? '"api": ""' : `"api": "http://127.0.0.1:${port}"`).replace(/"sitekey":\s*"[^"]*"/, '"sitekey": "1x00000000000000000000AA"');
     res.writeHead(200, { "Content-Type": TYPES[extname(file)] || "application/octet-stream", "Cache-Control": "no-store" });
     res.end(body);
   } catch { res.writeHead(404); res.end("not found"); }
