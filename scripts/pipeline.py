@@ -6,7 +6,7 @@ Usage:
     python scripts/pipeline.py --refresh    # re-fetch this term's sections (seats change daily)
     python scripts/pipeline.py --reddit     # also re-query r/UWMadison (needs FIRECRAWL_API_KEY)
     python scripts/pipeline.py --programs   # also re-scrape degree requirements from guide.wisc.edu
-    python scripts/pipeline.py --term 1274  # build for another term (e.g. when next term's schedule opens)
+    python scripts/pipeline.py --term 1282 --keep-term 1274  # next term's sections; this term's courses stay listed
     python scripts/pipeline.py --deploy     # then push worker/data.json to the cloud API (wrangler deploy)
 """
 import argparse, os, subprocess, sys
@@ -24,16 +24,17 @@ def main():
     ap.add_argument("--refresh", action="store_true")
     ap.add_argument("--reddit", action="store_true")
     ap.add_argument("--programs", action="store_true", help="re-scrape degree requirements into assets/programs")
-    ap.add_argument("--term", help="term code, e.g. 1274 = Spring 2027 (default: build_db's default)")
+    ap.add_argument("--term", help="term code, e.g. 1282 = Fall 2027 (default: build_db's default)")
+    ap.add_argument("--keep-term", help="earlier term whose courses stay listed (build_db --keep-term)")
     ap.add_argument("--deploy", action="store_true", help="deploy the API with the fresh data (needs `wrangler login` once)")
     a = ap.parse_args()
-    db_args = (["--refresh"] if a.refresh else []) + (["--term", a.term] if a.term else [])
-    run(os.path.join(HERE, "build_db.py"), *db_args)
+    term_args = (["--term", a.term] if a.term else []) + (["--keep-term", a.keep_term] if a.keep_term else [])
+    run(os.path.join(HERE, "build_db.py"), *(["--refresh"] if a.refresh else []), *term_args)
     if a.programs:
         run(os.path.join(HERE, "fetch_programs.py"))
     if a.reddit:
         run(os.path.join(HERE, "fetch_reddit.py"))
-        run(os.path.join(HERE, "build_db.py"), *(["--term", a.term] if a.term else []))
+        run(os.path.join(HERE, "build_db.py"), *term_args)
     run(os.path.join(HERE, "analyze.py"))
     run(os.path.join(HERE, "build_site.py"))
     run("-m", "unittest", "discover", "-s", "tests")

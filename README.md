@@ -1,6 +1,6 @@
 # UW Course Lookup
 
-Grades, instructors and seats for **every course in the Fall 2026 catalog (4,400+ UW–Madison courses)**, plus a
+Grades, instructors and seats for **every course in the Fall 2026 and Spring 2027 catalogs (6,300 UW–Madison courses)**, plus a
 degree-aware timetable planner and an assistant that can answer questions about all of it.
 
 👉 **[Open the tool](https://courses.madisonstudents.com/)**
@@ -12,7 +12,7 @@ degree-aware timetable planner and an assistant that can answer questions about 
 **Look courses up.** Search by code, title or instructor (`cs 577`, `calculus 234`, `calc feldman`). Open a course for its
 grade distribution against the campus baseline, GPA by term since 2006, every instructor's GPA in that course, this
 term's sections with days, times and rooms, and recent r/UWMadison threads. Filters and a handful of sort orders narrow
-4,400 courses fast.
+6,300 courses fast.
 
 **Plan a term.** Pick your program (212 undergraduate majors, copied from the UW Guide), import your transcript or DARS,
 add the courses you must take, and let the planner fill the rest from your unmet requirements.
@@ -47,7 +47,7 @@ The **Insights** tab and [`docs/ANALYSIS.md`](docs/ANALYSIS.md) are generated fr
   points apart, more than a full letter grade on the same syllabus.
 - **Popularity says nothing about difficulty.** Mentions vs. GPA: Spearman ρ = −0.07 (p = 0.30).
 - **Reddit tone does.** Courses whose r/UWMadison threads read upbeat grade higher (ρ = +0.43, p < 0.001, n = 220).
-- **Grade inflation.** Weighted GPA across the 290 featured courses rose from 3.02 (Fall 2006) to 3.39 (Spring 2026).
+- **Grade inflation.** Weighted GPA across the 292 featured courses rose from 3.02 (Fall 2006) to 3.39 (Spring 2026).
 
 ![Insights](docs/insights.png)
 
@@ -107,7 +107,7 @@ shared with the author's other data sites.
 python scripts/pipeline.py              # build data/uwcourses.db, analysis, worker/data.json, assets/config.js
 python scripts/pipeline.py --refresh    # also refresh this term's sections and seats
 python scripts/pipeline.py --programs   # also re-scrape degree requirements
-python scripts/pipeline.py --term 1274  # another term, e.g. Spring 2027 once Enroll publishes it
+python scripts/pipeline.py --term 1282 --keep-term 1274  # next term once Enroll publishes it
 python scripts/check_times.py           # compare meeting times with the official site (needs Playwright)
 node worker/dev-server.mjs              # page + API at http://127.0.0.1:8787/ (no assistant)
 

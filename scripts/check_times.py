@@ -2,18 +2,21 @@
 """Compare the meeting times in worker/data.json with what public.enroll.wisc.edu shows, section by section.
 
 Enroll's API stores clock times as UTC with a shift; the shift is only known by checking the website, so run this
-after building a new term (python scripts/pipeline.py --term 1274) before trusting the timetable planner.
+after building a new term (python scripts/pipeline.py --term 1282 --keep-term 1274) before trusting the timetable planner.
 
 Needs Playwright (pip install playwright && playwright install chromium).
 
 Usage:
     python scripts/check_times.py                 # 14 courses incl. the earliest and latest classes
-    python scripts/check_times.py --n 40 --term 1272
+    python scripts/check_times.py --n 40 --term 1274
 """
 import argparse, json, os, random, re, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "worker", "data.json")
+# CloudFront answers 403 to the default "HeadlessChrome" user agent
+UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+      "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 SECTION = re.compile(r"(LEC|DIS|LAB|SEM|STU|REC|IND|FLD|CLN|PRA|TUT|COL|WRK|OTH) \d+")
 MEET = re.compile(r"^([MTWRFSU]+) (\d+:\d+ [AP]M) - (\d+:\d+ [AP]M)")
 
@@ -33,7 +36,7 @@ def ours(data, cid):
 
 
 class Blocked(Exception):
-    """public.enroll.wisc.edu answered with CloudFront's 403: too many automated requests, wait and retry."""
+    """public.enroll.wisc.edu answered with CloudFront's 403 (a headless user agent, or too many automated requests)."""
 
 
 def official(page, term, code):
@@ -64,7 +67,7 @@ def official(page, term, code):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--term", default="1272")
+    ap.add_argument("--term", help="default: the term in worker/data.json")
     ap.add_argument("--n", type=int, default=14, help="how many courses to compare")
     a = ap.parse_args()
     from playwright.sync_api import sync_playwright
@@ -77,10 +80,10 @@ def main():
     total = bad = 0
     with sync_playwright() as p:
         b = p.chromium.launch(headless=True)
-        page = b.new_page(viewport={"width": 1500, "height": 1400}, locale="en-US", timezone_id="America/Chicago")
+        page = b.new_page(viewport={"width": 1500, "height": 1400}, locale="en-US", timezone_id="America/Chicago", user_agent=UA)
         for cid in picks:
             try:
-                off = official(page, a.term, codes[cid])
+                off = official(page, a.term or data["meta"]["term"], codes[cid])
             except Blocked:
                 print("The official site is rate-limiting this machine (CloudFront 403). Wait a while, or lower --n, and retry.")
                 sys.exit(2)

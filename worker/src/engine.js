@@ -7,9 +7,10 @@ const SHORT = { cs: "compsci", compsci: "compsci", stats: "stat", ece: "ece", po
 
 export const SORT_KEYS = ["m", "gpa", "gpaL", "pa", "tr", "tl", "sp", "rd", "en", "code"];
 export const LENS_KEYS = ["easy", "intro", "instr", "harder", "easier", "open", "reddit"];
-export const LIMITS = { rows: 60, offset: 4600, ids: 60, compare: 8, plan: 40 };
+export const LIMITS = { rows: 60, offset: 6400, ids: 60, compare: 8, plan: 40 };
 
 const nz = (v, d) => (v == null ? d : v);
+const size = (c) => c.en || c.sz || 0;  // this term's enrollment, else the kept term's
 
 // Records may omit empty fields (catalog tier); fill them so every course has one shape.
 function fill(c) {
@@ -20,7 +21,7 @@ function fill(c) {
 
 const LENSES = {
   easy: (c) => c.gs != null && c.gs >= 3.7 && c.n >= 500,
-  intro: (c) => c.num < 300 && (c.en || 0) >= 250,
+  intro: (c) => c.num < 300 && size(c) >= 250,
   instr: (c) => c.sp != null && c.sp >= 0.6,
   harder: (c) => c.tr != null && c.tr <= -0.03,
   easier: (c) => c.tr != null && c.tr >= 0.03,
@@ -32,7 +33,7 @@ const MIN_GRADED = 50;  // GPA sorts ignore courses with too few graded students
 const gsr = (c) => (c.n >= MIN_GRADED ? c.gs : null);
 
 const SORTS = {
-  m: (a, b) => b.m - a.m || b.rdn - a.rdn || nz(b.en, 0) - nz(a.en, 0),
+  m: (a, b) => b.m - a.m || b.rdn - a.rdn || size(b) - size(a),
   gpa: (a, b) => nz(gsr(b), -1) - nz(gsr(a), -1),
   gpaL: (a, b) => nz(gsr(a), 9) - nz(gsr(b), 9),
   pa: (a, b) => nz(b.pa, -1) - nz(a.pa, -1),
@@ -40,7 +41,7 @@ const SORTS = {
   tl: (a, b) => nz(a.tr, 9) - nz(b.tr, 9),
   sp: (a, b) => nz(b.sp, -1) - nz(a.sp, -1),
   rd: (a, b) => b.rdn - a.rdn || b.m - a.m,
-  en: (a, b) => nz(b.en, -1) - nz(a.en, -1),
+  en: (a, b) => (size(b) || -1) - (size(a) || -1),
   code: (a, b) => a.code.localeCompare(b.code, "en", { numeric: true }),
 };
 

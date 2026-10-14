@@ -61,12 +61,12 @@ def export(db):
     for row in db.execute("""
             SELECT c.id, c.code, c.subject_code, c.number, c.title, c.description, c.credits_min, c.credits_max,
                    c.prereqs, c.breadths, c.gen_ed, c.ethnic_studies, c.level, c.typically_offered, c.last_taught,
-                   c.offered_now, c.madgrades_uuid, c.source, c.enrolled_now, m.mentions, m.positive, m.negative,
+                   c.offered_now, c.madgrades_uuid, c.source, c.enrolled_now, c.enrolled_last, m.mentions, m.positive, m.negative,
                    s.graded, s.gpa, s.gpa_recent, s.gpa_shrunk, s.pct_a, s.pct_df, s.trend, s.instr_spread,
                    s.reddit_count, s.reddit_tone
             FROM courses c JOIN chat_mentions m ON m.course_id=c.id LEFT JOIN course_stats s ON s.course_id=c.id
             ORDER BY m.mentions DESC, c.code"""):
-        (cid, code, sc, num, title, desc, cmin, cmax, prq, br, ge, es, lvl, typ, last, now, uuid, src, enr,
+        (cid, code, sc, num, title, desc, cmin, cmax, prq, br, ge, es, lvl, typ, last, now, uuid, src, enr, enr_last,
          men, pos, neg, graded, gpa, gpa_r, gpa_s, pa, pdf, tr, sp, rdn, rdt) = row
         dist = db.execute("""SELECT SUM(a),SUM(ab),SUM(b),SUM(bc),SUM(c),SUM(d),SUM(f) FROM grade_terms
                              WHERE course_id=?""", (cid,)).fetchone()
@@ -110,7 +110,7 @@ def export(db):
             "id": code.replace(" ", "-"), "code": code, "al": aliases, "sa": subj.get(sc, (None,))[0],
             "sn": nice(subj.get(sc, (None, None))[1]), "num": num, "t": title, "d": desc, "cr": cr,
             "prq": prq, "br": json.loads(br or "[]"), "ge": ge, "es": es, "lvl": lvl, "typ": typ, "last": last,
-            "now": now_obj, "mg": uuid, "src": src, "en": enr, "m": men, "ms": 1 if hidden else 0, "pos": pos, "neg": neg,
+            "now": now_obj, "mg": uuid, "src": src, "en": enr, "sz": None if enr else enr_last, "m": men, "ms": 1 if hidden else 0, "pos": pos, "neg": neg,
             "n": graded or 0, "gpa": r3(gpa), "gr": r3(gpa_r), "gs": r3(gpa_s), "pa": r3(pa), "pdf": r3(pdf),
             "tr": r3(tr), "sp": r3(sp), "dist": list(dist) if dist[0] is not None else None,
             "terms": terms, "ins": ins, "rd": rd[:MAX_THREADS], "rdn": rdn or 0, "rdt": r3(rdt)}

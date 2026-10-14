@@ -36,7 +36,8 @@ CREATE TABLE courses (
   enroll_course_id TEXT,
   madgrades_uuid   TEXT,
   source           TEXT,                   -- chat (peer-mentioned), enrollment (large this term) or catalog (everything else)
-  enrolled_now     INTEGER                 -- lecture enrollment this term, at build time
+  enrolled_now     INTEGER,                -- lecture enrollment this term, at build time
+  enrolled_last    INTEGER                 -- lecture enrollment in the kept earlier term (build_db --keep-term)
 );
 
 CREATE TABLE course_aliases (             -- every designation incl. cross-listings

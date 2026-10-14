@@ -10,7 +10,10 @@ Course tiers (courses.source): chat (peer-mentioned), enrollment (large this ter
 catalog (everything else in the catalog; grades and seats only, no peer signal).
 
 Usage:
-    python scripts/build_db.py [--term 1272] [--refresh] [--featured-only]
+    python scripts/build_db.py [--term 1274] [--keep-term 1272] [--refresh] [--featured-only]
+
+--keep-term keeps the courses of an earlier term that the new term does not offer (grades only, no sections)
+and sizes courses by that term's enrollment while the new term's enrollment has not opened.
 """
 import argparse, datetime, json, os, re, sqlite3, sys
 from concurrent.futures import ThreadPoolExecutor
@@ -97,8 +100,15 @@ def lecture_enrollment(packages):
     return max(totals.values(), default=0)
 
 
-def expansion(catalog, term, min_enrolled, have, refresh):
-    """Large courses this term that the chat never mentioned (all undergrad-level offerings scanned)."""
+def last_enrollment(keep_term, h):
+    """Lecture enrollment of the course in the kept term (0 without one)."""
+    if not keep_term or not h:
+        return 0
+    return lecture_enrollment(uwapi.enroll_packages(keep_term, h["subject"]["subjectCode"], h["courseId"]))
+
+
+def expansion(catalog, term, min_enrolled, have, refresh, keep_term=None):
+    """Large courses this term (or the kept term) that the chat never mentioned (all undergrad-level offerings scanned)."""
     uniq = {}
     for h in catalog:
         if h.get("currentlyTaught") and int(h["catalogNumber"]) < 700:
@@ -107,7 +117,7 @@ def expansion(catalog, term, min_enrolled, have, refresh):
 
     def size(h):
         pk = uwapi.enroll_packages(term, h["subject"]["subjectCode"], h["courseId"], cache=not refresh)
-        return h, pk, lecture_enrollment(pk)
+        return h, pk, max(lecture_enrollment(pk), last_enrollment(keep_term, h))
 
     with ThreadPoolExecutor(8) as ex:
         sized = list(ex.map(size, todo))
@@ -182,7 +192,8 @@ def name_of(i):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--term", default="1272")
+    ap.add_argument("--term", default="1274")
+    ap.add_argument("--keep-term", default="1272", help="earlier term whose courses stay listed ('' = none)")
     ap.add_argument("--refresh", action="store_true", help="re-fetch current sections (seats change daily)")
     ap.add_argument("--min-enrolled", type=int, default=250,
                     help="also add unmentioned courses with at least this many enrolled this term (0 = off)")
@@ -191,6 +202,11 @@ def main():
 
     seeds = json.load(open(SEED, encoding="utf-8")) if os.path.exists(SEED) else []  # private; without it only the other tiers are built
     catalog = uwapi.enroll_catalog(a.term)
+    if a.keep_term:  # the new term's metadata wins; the kept term only adds courses it lacks
+        have = {h["courseId"] for h in catalog}
+        kept = [h for h in uwapi.enroll_catalog(a.keep_term) if h["courseId"] not in have]
+        catalog += kept
+        print(f"kept {len(kept)} courses from {a.keep_term} that {a.term} does not offer")
     mg_subjects = []
     page = 1
     while True:
@@ -205,7 +221,7 @@ def main():
     for c in courses.values():
         c["source"] = "chat"
     if a.min_enrolled:
-        courses.update(expansion(catalog, a.term, a.min_enrolled, courses, a.refresh))
+        courses.update(expansion(catalog, a.term, a.min_enrolled, courses, a.refresh, a.keep_term))
     if not a.featured_only:
         courses.update(catalog_tier(catalog, courses))
     todo = list(courses.values())
@@ -214,6 +230,7 @@ def main():
     def job(c):
         nonlocal done
         fetch_course(c, a.term, a.refresh)
+        c["last_en"] = last_enrollment(a.keep_term, c["hit"])
         done += 1
         if done % 250 == 0:
             print(f"  fetched {done}/{len(todo)}", flush=True)
@@ -256,7 +273,7 @@ def main():
         used.add(code)
         cid += 1
         packages = c["packages"] or []
-        db.execute("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+        db.execute("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
             cid, code, c["subject_code"], int(c["num"]),
             (h or {}).get("title") or (mg or {}).get("name"),
             (h or {}).get("description"),
@@ -270,7 +287,7 @@ def main():
             int(h["lastTaught"]) if h and str(h.get("lastTaught") or "").strip().isdigit() else None,
             1 if h else 0, 1 if packages else 0,
             (h or {}).get("courseId"), (mg or {}).get("uuid"), c["source"],
-            lecture_enrollment(packages) if packages else None))
+            lecture_enrollment(packages) if packages else None, c.get("last_en") or None))
         aliases = {code}
         if h:
             aliases |= {f"{s['shortDescription']} {c['num']}" for s in h.get("allCrossListedSubjects") or []}
