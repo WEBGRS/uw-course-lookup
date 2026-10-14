@@ -10,7 +10,8 @@ const page = await browser.newPage({ viewport: { width: 1340, height: 900 }, loc
 const problems = [];
 const apiCalls = [];
 page.on("pageerror", (e) => problems.push("pageerror: " + e.message));
-const beacon = (m) => /cloudflareinsights/.test(m.text() + (m.location().url || ""));  // analytics beacon, blocked on localhost
+// Cloudflare's own noise: the analytics beacon (blocked on localhost) and Turnstile's devtools probe
+const beacon = (m) => /cloudflareinsights|challenges\.cloudflare\.com/.test(m.text() + (m.location().url || ""));
 page.on("console", (m) => { if (m.type() === "error" && !beacon(m)) problems.push("console: " + m.text()); });
 page.on("response", (r) => { if (r.url().includes("/api/")) apiCalls.push(`${r.status()} ${r.url().replace(/^https?:\/\/[^/]+/, "")}`); });
 
