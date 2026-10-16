@@ -3,7 +3,9 @@
    data-api      accounts Worker (default https://accounts.madisonstudents.com); on localhost ?acct=<url> overrides it
    data-mount    container for the Sign in button; data-before: insert before this child; data-class: its classes
    data-compact  below this width (px) the button shows only its icon
-   window.MSAccount: user, ready (Promise of user or null), on(fn(user, reason)), load(site), save(site, data, {beacon}), open()
+   window.MSAccount: user, ready (Promise of user or null), on(fn(user, reason)), load(site), save(site, data, {beacon}), open(from, ctx)
+   ctx (optional, for this opening only): { note: text after the heading, title: heading when signed in,
+     field: { label, value, maxlength, onInput(value) } an extra optional input at the bottom; signed in, the panel then shows only it }
    Sign-in is email + password, or a 6-digit code by email (also how an account is created and a password reset).
    The session is an HttpOnly cookie shared by every madisonstudents.com subdomain. */
 (function () {
@@ -134,7 +136,7 @@
 
   // ---------- panel (shadow DOM keeps the page's CSS and ours apart)
   // step: pw (email + password) | codeEmail | signup | code (enter the emailed code) | in (signed in)
-  var host, root, panel, btn = null, opener = null, isOpen = false, step = 'pw', flow = 'codeEmail', email = '', pendingPw = '', pwOpen = false, cool = 0, coolTimer = 0;
+  var host, root, panel, btn = null, opener = null, ctx = null, isOpen = false, step = 'pw', flow = 'codeEmail', email = '', pendingPw = '', pwOpen = false, cool = 0, coolTimer = 0;
   var CSS = [
     ':host{all:initial}',
     '.panel{position:fixed;z-index:2147483001;width:284px;max-width:calc(100vw - 24px);box-sizing:border-box;padding:12px 14px;border-radius:10px;',
@@ -147,6 +149,8 @@
     '.dark{--bg:#1c2026;--ink:#eef1f4;--sub:#c9ced4;--line:rgba(238,241,244,.2);--field:#14171b;--wash:rgba(255,255,255,.09);--ph:rgba(238,241,244,.55);--bad:#ff8a80}',
     '.hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px}',
     '.hd b{font-size:14.5px;font-weight:650}',
+    '.note{font-weight:400;color:var(--sub)}',
+    '.xf{margin:10px 0 0}.xf input{margin:0}',
     '.x{width:26px;height:26px;margin:-4px -6px -4px 0;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:18px;line-height:1;cursor:pointer}',
     '.x:hover{background:var(--wash)}',
     'p{margin:0 0 8px;color:var(--sub)}',
@@ -196,6 +200,7 @@
       else if (a === 'delete') deleteAccount();
     });
     panel.addEventListener('input', function (e) {
+      if (e.target.name === 'xf' && ctx && ctx.field && ctx.field.onInput) ctx.field.onInput(e.target.value);
       if (e.target.name === 'code') {
         var v = e.target.value.replace(/\D/g, '').slice(0, 6);
         if (v !== e.target.value) e.target.value = v;
@@ -205,7 +210,7 @@
   }
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function head(title) { return '<div class="hd"><b id="ac-t">' + esc(title) + '</b><button type="button" class="x" data-a="close" aria-label="' + esc(t('close')) + '">&times;</button></div>'; }
+  function head(title) { return '<div class="hd"><b id="ac-t">' + esc(title) + (ctx && ctx.note ? '<span class="note">' + esc(ctx.note) + '</span>' : '') + '</b><button type="button" class="x" data-a="close" aria-label="' + esc(t('close')) + '">&times;</button></div>'; }
   function emailInput() {
     return '<input name="email" type="email" inputmode="email" autocomplete="username" placeholder="' + esc(t('email')) + '" aria-label="' + esc(t('email')) + '" value="' + esc(email) + '">';
   }
@@ -218,7 +223,11 @@
   function render() {
     if (!panel) return;
     var h;
-    if (user) {
+    var xf = ctx && ctx.field;
+    if (user && xf) {
+      step = 'in';
+      h = head(ctx.title || t('account')) + '<p class="who">' + esc(user.email) + '</p>';
+    } else if (user) {
       step = 'in';
       h = head(t('account')) + '<p class="who">' + esc(user.email) + '</p>' +
         (pwOpen
@@ -246,6 +255,7 @@
         '<button type="submit" class="go">' + esc(t('signin')) + '</button>' + ST + '</form>' +
         '<div class="links">' + link('tocode', 'codeLogin') + link('tosignup', 'signup') + '</div>';
     }
+    if (xf) h += '<div class="xf"><input name="xf" maxlength="' + (+xf.maxlength || 60) + '" autocomplete="off" placeholder="' + esc(xf.label) + '" aria-label="' + esc(xf.label) + '" value="' + esc(xf.value || '') + '"></div>';
     panel.innerHTML = h;
     resendLabel();
     var f = panel.querySelector('input');
@@ -294,7 +304,7 @@
     email = ''; pendingPw = ''; pwOpen = false;
     setUser(u, 'signin');
     render();
-    setTimeout(close, 900);
+    if (!(ctx && ctx.field)) setTimeout(close, 900);
   }
   function savePw() {
     var pw = field('password');
@@ -388,9 +398,10 @@
     panel.style.left = Math.min(Math.max(12, r.right - w), vw - w - 12) + 'px';
     panel.style.top = (r.bottom + 8) + 'px';
   }
-  function open(from) {
+  function open(from, c) {
     if (!host) build();
     opener = from && from.nodeType === 1 ? from : btn;
+    ctx = c || null;
     panel.classList.remove('light', 'dark');
     panel.classList.add(dark(opener) ? 'dark' : 'light');
     panel.style.fontFamily = getComputedStyle(opener || document.body).fontFamily;
@@ -469,7 +480,7 @@
     get user() { return user; },
     ready: ready,
     on: function (fn) { listeners.push(fn); },
-    open: function () { open(btn); },
+    open: function (from, c) { open(from && from.nodeType === 1 ? from : btn, c); },
     load: function (site) { return call('/api/data/' + site); },
     save: function (site, data, o) { return call('/api/data/' + site, { method: 'PUT', body: { data: data }, keepalive: !!(o && o.beacon) }); },
   };

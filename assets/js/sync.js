@@ -9,7 +9,7 @@ let seen = store.get("syncSeen", 0);         // server time of the copy last pul
 let owner = store.get("syncOwner", "");      // account this device's copy came from ("" = never synced)
 let timer = 0, applying = false, lastPull = 0;
 
-const snapshot = () => ({ must: [...plan.must], done: [...plan.done], ip: [...plan.ip], program: plan.program, crMin: plan.crMin, crMax: plan.crMax, mainMax: plan.mainMax, creditOf: plan.creditOf, grad: plan.grad, earned: plan.earned, fill: plan.fill, prefs: plan.prefs });
+const snapshot = () => ({ must: [...plan.must], done: [...plan.done], ip: [...plan.ip], program: plan.program, crMin: plan.crMin, crMax: plan.crMax, mainMax: plan.mainMax, creditOf: plan.creditOf, grad: plan.grad, earned: plan.earned, fill: plan.fill, prefs: plan.prefs, wechat: plan.wechat });
 const setDirty = (v) => { dirty = v; store.set("syncDirty", v); };
 const setSeen = (v) => { seen = v; store.set("syncSeen", v); };
 const setOwner = (v) => { owner = v; store.set("syncOwner", v); };
@@ -35,6 +35,7 @@ function apply(d) {
   plan.earned = d.earned == null ? null : +d.earned;
   plan.fill = d.fill !== false;
   plan.prefs = d.prefs && typeof d.prefs === "object" ? d.prefs : {};
+  plan.wechat = typeof d.wechat === "string" ? d.wechat : "";
   plan.save();
   applying = false;
   emit("plan");
@@ -52,9 +53,10 @@ function merge(server) {
     crMax: local.crMax !== 16 ? local.crMax : +server.crMax || 16,
     mainMax: local.mainMax || +server.mainMax || 0, creditOf: { ...(server.creditOf || {}), ...local.creditOf }, grad: local.grad || +server.grad || 0, earned: local.earned ?? server.earned ?? null,
     fill: local.fill, prefs: { ...(server.prefs || {}), ...local.prefs },
+    wechat: local.wechat || (typeof server.wechat === "string" ? server.wechat : ""),
   };
 }
-const isEmpty = (s) => !s.must.length && !s.done.length && !s.ip.length && !s.program;
+const isEmpty = (s) => !s.must.length && !s.done.length && !s.ip.length && !s.program && !s.wechat;
 
 async function push(beacon = false) {
   clearTimeout(timer);

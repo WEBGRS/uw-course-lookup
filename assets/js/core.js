@@ -128,7 +128,8 @@ export const plan = {
   earned: saved.earned ?? null,  // credits earned so far when the user typed them (AP, transfer); null = estimate
   fill: saved.fill !== false,
   prefs: saved.prefs || {},
-  save() { store.set("plan", { must: [...this.must], done: [...this.done], ip: [...this.ip], program: this.program, crMin: this.crMin, crMax: this.crMax, mainMax: this.mainMax, creditOf: this.creditOf, grad: this.grad, earned: this.earned, fill: this.fill, prefs: this.prefs }); },
+  wechat: typeof saved.wechat === "string" ? saved.wechat : "",   // optional, for find classmates
+  save() { store.set("plan", { must: [...this.must], done: [...this.done], ip: [...this.ip], program: this.program, crMin: this.crMin, crMax: this.crMax, mainMax: this.mainMax, creditOf: this.creditOf, grad: this.grad, earned: this.earned, fill: this.fill, prefs: this.prefs, wechat: this.wechat }); },
   toggle(id) { const added = !this.must.has(id); added ? this.must.add(id) : this.must.delete(id); this.save(); emit("plan"); emit("plan-change", { id, added }); },
   add(id) { if (!this.must.has(id)) { this.must.add(id); this.save(); emit("plan"); emit("plan-change", { id, added: true }); } },
   remove(id) { if (this.must.delete(id)) { this.save(); emit("plan"); emit("plan-change", { id, added: false }); } },
