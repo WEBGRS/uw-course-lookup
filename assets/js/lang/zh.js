@@ -13,7 +13,7 @@ const ORIG = {
     rvSent: "已提交，审核后显示", rvFail: "提交失败，请稍后再试", rvNone: "暂无", rvMine: "我上过的", rvGrpMine: "你上过的课", rvGrpAsked: "大家想看评价的课", rvHint: "可以去「评价」里给上过的课评价吗？互相帮助 (｡･ω･｡)ﾉ♡", rvUndo: "撤销", rvMore: "给其他课程评价", rvWritten: "已评价", rvN: n => n + " 条评价", rvAskN: n => n + " 人问", rvAttendPct: p => "强制点名 " + p + "%",
     mtFind: "找课友", mtSoon: "（下学期开放）", mtWechat: "微信号（选填）",
     rvt_final: "期末", rvt_midterm: "期中", rvt_paper: "论文", rvt_project: "项目", rvt_homework: "作业", rvt_participation: "课堂参与",
-    searchPh: "课号、课名或教授，例如 cs 577、calculus、Renault", sortBy: "排序",
+    searchPh: "搜索课程或教授", sortBy: "排序",
     s_m: "热门", s_gpa: "GPA 最高", s_gpaL: "GPA 最低", s_pa: "拿 A 比例最高", s_tr: "给分变松", s_tl: "给分变严",
     s_sp: "最看教授", s_rd: "Reddit 帖最多", s_en: "本学期人数最多", s_code: "按课号",
     subject: "学科", level: "课程级别", breadth: "Breadth", minGpa: "最低 GPA",

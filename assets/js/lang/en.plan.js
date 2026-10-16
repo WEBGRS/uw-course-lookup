@@ -50,7 +50,7 @@ export default {
   reqTitle: "Requirements", transcriptHelp: "Upload your unofficial transcript or DARS to mark what you have already taken. It stays in your browser.",
   importedSub: (d, i, cr) => `${d} taken${i ? `, ${i} in progress` : ""}${cr ? `, ${cr} credits` : ""}`, resultEmpty: "Add courses, set your limits, then press Build. Your timetable shows up here.",
   notice: "Spring 2027 schedule updated on Oct 14.",
-  program: "Program", programPh: "Search your major, e.g. Computer Sciences",
+  program: "Program", programPh: "Search your major",
   importBtn: "Import transcript", importedN: (n) => `${n} courses imported`, importEdit: "Edit",
   importTitle: "Import what you have taken",
   importHelp: "Upload your unofficial transcript or DARS (PDF or text), or paste it. Nothing leaves your browser.",

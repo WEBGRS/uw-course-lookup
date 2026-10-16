@@ -50,7 +50,7 @@ export default {
   reqTitle: "毕业要求", transcriptHelp: "上传 unofficial transcript 或 DARS，标记已修课程。内容不会离开你的浏览器。",
   importedSub: (d, i, cr) => `已修 ${d} 门${i ? `，在读 ${i} 门` : ""}${cr ? `，${cr} 学分` : ""}`, resultEmpty: "添加课程、设好限制，点「生成课表」，课表会显示在这里。",
   notice: "春季课表已于 10 月 14 日更新。",
-  program: "专业", programPh: "搜你的专业，如 Computer Sciences",
+  program: "专业", programPh: "搜索你的专业",
   importBtn: "导入成绩单", importedN: (n) => `已导入 ${n} 门课`, importEdit: "编辑",
   importTitle: "导入已修课程",
   importHelp: "上传 unofficial transcript 或 DARS（PDF 或文本），也可以直接粘贴。内容不会离开你的浏览器。",

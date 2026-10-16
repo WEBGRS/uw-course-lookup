@@ -12,7 +12,7 @@ const ORIG = {
     tabReviews: "Reviews", rvTitle: "Reviews", rvWrite: "Write a review", rvAsk: "Ask others", rvAsked: "Asked", rvInstr: "Instructor", rvHours: "Hours per week outside class", rvAttend: "Attendance required", rvYes: "Yes", rvNo: "No", rvGrade: "Grading", rvText: "Comment", rvSubmit: "Submit", rvClose: "Close",
     rvSent: "Submitted. It shows after review.", rvFail: "Couldn't submit. Try again later.", rvNone: "Nothing yet", rvMine: "Taken", rvGrpMine: "Courses you took", rvGrpAsked: "Students asked for these", rvHint: "Taken a course? Review it under Reviews. Let's help each other (｡･ω･｡)ﾉ♡", rvUndo: "Undo", rvMore: "Review other courses", rvWritten: "Reviewed", rvN: n => n + (n === 1 ? " review" : " reviews"), rvAskN: n => n + " asked", rvAttendPct: p => "Attendance required " + p + "%",
     rvt_final: "Final", rvt_midterm: "Midterm", rvt_paper: "Paper", rvt_project: "Project", rvt_homework: "Homework", rvt_participation: "Participation",
-    searchPh: "Course, title or instructor, e.g. cs 577, calculus, Renault", sortBy: "Sort by",
+    searchPh: "Search courses or instructors", sortBy: "Sort by",
     s_m: "Popular", s_gpa: "Highest GPA", s_gpaL: "Lowest GPA", s_pa: "Most A's", s_tr: "Grades rising", s_tl: "Grades falling",
     s_sp: "Instructor matters most", s_rd: "Most Reddit threads", s_en: "Largest this term", s_code: "Course number",
     subject: "Subject", level: "Course level", breadth: "Breadth", minGpa: "Minimum GPA",
