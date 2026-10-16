@@ -611,6 +611,12 @@ export async function init() {
   });
   root.addEventListener("mousedown", (e) => { if (e.target.closest("#pgList")) e.preventDefault(); });
   root.addEventListener("keydown", (e) => {
+    // Add-a-course box: Enter takes the first suggestion
+    if ((e.target.id === "addQ" || e.target.id === "addQ2") && e.key === "Enter") {
+      const box = $(e.target.id === "addQ" ? "#addRes" : "#addRes2"), first = box && !box.hidden && box.querySelector("[data-addc]");
+      if (first) { e.preventDefault(); first.click(); }
+      return;
+    }
     if (e.target.id !== "pgInput") return;
     if (e.key === "ArrowDown") { e.preventDefault(); pgMove(1); }
     else if (e.key === "ArrowUp") { e.preventDefault(); pgMove(-1); }
