@@ -40,6 +40,19 @@ test("title words, number and instructor", () => {
   assert.equal(run({ q: "zzzz" }).total, 0);
 });
 
+test("subject words: code matches before title matches, in any sort", () => {
+  const d = JSON.parse(JSON.stringify(data));
+  const extra = JSON.parse(JSON.stringify(d.courses.find((c) => c.code === "ANTHRO 104")));
+  Object.assign(extra, { id: "A-A-E-101", code: "A A E 101", t: "Companion Animal Science", sn: "Agricultural and Applied Economics", al: [] });
+  const cross = JSON.parse(JSON.stringify(extra));
+  Object.assign(cross, { id: "B-M-I-567", code: "B M I 567", t: "Biomedical Image Analysis", sn: "Biostatistics", al: ["COMP SCI 567"] });
+  d.courses.push(extra, cross);
+  const ix2 = buildIndex(d);
+  const ids = (o) => query(ix2, new URLSearchParams(o)).rows.map((x) => JSON.parse(x).id);
+  assert.deepEqual(ids({ q: "comp sci", sort: "code" }), ["COMP-SCI-300", "COMP-SCI-577", "B-M-I-567", "A-A-E-101"]);
+  assert.deepEqual(ids({ q: "comp sci", sort: "code", offset: "3" }), ["A-A-E-101"]);
+});
+
 test("words must start words, and may not span two instructors", () => {
   assert.deepEqual(run({ q: "anne frank" }).ids.sort(), ["GERMAN-325", "LITTRANS-326"]); // not ANTHRO 104 (two people)
   assert.equal(run({ q: "nne" }).total, 0); // not mid-word

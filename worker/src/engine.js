@@ -132,13 +132,17 @@ function makeMatcher(ix, q) {
   const expanded = nq.replace(/^([a-z]+)/, (m) => SHORT[m] || m);
   if (codeLike(ix, nq)) return (i) => ix.codes[i].some((x) => x.startsWith(nq) || x.startsWith(expanded));
   const ws = q.split(/\s+/).map((w) => w.replace(/[^a-z0-9]/g, "")).filter(Boolean);
-  return (i) => {
+  const fn = (i) => {
     if (ix.codes[i].some((x) => x.includes(nq))) return true;
     const main = ix.main[i];
     const rest = ws.filter((w) => !main.includes(" " + w));
     if (!rest.length) return true;
     return ix.people[i].some((p) => rest.every((w) => p.includes(" " + w)));
   };
+  // "comp sci", "math": own code starts with the query (0), then a cross-listing does (1), then the rest (2)
+  const hit = (x) => x.startsWith(nq) || x.startsWith(expanded);
+  fn.tier = (i) => (hit(ix.codes[i][0]) ? 0 : ix.codes[i].some(hit) ? 1 : 2);
+  return fn;
 }
 
 const int = (v, d, lo, hi) => {
@@ -161,18 +165,22 @@ export function query(ix, params) {
   const order = ix.order[sort], C = ix.C;
   let total = 0;
   const rows = [];
-  for (let k = 0; k < order.length; k++) {
-    const i = order[k];
-    if (idSet && !idSet.has(i)) continue;
-    if (lens && !lens[i]) continue;
-    if (subj && ix.sa[i] !== subj) continue;
-    if (lvl && !(lvl === "5" ? ix.num[i] >= 500 : Math.floor(ix.num[i] / 100) === +lvl)) continue;
-    if (br && !(br === "__es" ? ix.es[i] : br === "__ge" ? ix.ge[i] : C[i].br.includes(br))) continue;
-    if (minGpa != null && !(ix.gpa[i] >= minGpa)) continue;
-    if (now && !ix.hasNow[i]) continue;
-    if (match && !match(i)) continue;
-    if (total >= offset && rows.length < limit) rows.push(ix.rowJson[i]);
-    total++;
+  const passes = match && match.tier ? [0, 1, 2] : [null];
+  for (const want of passes) {
+    for (let k = 0; k < order.length; k++) {
+      const i = order[k];
+      if (idSet && !idSet.has(i)) continue;
+      if (lens && !lens[i]) continue;
+      if (subj && ix.sa[i] !== subj) continue;
+      if (lvl && !(lvl === "5" ? ix.num[i] >= 500 : Math.floor(ix.num[i] / 100) === +lvl)) continue;
+      if (br && !(br === "__es" ? ix.es[i] : br === "__ge" ? ix.ge[i] : C[i].br.includes(br))) continue;
+      if (minGpa != null && !(ix.gpa[i] >= minGpa)) continue;
+      if (now && !ix.hasNow[i]) continue;
+      if (match && !match(i)) continue;
+      if (want !== null && match.tier(i) !== want) continue;
+      if (total >= offset && rows.length < limit) rows.push(ix.rowJson[i]);
+      total++;
+    }
   }
   return { total, rows };
 }
