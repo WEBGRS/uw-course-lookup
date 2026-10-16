@@ -45,10 +45,10 @@ function draw(c, d) {
   const done = reviewed.has(id), isAsked = asked.has(id);
   const landed = justAsked && justAsked.id === id && Date.now() - justAsked.at < 2000;
   const undo = (k) => `<button class="linkbtn rv-undo" data-rv="${k}">${esc(t("rvUndo"))}</button>`;
-  top.innerHTML = `<div class="d-sec rv-top"><div class="rv-act">` +
+  top.innerHTML = `<div class="rv-act">` +
     `<span class="rv-pair"><button class="btn rv-ask" data-rv="ask"${isAsked ? " disabled" : ""}>${esc(t(isAsked ? "rvAsked" : "rvAsk"))}${d.asks ? ` · ${d.asks}` : ""}</button>${isAsked ? undo("unask") : ""}</span>` +
     `<span class="rv-pair"><button class="btn primary" data-rv="write"${done ? " disabled" : ""}>${done ? "✓ " : ""}${esc(t(done ? "rvWritten" : "rvWrite"))}</button>${done ? undo("unreview") : ""}</span>` +
-    `<a class="rv-hint" href="#/reviews">${esc(t("rvHint"))}</a></div></div>`;
+    `<a class="rv-hint" href="#/reviews">${esc(t("rvHint"))}</a></div>`;
   top.dataset.id = id; drawn = { id, d };
   const on_ = (k, fn) => { const b = top.querySelector(`[data-rv="${k}"]`); if (b) b.onclick = fn; };
   on_("write", () => openForm(id));

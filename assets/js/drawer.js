@@ -7,6 +7,7 @@ import { setBand } from "./band.js";
 import { loadPlanData, planOf } from "./planner/data.js";
 import { fmtRange, daysText, DAY_LETTERS } from "./planner/schedule.js";
 import { mount as mountReviews } from "./reviews.js";
+import { mount as mountMates } from "./mates.js";
 
 export let cur = null;
 let lastFocus = null, lastFocusId = null, showAllIns = false, seq = 0;
@@ -68,23 +69,22 @@ export async function openDrawer(id, keepScroll) {
   if (!wasOpen) { lastFocus = document.activeElement; const fr = lastFocus && lastFocus.closest && lastFocus.closest(".row[data-id]"); lastFocusId = fr ? fr.dataset.id : null; }
   if (cur !== c) showAllIns = false;
   cur = c; app.openCourse = c;
-  const top = keepScroll ? dr.scrollTop : 0, L = listState.rows, idx = L.findIndex((r) => r.id === c.id), pos = idx + 1;
+  const top = keepScroll ? dr.scrollTop : 0, L = listState.rows, idx = L.findIndex((r) => r.id === c.id);
   const saved = plan.must.has(c.id);
   const chips = [c.cr && t("credits", c.cr), lvlName(c.lvl), ...c.br.map(brName), c.ge, c.es && brName("Ethnic Studies"), c.typ && c.typ !== "Not Applicable" && t("usually", c.typ)].filter(Boolean);
   let h = `<div class="d-head">
-    <div class="d-nav">${idx >= 0 ? `<button class="icon-btn" id="dPrev" aria-label="${esc(t("prev"))}" title="${esc(t("prev"))} (←)">‹</button><span class="pos">${pos} / ${fmt(listState.total)}</span><button class="icon-btn" id="dNext" aria-label="${esc(t("next"))}" title="${esc(t("next"))} (→)">›</button>` : ""}<button class="icon-btn" id="dClose" aria-label="${esc(t("close"))}">✕</button></div>
+    <div class="d-nav"><button class="icon-btn" id="dClose" aria-label="${esc(t("close"))}">✕</button></div>
     <div class="d-code">${esc(c.code)}${c.al.length ? " · " + esc(t("alsoAs")) + " " + esc(c.al.join(", ")) : ""} · ${esc(c.sn)}</div>
     <h2 class="d-title serif" id="dTitle">${esc(c.t)}</h2>
     <div class="chips">${chips.map((x) => `<span class="chip">${esc(x)}</span>`).join("")}</div></div><div class="d-body">`;
   const prq = c.prq ? String(c.prq).split(/(?<=\.)\s+/).filter(Boolean) : [];
-  h += `<div class="d-sec d-actions"><button class="btn big${saved ? "" : " primary"}" id="dSave" aria-pressed="${saved}">${esc(saved ? t("saved") : t("save"))}</button>
-    <div class="d-links"><a target="_blank" rel="noopener" href="${mgUrl(c)}">${esc(t("mg"))}</a><a target="_blank" rel="noopener" href="${enrollUrl(c.code)}">${esc(t("cse"))}</a><a target="_blank" rel="noopener" href="${guideUrl(c.code)}">${esc(t("guide"))}</a><a target="_blank" rel="noopener" href="${redditUrl(c)}">${esc(t("searchReddit"))}</a><button class="linkbtn" id="dShare">${esc(t("copy"))}</button></div></div>`;
-  h += '<div id="dRevTop"></div>';
+  h += `<div class="d-sec d-actions"><button class="btn big${saved ? "" : " primary"}" id="dSave" aria-pressed="${saved}">${esc(saved ? t("saved") : t("save"))}</button></div>`;
+  h += '<div class="d-sec rv-top"><div id="dRevTop"></div><div id="dMates"></div></div>';
   if (c.d || prq.length) h += `<div class="d-sec">${c.d ? `<p class="desc">${esc(c.d)}</p>` : ""}${prq.length ? `<div class="prq-card"><b>${esc(t("prqTitle"))}</b> ${prq.map((x, i) => `<span${i ? ' class="more"' : ""}>${esc(x)}</span>`).join(" ")}</div>` : ""}</div>`;
   if (c.dist) h += `<div class="d-sec"><div class="kpis">
     <div class="kpi"><b>${f2(c.gpa)}</b><span>${esc(t("kGpa"))}</span></div><div class="kpi"><b>${f2(c.gr)}</b><span>${esc(t("kRecent"))}</span></div>
     <div class="kpi"><b>${pct(c.pa)}</b><span>${esc(t("kA"))}</span></div><div class="kpi"><b>${c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"}</b><span>${esc(t("kDF"))}</span></div></div></div>`;
-  h += `<div class="d-sec"><h3>${esc(termLabel(app.term))}${c.now ? ` <span class="muted">${esc(t("snapshot", app.meta.built_at.slice(0, 10)))}</span>` : ""}</h3>`;
+  h += `<div class="d-sec"><h3>${esc(termLabel(app.term))}</h3>`;
   if (c.now) {
     h += `<p style="margin:0 0 6px">${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, c.now.lec, c.now.open, c.now.pk, c.now.wait))}</p>`;
     h += `<div id="dSections"></div>`;
@@ -105,7 +105,7 @@ export async function openDrawer(id, keepScroll) {
   } else h += `<div class="d-sec"><h3>${esc(t("grades"))}</h3><p class="muted">${esc(t("noGrades"))}</p></div>`;
   if (c.ins.length) {
     const mxN = Math.max(...c.ins.map((i) => i[2])), LIM = 8, rows = showAllIns ? c.ins : c.ins.slice(0, LIM);
-    h += `<div class="d-sec"><h3>${esc(t("instructors"))} <span class="muted">${c.sp != null ? esc(t("spread", c.sp.toFixed(2))) : ""}</span></h3>`;
+    h += `<div class="d-sec"><h3>${esc(t("instructors"))}</h3>`;
     h += `<table class="itable"><thead><tr><th>${esc(t("thName"))}</th><th class="r">${esc(t("thGpa"))}</th><th class="r">${esc(t("thA"))}</th><th>${esc(t("thN"))}</th><th class="r">${esc(t("thLast"))}</th><th><span class="sr">${esc(t("thLinks"))}</span></th></tr></thead><tbody>` +
       rows.map((i) => `<tr><td>${esc(i[0])}${i[5] ? `<span class="badge">${termShort(app.term)}</span>` : ""}</td><td class="r"><b>${f2(i[1])}</b></td><td class="r">${pct(i[3])}</td><td><div class="bar" data-tip="${fmt(i[2])}"><i style="width:${(i[2] / mxN) * 100}%"></i></div></td><td class="r small muted">${termShort(i[4])}</td><td class="small"><a target="_blank" rel="noopener" href="${rmpUrl(i[0])}">RMP</a></td></tr>`).join("") + "</tbody></table>";
     if (c.ins.length > LIM) h += `<p style="margin:8px 0 0"><button class="linkbtn" id="dAllIns">${esc(showAllIns ? t("showFewer") : t("showAll", c.ins.length))}</button></p>`;
@@ -122,11 +122,12 @@ export async function openDrawer(id, keepScroll) {
     if (c.rd.length) h += `<ul class="threads">` + c.rd.map((x) => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${x[3] > 0 ? "+ " : x[3] < 0 ? "− " : ""}${x[2] || ""}</span></li>`).join("") + "</ul>";
     h += "</details>";
   }
+  h += `<div class="d-sec d-links"><a target="_blank" rel="noopener" href="${mgUrl(c)}">${esc(t("mg"))}</a><a target="_blank" rel="noopener" href="${enrollUrl(c.code)}">${esc(t("cse"))}</a><a target="_blank" rel="noopener" href="${guideUrl(c.code)}">${esc(t("guide"))}</a><a target="_blank" rel="noopener" href="${redditUrl(c)}">${esc(t("searchReddit"))}</a><button class="linkbtn" id="dShare">${esc(t("copy"))}</button></div>`;
   h += "</div>";
   dr.innerHTML = h; dr.scrollTop = top;
   mountReviews(c);
+  mountMates();
   $("#dClose").onclick = closeDrawer;
-  if ($("#dPrev")) { $("#dPrev").onclick = () => stepCourse(-1); $("#dNext").onclick = () => stepCourse(1); }
   $("#dSave").onclick = () => plan.toggle(c.id);
   if ($("#dAllIns")) $("#dAllIns").onclick = () => { showAllIns = !showAllIns; openDrawer(c.id, true); };
   $("#dShare").onclick = () => { const u = location.origin + location.pathname + "#/c/" + c.id; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => ($("#dShare").textContent = t("copied")), () => prompt(t("copy"), u)); };
