@@ -10,7 +10,7 @@ export function mount() {
   if (!el) return;
   const user = acct() && acct().user;
   el.innerHTML = `<div class="mt-row"><button class="btn" type="button"${user ? " disabled" : " data-account"}>${esc(t("mtFind"))}</button>` +
-    `<span class="mt-soon">${esc(t("mtSoon"))}</span>${user ? "" : `<span class="mt-note">${esc(t("mtLogin"))}</span>`}</div>`;
+    `<span class="mt-soon">${esc(t("mtSoon"))}</span></div>`;
 }
 
 if (acct()) { acct().ready.then(mount); acct().on(mount); }
