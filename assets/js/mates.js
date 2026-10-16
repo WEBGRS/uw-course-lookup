@@ -1,6 +1,6 @@
-// Find classmates in the course drawer: needs a madisonstudents.com account; opens next semester.
+// Find classmates in the course drawer (Chinese page only): needs a madisonstudents.com account; opens next semester.
 import { $, esc, plan } from "./core.js";
-import { t } from "./i18n.js";
+import { t, LANG } from "./i18n.js";
 
 const acct = () => window.MSAccount;
 
@@ -8,6 +8,7 @@ const acct = () => window.MSAccount;
 export function mount() {
   const el = $("#dMates");
   if (!el) return;
+  if (LANG !== "zh") { el.innerHTML = ""; return; }
   el.innerHTML = `<div class="mt-row"><button class="btn" type="button" id="dMt">${esc(t("mtFind") + t("mtSoon"))}</button></div>`;
   const b = $("#dMt", el);
   if (!acct()) { b.disabled = true; return; }

@@ -11,7 +11,6 @@ const ORIG = {
     tabCourses: "Courses", tabInsights: "Insights", tabAbout: "About the data",
     tabReviews: "Reviews", rvTitle: "Reviews", rvWrite: "Write a review", rvAsk: "Ask others", rvAsked: "Asked", rvInstr: "Instructor", rvHours: "Hours per week outside class", rvAttend: "Attendance required", rvYes: "Yes", rvNo: "No", rvGrade: "Grading", rvText: "Comment", rvSubmit: "Submit", rvClose: "Close",
     rvSent: "Submitted. It shows after review.", rvFail: "Couldn't submit. Try again later.", rvNone: "Nothing yet", rvMine: "Taken", rvGrpMine: "Courses you took", rvGrpAsked: "Students asked for these", rvHint: "Taken a course? Review it under Reviews. Let's help each other (｡･ω･｡)ﾉ♡", rvUndo: "Undo", rvMore: "Review other courses", rvWritten: "Reviewed", rvN: n => n + (n === 1 ? " review" : " reviews"), rvAskN: n => n + " asked", rvAttendPct: p => "Attendance required " + p + "%",
-    mtFind: "Find classmates", mtSoon: " (opens next semester)", mtWechat: "WeChat ID (optional)",
     rvt_final: "Final", rvt_midterm: "Midterm", rvt_paper: "Paper", rvt_project: "Project", rvt_homework: "Homework", rvt_participation: "Participation",
     searchPh: "Course, title or instructor, e.g. cs 577, calculus, Renault", sortBy: "Sort by",
     s_m: "Popular", s_gpa: "Highest GPA", s_gpaL: "Lowest GPA", s_pa: "Most A's", s_tr: "Grades rising", s_tl: "Grades falling",

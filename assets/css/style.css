@@ -248,7 +248,7 @@ body.agent-open,body:has(#drawer.on){--wgfb-display:none}
 .rv-top .rv-act{align-items:center}
 .rv-hint{font-size:13px;color:var(--ink-2);flex:1 1 200px}
 .rv-pair{position:relative;display:inline-flex;align-items:center;gap:8px}
-#dRevTop:not(:empty)+#dMates{margin-top:10px}
+#dRevTop:not(:empty)+#dMates:not(:empty){margin-top:10px}
 .mt-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .rv-undo{font-weight:500;color:var(--ink-3);text-decoration:underline;text-underline-offset:2px}
 a.rv-hint{text-decoration:none}
