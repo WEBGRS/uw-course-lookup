@@ -1,6 +1,6 @@
 # UW Course Lookup
 
-Grades, instructors and seats for **every course in the Fall 2026 and Spring 2027 catalogs (6,300 UW–Madison courses)**, plus a
+Grades, instructors and seats for **every course in the Fall 2026 and Spring 2027 catalogs (6,771 UW–Madison courses)**, plus a
 degree-aware timetable planner and an assistant that can answer questions about all of it.
 
 👉 **[Open the tool](https://courses.madisonstudents.com/)**
@@ -12,7 +12,7 @@ degree-aware timetable planner and an assistant that can answer questions about 
 **Look courses up.** Search by code, title or instructor (`cs 577`, `calculus 234`, `calc feldman`). Open a course for its
 grade distribution against the campus baseline, GPA by term since 2006, every instructor's GPA in that course, this
 term's sections with days, times and rooms, and recent r/UWMadison threads. Filters and a handful of sort orders narrow
-6,300 courses fast.
+6,771 courses fast.
 
 **Plan a term.** Pick your program (212 undergraduate majors, copied from the UW Guide), import your transcript or DARS,
 add the courses you must take, and let the planner fill the rest from your unmet requirements.
