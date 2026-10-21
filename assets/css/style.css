@@ -57,8 +57,6 @@ nav.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--brand
 .band{position:sticky;top:0;z-index:10;background:var(--surface);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line);padding:10px 0 8px}
 /* Phones: no Star / Feedback pill */
 @media(max-width:760px){:root{--wgfb-display:none}}
-/* Phones: no update notice, result count, review nudge or course-mate signup */
-@media(max-width:640px){#notice,.resline,.rv-hint,#dMates{display:none}}
 .band-row{display:flex;height:30px;border-radius:6px;overflow:hidden;gap:2px;position:relative}
 .seg .p{margin-left:4px}
 .seg{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px;white-space:nowrap;overflow:hidden;transition:flex-grow .45s cubic-bezier(.2,.7,.2,1)}
@@ -314,3 +312,5 @@ a.rv-hint:hover{text-decoration:underline}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 .rv-row.taken{background:color-mix(in srgb,#1f9d55 9%,transparent)}
 .rv-row.taken b{color:color-mix(in srgb,#1f9d55 80%,var(--ink))}
+/* Phones: no update notice, result count, review nudge or course-mate signup (last, so it wins over the rules above) */
+@media(max-width:640px){#notice,.resline,.rv-hint,#dMates{display:none}}
