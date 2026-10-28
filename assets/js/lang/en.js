@@ -16,7 +16,7 @@ const ORIG = {
     s_m: "Popular", s_gpa: "Highest GPA", s_gpaL: "Lowest GPA", s_pa: "Most A's", s_tr: "Grades rising", s_tl: "Grades falling",
     s_sp: "Instructor matters most", s_rd: "Most Reddit threads", s_en: "Largest this term", s_code: "Course number",
     subject: "Subject", level: "Course level", breadth: "Breadth", minGpa: "Minimum GPA",
-    allSubj: "All subjects", anyLvl: "Any level", lvlU: "Undergraduate (below 500)", thinRow: n => "Only " + fmt(n) + " graded student" + (n === 1 ? "" : "s") + ": a thin sample", anyBr: "Any breadth", anyGpa: "Any GPA", savedOnly: "In schedule", clear: "Clear filters",
+    allSubj: "All subjects", anyLvl: "Any level", lvlU: "Undergraduate (below 500)", svGpa: g => "Adjusted GPA " + g + " (the sort uses it)", thinRow: n => "Only " + fmt(n) + " graded student" + (n === 1 ? "" : "s") + ": a thin sample", anyBr: "Any breadth", anyGpa: "Any GPA", savedOnly: "In schedule", clear: "Clear filters",
     offered: t => "Offered " + t, esOpt: "Ethnic Studies", geOpt: "Comm A/B or QR",
     count: (n, all) => fmt(n) + " of " + fmt(all) + " courses", more: "Show more",
     colCourse: "Course", colCr: "Cr", colGpa: "GPA · grades", colA: "A's", colTr: "Trend", colTalk: "Mentions",

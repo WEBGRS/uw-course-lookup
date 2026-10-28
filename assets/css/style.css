@@ -112,6 +112,7 @@ select,.chk{background:var(--surface);border:1px solid var(--line);border-radius
 .alias{color:var(--ink-3);font-weight:500;font-size:12.5px}
 .title{color:var(--ink-2);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .who{color:var(--ink-3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sv{color:var(--ink-3);font-size:12px;font-variant-numeric:tabular-nums}
 .num{text-align:right}
 .gcell{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:center}
 .gcell b{font-size:15px}

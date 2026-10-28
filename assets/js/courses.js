@@ -37,6 +37,11 @@ function gpaCell(c) {
   const why = esc(t("thinRow", c.n));
   return `<b class="thin" data-tip="${why}">${f2(c.gpa)}<span class="sr"> (${why})</span></b>`;
 }
+// The number the active sort ranks by, when the row does not show it already
+function sortVal(c) {
+  if (st.sort === "gpa" || st.sort === "gpaL") return c.gs != null && c.n >= 50 ? t("svGpa", f2(c.gs)) : "";
+  return "";
+}
 function whoLine(c) {
   if (!c.now || !c.now.who.length) return "";
   const w = c.now.who.map(lastName), more = w.length > 3 ? " +" + (w.length - 3) : "";
@@ -55,7 +60,7 @@ export function render() {
     : rows.length ? `<div class="rows" role="list" aria-label="${esc(t("tabCourses"))}">` + rows.map((c) => `
     <div class="row" role="listitem" tabindex="0" data-id="${esc(c.id)}">
       <div class="c-star"><button class="addbtn" data-star="${esc(c.id)}" aria-pressed="${plan.must.has(c.id)}" title="${esc(t(plan.must.has(c.id) ? "inTip" : "addTip"))}" aria-label="${esc(t(plan.must.has(c.id) ? "saved" : "save"))} ${esc(c.code)}">${plan.must.has(c.id) ? "✓" : "+"}</button></div>
-      <div class="cname"><div><span class="code">${esc(c.code)}</span>${c.al.length ? ` <span class="alias">= ${esc(c.al.join(", "))}</span>` : ""}</div><div class="title">${esc(c.t)}</div>${whoLine(c)}</div>
+      <div class="cname"><div><span class="code">${esc(c.code)}</span>${c.al.length ? ` <span class="alias">= ${esc(c.al.join(", "))}</span>` : ""}</div><div class="title">${esc(c.t)}</div>${whoLine(c)}${sortVal(c) ? `<div class="sv">${esc(sortVal(c))}</div>` : ""}</div>
       <div class="c-cr num small">${esc(c.cr || "–")}</div>
       <div class="c-gpa gcell">${gpaCell(c)}${strip(c.dist)}</div>
       <div class="c-pa num">${pct(c.pa)}</div>

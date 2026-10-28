@@ -33,7 +33,7 @@ export const MIN_GRADED = 50;  // GPA and A-share sorts rank courses with fewer 
 export const MIN_FILTER = 30;  // the minimum-GPA filter skips courses with fewer graded students
 const INDEPENDENT = /^(independent|directed)\b|\b(independent study|directed study|independent reading)\b/i;
 const ranked = (c) => c.n >= MIN_GRADED && !INDEPENDENT.test(c.t);  // one student per supervisor: no grading signal
-const gsr = (c) => (ranked(c) ? c.gs : null);
+const gsr = (c) => (ranked(c) ? c.gs : null);   // adjusted GPA (About page); rows show it as the sort value
 const par = (c) => (ranked(c) ? c.pa : null);
 
 const SORTS = {
@@ -221,7 +221,7 @@ export function planData(ix, ids) {
     const c = ix.C[i];
     if (c.id !== id) map[id] = c.id;
     if (courses.has(c.id)) continue;
-    courses.set(c.id, JSON.stringify({ code: c.code, t: c.t, cr: c.cr || null, gpa: c.gs ?? c.gpa ?? null, prq: c.prq || null, br: c.br, ts: seasons(ix, c),
+    courses.set(c.id, JSON.stringify({ code: c.code, t: c.t, cr: c.cr || null, gpa: c.gpa ?? null, prq: c.prq || null, br: c.br, ts: seasons(ix, c),
       ins: c.ins.slice(0, 14).map((x) => [x[0], x[1], x[2]]), pk: ix.secPk.get(c.id) || [] }));
   }
   return `{"courses":{${[...courses].map(([k, v]) => JSON.stringify(k) + ":" + v).join(",")}},"map":${JSON.stringify(map)}}`;

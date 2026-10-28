@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { buildIndex, query } from "../src/engine.js";
+import { buildIndex, query, planData } from "../src/engine.js";
 
 const fixture = JSON.parse(readFileSync(new URL("./fixture.json", import.meta.url), "utf8"));
 const ix = buildIndex(JSON.parse(JSON.stringify(fixture)));
@@ -93,4 +93,17 @@ test("real data: no tiny samples or independent study at the top of the GPA and 
   assert.ok(pass.length > 0 && pass.every((r) => r.n >= 30 && r.gpa >= 3.7));
   const u = run({ lvl: "u", now: "1" }, R().ix);
   assert.equal(u.total, R().data.courses.filter((c) => c.now && c.num < 500).length);
+});
+
+test("the planner gets the GPA the course page shows, not the adjusted one", () => {
+  const x = withExtra({ "SMALL-152": { n: 6, gpa: 1.67, gs: 3.37 } });
+  assert.equal(JSON.parse(planData(x, ["SMALL-152"])).courses["SMALL-152"].gpa, 1.67);
+});
+
+test("real data: planner GPA equals the course page GPA for every offered course", { skip: !REAL }, () => {
+  const { data } = R();
+  const off = data.courses.filter((c) => c.now && c.gpa != null);
+  assert.ok(off.filter((c) => c.gs != null && Math.abs(c.gs - c.gpa) >= 0.1).length > 500, "positive control: adjusted and course GPA differ often");
+  const got = JSON.parse(planData(R().ix, off.slice(0, 40).map((c) => c.id))).courses;
+  for (const c of off.slice(0, 40)) assert.equal(got[c.id].gpa, c.gpa, c.code);
 });

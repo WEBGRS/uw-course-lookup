@@ -463,7 +463,7 @@ function semHtml(s, i) {
     const d = planOf(p.id), code = d ? d.code : idText(p.id);
     return `<li>${courseLine(code, d ? d.t : p.t, p.cr, p.gpa, p.kind !== "core" ? ` <span class="tag soft">${esc(kinds[p.kind] || "")}</span>` : "")}${p.blockName ? `<span class="rd-why muted">${esc(p.blockName)}</span>` : ""}</li>`;
   }).join("") || `<li class="muted">${esc(t("roadNoMain"))}</li>`;
-  const light = (s.light || []).map((r) => `<li>${courseLine(r.code, r.t, crNum(r.cr), r.gs ?? r.gpa ?? null, (r.br || []).slice(0, 2).map((b) => ` <span class="tag soft">${esc(brName(b))}</span>`).join(""))}${i === 0 ? `<button class="mini-btn" data-rdadd="${esc(r.id)}" aria-label="${esc(t("roadAddOne"))} ${esc(r.code)}">+</button>` : ""}</li>`).join("");
+  const light = (s.light || []).map((r) => `<li>${courseLine(r.code, r.t, crNum(r.cr), r.gpa ?? null, (r.br || []).slice(0, 2).map((b) => ` <span class="tag soft">${esc(brName(b))}</span>`).join(""))}${i === 0 ? `<button class="mini-btn" data-rdadd="${esc(r.id)}" aria-label="${esc(t("roadAddOne"))} ${esc(r.code)}">+</button>` : ""}</li>`).join("");
   const total = s.mainCr + (s.lightGot ?? s.lightCr);
   return `<article class="road-sem${i === 0 ? " now" : ""}"><header><b class="serif">${esc(termLabel(s.term))}</b>${i === 0 ? `<span class="tag soft">${esc(t("roadFirst"))}</span>` : ""}
       <span class="rd-tot">${esc(t("roadCredits", +total.toFixed(1)))}${avgGpa != null ? ` · ${esc(t("roadAvg", avgGpa.toFixed(2)))}` : ""}</span></header>
