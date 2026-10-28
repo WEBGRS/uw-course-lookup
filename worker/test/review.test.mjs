@@ -256,3 +256,12 @@ test("transcript: DARS 'SELECT FROM' and 'NEEDS' lists are not courses taken", a
   assert.deepEqual(w.ip, ["STAT-340"]);
   assert.equal(dropOptionLists("A\n\nB"), "A\n\nB");
 });
+
+test("compare: pick which saved courses, two to eight", async () => {
+  const { togglePick } = await import("../../assets/js/facts.js");
+  const eight = ["A", "B", "C", "D", "E", "F", "G", "H"];
+  assert.deepEqual(togglePick(eight, "I"), eight, "a ninth waits until one is removed");
+  assert.deepEqual(togglePick(eight, "A"), eight.slice(1));
+  assert.deepEqual(togglePick(eight.slice(1), "I"), [...eight.slice(1), "I"]);
+  assert.deepEqual(togglePick(["A", "B"], "A"), ["A", "B"], "never fewer than two");
+});

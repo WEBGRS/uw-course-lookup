@@ -50,7 +50,7 @@ const ORIG = {
     tUp: "正面", tDown: "负面", flat: "基本不变", tonePos: "偏正面", toneNeg: "偏负面", toneMix: "褒贬不一",
     planSaved: n => "课表中 <b>" + n + "</b> 门", planCr: c => "共 <b>" + c + "</b> 学分", planGpa: g => "按学分加权 GPA <b>" + g + "</b>",
     planBr: b => "覆盖：" + b, showSaved: "只看这些", compare: "对比", clearSaved: "清空",
-    cmpTitle: "对比课表中的课程", cmpTrend: "每学期 GPA（秋季和春季）", cmpCap: n => "图里只画前 " + n + " 门。",
+    cmpTitle: "对比课表中的课程", cmpTrend: "每学期 GPA（秋季和春季）", cmpCap: n => "图里只画前 " + n + " 门。", cmpPick: (k, n, m) => "对比其中 " + k + " / " + n + " 门（最多 " + m + " 门）：",
     rTitle: "课名", rCr: "学分", rGpa: "GPA", rRecent: "近期", rA: "A 比例", rDF: "D 或 F", rTr: "趋势", rSp: "教授差距", rBr: "Breadth", rTalk: "讨论",
     st_courses: (a, b) => "讨论来源 " + a + " 门，另补 " + b + " 门大课", st_grades: "个字母成绩", st_instr: "位教授",
     st_reddit: "个 r/UWMadison 帖子", st_now: t => t + " 开课", st_rej: "个被讨论的课号被判定为不存在",

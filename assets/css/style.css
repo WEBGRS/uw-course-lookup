@@ -159,6 +159,10 @@ select,.chk{background:var(--surface);border:1px solid var(--line);border-radius
 .d-title{font-size:23px;line-height:1.2;margin:3px 0 8px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:2px 9px;color:var(--ink-2);background:var(--surface-2)}
+.cmp-pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 12px}
+.chip-btn{font:inherit;font-size:12.5px;border:1px solid var(--line);border-radius:20px;padding:5px 11px;min-height:32px;color:var(--ink-2);background:var(--surface);cursor:pointer}
+.chip-btn[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.chip-btn:disabled{opacity:.45;cursor:not-allowed}
 .d-body{padding:4px 22px 40px}
 .d-sec{padding:16px 0;border-bottom:1px solid var(--line-2)}
 .d-sec:last-child{border-bottom:0}

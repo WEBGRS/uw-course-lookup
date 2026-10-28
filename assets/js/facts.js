@@ -70,3 +70,9 @@ export function lectureGroups(pk) {
 
 /** A GPA trend this small rounds to ±0.00 a year: say "flat" instead. */
 export const isFlat = (tr) => Math.abs(tr) < 0.005;
+
+/** Compare picks: toggle one course, keeping between `min` and `max` picked. */
+export function togglePick(picked, id, max = 8, min = 2) {
+  if (picked.includes(id)) return picked.length > min ? picked.filter((x) => x !== id) : picked;
+  return picked.length < max ? [...picked, id] : picked;
+}

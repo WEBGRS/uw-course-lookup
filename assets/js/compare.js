@@ -3,11 +3,29 @@ import { $, esc, f2, pct, fmt, api, app, DET, fill, rec } from "./core.js";
 import { t, termLabel, termYear, brName } from "./i18n.js";
 import { lineChart, miniDist, trendTxt } from "./charts.js";
 import { nowTxt } from "./courses.js";
+import { togglePick } from "./facts.js";
 
 const SERIES = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)"];
+const MAX = 8;
+let pool = [], picked = [];   // every saved course, and the ones in the table
 
-export async function openCompare(ids) {
-  ids = ids.filter((id) => rec(id)).slice(0, 8);
+// More than eight saved: chips choose which eight (the first eight used to be taken silently)
+export function openCompare(ids) {
+  pool = ids.filter((id) => rec(id));
+  picked = pool.slice(0, MAX);
+  return draw();
+}
+
+function pickerHtml() {
+  if (pool.length <= MAX) return "";
+  return `<div class="cmp-pick"><span class="muted small">${esc(t("cmpPick", picked.length, pool.length, MAX))}</span>` + pool.map((id) => {
+    const on_ = picked.includes(id), c = rec(id);
+    return `<button type="button" class="chip-btn" data-pick="${esc(id)}" aria-pressed="${on_}"${!on_ && picked.length >= MAX ? " disabled" : ""}>${esc(c ? c.code : id)}</button>`;
+  }).join("") + "</div>";
+}
+
+async function draw() {
+  const ids = picked;
   if (ids.length < 2) return;
   const need = ids.filter((id) => !DET[id]);
   if (need.length) {
@@ -26,13 +44,16 @@ export async function openCompare(ids) {
     [t("rBr"), (c) => esc(c.br.map(brName).join(", ") || "–")],
   ];
   const dot = (c) => { const i = inChart.indexOf(c); return i >= 0 ? `<span class="swatch" style="background:${SERIES[i]}"></span>` : ""; };
-  $("#cmp").innerHTML = `<div class="cmp"><div class="cmp-head"><h2 class="serif">${esc(t("cmpTitle"))}</h2><button class="icon-btn" id="cmpClose" aria-label="${esc(t("close"))}">✕</button></div>
+  const focusPick = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.pick : null;
+  $("#cmp").innerHTML = `<div class="cmp"><div class="cmp-head"><h2 class="serif">${esc(t("cmpTitle"))}</h2><button class="icon-btn" id="cmpClose" aria-label="${esc(t("close"))}">✕</button></div>${pickerHtml()}
     <div class="minis">${L.map((c) => `<div class="mini"><div class="h"><b>${dot(c)}${esc(c.code)}</b><span class="small muted">GPA ${f2(c.gpa)}</span></div>${miniDist(c)}</div>`).join("")}</div>
     ${series.length ? `<h3 style="font-size:14px;margin:6px 0">${esc(t("cmpTrend"))}</h3>` + lineChart(series, { w: 980, h: 220, label: t("cmpTrend"), endLabels: true }) +
       `<div class="legend">${series.map((s) => `<span><i style="background:${s.color};border-radius:50%"></i>${esc(s.name)}</span>`).join("")}</div>` + (L.length > 4 ? `<p class="small muted">${esc(t("cmpCap", 4))}</p>` : "") : ""}
     <div class="tw"><table><thead><tr><th></th>${L.map((c) => `<th>${dot(c)}<a href="#/c/${c.id}" data-close>${esc(c.code)}</a></th>`).join("")}</tr></thead><tbody>
     ${rows.map(([l, f]) => `<tr><th>${esc(l)}</th>${L.map((c) => `<td>${f(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
-  $("#cmp").showModal();
+  if (!$("#cmp").open) $("#cmp").showModal();
   $("#cmpClose").onclick = () => $("#cmp").close();
+  $("#cmp").querySelectorAll("[data-pick]").forEach((b) => (b.onclick = () => { picked = togglePick(picked, b.dataset.pick, MAX); draw(); }));
+  if (focusPick) { const b = $("#cmp").querySelector(`[data-pick="${CSS.escape(focusPick)}"]`); if (b) b.focus(); }
   $("#cmp").querySelectorAll("[data-close]").forEach((a) => (a.onclick = () => $("#cmp").close()));
 }

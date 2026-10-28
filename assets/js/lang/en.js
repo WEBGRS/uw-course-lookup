@@ -49,7 +49,7 @@ const ORIG = {
     tUp: "positive", tDown: "negative", flat: "flat", tonePos: "mostly positive", toneNeg: "mostly negative", toneMix: "mixed",
     planSaved: n => "<b>" + n + "</b> in schedule", planCr: c => "<b>" + c + "</b> credits", planGpa: g => "credit-weighted GPA <b>" + g + "</b>",
     planBr: b => "breadth: " + b, showSaved: "Show only these", compare: "Compare", clearSaved: "Clear",
-    cmpTitle: "Compare courses in schedule", cmpTrend: "GPA by fall and spring term", cmpCap: n => "Showing the first " + n + " courses in the chart.",
+    cmpTitle: "Compare courses in schedule", cmpTrend: "GPA by fall and spring term", cmpCap: n => "Showing the first " + n + " courses in the chart.", cmpPick: (k, n, m) => "Comparing " + k + " of " + n + " (up to " + m + "):",
     rTitle: "Title", rCr: "Credits", rGpa: "GPA", rRecent: "recent", rA: "A's", rDF: "D or F", rTr: "Trend", rSp: "Instructor spread", rBr: "Breadth", rTalk: "Talk",
     st_courses: (a, b) => a + " from student discussion, " + b + " large courses added", st_grades: "letter grades analysed", st_instr: "instructors",
     st_reddit: "r/UWMadison threads", st_now: t => "offered " + t, st_rej: "discussed codes rejected as not real courses",
