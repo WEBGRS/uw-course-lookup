@@ -8,6 +8,7 @@ import { parseTranscript, statusOf, progress, candidatesFrom, blockCaps, prereqR
 import { calendarHtml, buildICS, COLORS } from "./calendar.js";
 import { openCompare } from "../compare.js";
 import { pickRequired, layout, chooseLight, termsFrom, termsBetween, nextTerm, crNum } from "./roadmap.js";
+import { programMatch } from "../zh-terms.js";
 
 const S = { index: [], program: null, results: null, i: 0, colors: {}, courses: new Map(), building: false, open: new Set(), openPick: new Set(), sort: store.get("planSort", "gpa"), swap: null, draft: null, error: "" };
 let solver = null;
@@ -108,7 +109,7 @@ function renderReqs() {
 /* Program picker: a listbox exactly as wide as the field */
 function pgOptions(q) {
   const k = q.trim().toLowerCase(), pm = programMeta();
-  const list = k && !(pm && pm.name.toLowerCase() === k) ? S.index.filter((p) => p.name.toLowerCase().includes(k)) : S.index;
+  const list = k && !(pm && pm.name.toLowerCase() === k) ? S.index.filter((p) => programMatch(p.name, k)) : S.index;   // Chinese and shorthand too
   return list.slice(0, 40);
 }
 function pgOpen() {

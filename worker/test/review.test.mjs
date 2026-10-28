@@ -265,3 +265,15 @@ test("compare: pick which saved courses, two to eight", async () => {
   assert.deepEqual(togglePick(eight.slice(1), "I"), [...eight.slice(1), "I"]);
   assert.deepEqual(togglePick(["A", "B"], "A"), ["A", "B"], "never fewer than two");
 });
+
+test("program search takes Chinese and shorthand", async () => {
+  const { programMatch } = await import("../../assets/js/zh-terms.js");
+  const index = JSON.parse(readFileSync(new URL("../../assets/programs/index.json", import.meta.url), "utf8"));
+  const find = (q) => index.filter((p) => programMatch(p.name, q)).map((p) => p.id);
+  assert.equal(index.filter((p) => p.name.toLowerCase().includes("计算机")).length, 0, "positive control: plain substring search finds nothing");
+  for (const [q, want] of [["计算机", "computer-sciences-bs"], ["统计", "statistics-bs"], ["cs", "computer-sciences-bs"], ["stats", "statistics-bs"], ["数据科学", "data-science-bs"], ["computer sci", "computer-sciences-bs"], ["Economics, BA", "economics-ba"]]) {
+    assert.ok(find(q).includes(want), q);
+  }
+  assert.ok(!find("cs").includes("economics-ba"), "cs is not every name with c-s in it");
+  assert.deepEqual(find("量子烹饪"), []);
+});

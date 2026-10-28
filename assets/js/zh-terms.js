@@ -128,3 +128,16 @@ export function listParams(st, mine) {
   if (mine && !(zh && zh.ids)) p.ids = mine.join(",") || "-";
   return { p, zh };
 }
+
+// Program names are English: Chinese words and shorthand become English word prefixes
+const PROG_SHORT = { cs: "computer", stat: "statistic", stats: "statistic", econ: "econom", ece: "electrical", bio: "biolog", psych: "psycholog", polisci: "political", ds: "data science", bme: "biomedical", chem: "chemi" };
+function programWords(q) {
+  const zh = rewrite(q);
+  if (zh && !zh.q) return null;   // Chinese with no known word
+  return String(zh ? zh.q : q || "").toLowerCase().split(/ +/).filter(Boolean).reduce((a, w) => a.concat((PROG_SHORT[w] || w).split(" ")), []);
+}
+/** Whether a program name matches what was typed in the program picker (计算机, cs, stats, "computer sci"). */
+export function programMatch(name, q) {
+  const words = programWords(q), n = String(name).toLowerCase();
+  return !!words && words.every((w) => n.includes(w));
+}
