@@ -1,4 +1,5 @@
 // Shared plumbing: DOM helpers, formatting, storage, the API client and the few bits of state every module reads.
+import { shares } from "./facts.js";
 
 export const $ = (s, root = document) => root.querySelector(s);
 export const $$ = (s, root = document) => [...root.querySelectorAll(s)];
@@ -60,6 +61,7 @@ export const rec = (id) => DET[id] || ROW[id];
 export const fill = (c) => {
   c.al ||= []; c.br ||= []; c.ins ||= []; c.rd ||= []; c.terms ||= [];
   c.m ||= 0; c.pos ||= 0; c.neg ||= 0; c.rdn ||= 0; c.n ||= 0; c.es ||= 0; c.sn ??= ""; c.t ??= "";
+  Object.assign(c, shares(c));   // 0% A or 0% D/F, not "–"
   return c;
 };
 const detailReq = {};

@@ -63,7 +63,7 @@ test("GPA and A-share sorts: small samples and independent study rank last", () 
     "DIR-1": { t: "Directed Reading in Botany", n: 300, gpa: 3.95, gs: 3.9, pa: 0.97 },
   });
   const gpa = run({ sort: "gpa" }, x).ids, pa = run({ sort: "pa" }, x).ids;
-  assert.equal(pa[0], "BIG-1");
+  assert.equal(pa[0], "LITTRANS-326", "its 60% A comes from the distribution");
   for (const ids of [gpa, pa]) {
     for (const low of ["TINY-1", "IND-699", "DIR-1"]) assert.ok(ids.indexOf(low) > ids.indexOf("BIG-1"), low);
   }
@@ -106,4 +106,21 @@ test("real data: planner GPA equals the course page GPA for every offered course
   assert.ok(off.filter((c) => c.gs != null && Math.abs(c.gs - c.gpa) >= 0.1).length > 500, "positive control: adjusted and course GPA differ often");
   const got = JSON.parse(planData(R().ix, off.slice(0, 40).map((c) => c.id))).courses;
   for (const c of off.slice(0, 40)) assert.equal(got[c.id].gpa, c.gpa, c.code);
+});
+
+test("no A or no D/F reads as 0, not as missing", async () => {
+  const { shares } = await import("../../assets/js/facts.js");
+  assert.deepEqual(shares({ dist: [0, 5, 5, 0, 0, 0, 0] }), { pa: 0, pdf: 0 });
+  assert.deepEqual(shares({ dist: [3, 1, 0, 0, 0, 0, 0], pa: 0.75 }), { pa: 0.75, pdf: 0 });
+  assert.deepEqual(shares({ dist: [0, 0, 0, 0, 0, 0, 0] }), { pa: null, pdf: null }, "S/U only: no letter grades");
+  assert.deepEqual(shares({}), { pa: null, pdf: null });
+  const x = withExtra({ "NOA-1": { dist: [0, 4, 6, 0, 0, 0, 0], pa: undefined, n: 10 } });
+  assert.equal(run({ ids: "NOA-1" }, x).rows[0].pa, 0);
+});
+
+test("real data: every graded course has an A share and a D/F share", { skip: !REAL }, async () => {
+  const { shares } = await import("../../assets/js/facts.js");
+  const graded = R().data.courses.filter((c) => c.dist && c.dist.some((v) => v > 0));
+  assert.ok(graded.filter((c) => c.pdf == null).length > 1000, "positive control: the export leaves D/F out when it is zero");
+  assert.ok(graded.every((c) => { const s = shares(c); return s.pa != null && s.pdf != null; }));
 });

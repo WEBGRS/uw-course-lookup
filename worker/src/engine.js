@@ -16,6 +16,9 @@ const size = (c) => c.en || c.sz || 0;  // this term's enrollment, else the kept
 function fill(c) {
   c.al ||= []; c.br ||= []; c.ins ||= []; c.rd ||= []; c.terms ||= [];
   c.m ||= 0; c.pos ||= 0; c.neg ||= 0; c.rdn ||= 0; c.n ||= 0; c.es ||= 0; c.sn ??= ""; c.t ??= "";
+  // The export drops zero shares (no A, no D or F): take them from the distribution
+  const tot = c.dist ? c.dist.reduce((a, b) => a + b, 0) : 0;
+  if (tot) { c.pa ??= Math.round((c.dist[0] / tot) * 1000) / 1000; c.pdf ??= Math.round(((c.dist[5] + c.dist[6]) / tot) * 1000) / 1000; }
   return c;
 }
 
