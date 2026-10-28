@@ -67,3 +67,6 @@ export function lectureGroups(pk) {
   }
   return [...groups.values()];
 }
+
+/** A GPA trend this small rounds to ±0.00 a year: say "flat" instead. */
+export const isFlat = (tr) => Math.abs(tr) < 0.005;

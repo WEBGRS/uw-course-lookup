@@ -197,3 +197,12 @@ test("course page: the lecture count is the lectures listed", async () => {
   for (const c of data.courses) if (c.now && data.sections[c.id] && lectureGroups(data.sections[c.id]).length !== c.now.lec) differ++;
   assert.ok(differ > 100, String(differ));
 });
+
+test("a near-zero GPA trend is flat, not -0.00", async () => {
+  const { isFlat } = await import("../../assets/js/facts.js");
+  assert.ok(isFlat(-0.004) && isFlat(0.004) && isFlat(0));
+  assert.ok(!isFlat(-0.031) && !isFlat(0.005));
+  if (!REAL) return;
+  const near = R().data.courses.filter((c) => c.tr != null && c.tr < 0 && c.tr.toFixed(2) === "-0.00");
+  assert.ok(near.length > 100 && near.every((c) => isFlat(c.tr)), "courses that used to read -0.00/yr: " + near.length);
+});

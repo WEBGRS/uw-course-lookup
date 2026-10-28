@@ -1,6 +1,7 @@
 // Hand-drawn SVG charts. Each returns an HTML string; hover text comes from data-tip (see core.js).
 import { app, esc, f2, pct, fmt, MOB, G, GV, lastName } from "./core.js";
 import { t, LANG, termShort } from "./i18n.js";
+import { isFlat } from "./facts.js";
 
 /** Thin A–F strip used in list rows. */
 export function strip(dist, h = 10) {
@@ -13,8 +14,9 @@ export function strip(dist, h = 10) {
 
 export function trendTxt(v) {
   if (v == null) return "";
+  if (isFlat(v)) return `<span class="muted small">${esc(t("flat"))}</span>`;   // not "-0.00/yr"
   const cls = v > 0.01 ? "up" : v < -0.01 ? "down" : "muted";
-  return `<span class="${cls} small">${v > 0 ? "+" : ""}${v.toFixed(2)}${LANG === "zh" ? "/年" : "/yr"}</span>`;
+  return `<span class="${cls} small">${v > 0 ? "+" : "−"}${Math.abs(v).toFixed(2)}${LANG === "zh" ? "/年" : "/yr"}</span>`;
 }
 
 export function spark(ys) {

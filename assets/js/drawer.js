@@ -118,11 +118,10 @@ export async function openDrawer(id, keepScroll) {
   }
   h += '<div id="dRev"></div>';
   const tone = c.rdt == null ? "" : c.rdt > 0.15 ? t("tonePos") : c.rdt < -0.15 ? t("toneNeg") : t("toneMix");
-  const sayHead = `<summary><span>${esc(t("say"))}</span><span class="muted">${c.src === "catalog" ? "" : esc(t("reddit", c.rdn))}</span></summary>`;
-  if (c.src === "catalog") h += `<details class="d-sec d-fold">${sayHead}<p class="small" style="margin:0;color:var(--ink-2)">${esc(t("sayCatalog"))}</p></details>`;
-  else {
-    h += `<details class="d-sec d-fold">${sayHead}<p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : c.ms ? esc(t("sayChatFew")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
-    if (c.rd.length) h += `<ul class="threads">` + c.rd.map((x) => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${x[3] > 0 ? "+ " : x[3] < 0 ? "− " : ""}${x[2] || ""}</span></li>`).join("") + "</ul>";
+  const sayHead = `<summary><span>${esc(t("say"))}</span><span class="muted">${esc(t("reddit", c.rdn))}</span></summary>`;
+  if (c.src !== "catalog") {   // catalog-tier courses have no discussion or Reddit data: no fold to open
+    h +=`<details class="d-sec d-fold">${sayHead}<p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : c.ms ? esc(t("sayChatFew")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
+    if (c.rd.length) h += `<ul class="threads">` + c.rd.map((x) => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${esc([x[3] > 0 ? t("tUp") : x[3] < 0 ? t("tDown") : "", x[2] || ""].filter(Boolean).join(" · "))}</span></li>`).join("") + "</ul>";
     h += "</details>";
   }
   h += `<div class="d-sec d-links"><a target="_blank" rel="noopener" href="${mgUrl(c)}">${esc(t("mg"))}</a><a target="_blank" rel="noopener" href="${enrollUrl(c.code)}">${esc(t("cse"))}</a><a target="_blank" rel="noopener" href="${guideUrl(c.code)}">${esc(t("guide"))}</a><a target="_blank" rel="noopener" href="${redditUrl(c)}">${esc(t("searchReddit"))}</a><button class="linkbtn" id="dShare">${esc(t("copy"))}</button></div>`;
