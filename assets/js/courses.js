@@ -1,9 +1,10 @@
 // The Courses tab: search, filters and the result list. The server filters; this module asks and draws.
 import { $, $$, esc, f2, pct, fmt, api, app, ROW, fill, rec, lastName, plan, on, emit } from "./core.js";
-import { t, termShort, termLabel, brName } from "./i18n.js";
+import { t, LANG, termShort, termLabel, brName } from "./i18n.js";
 import { strip } from "./charts.js";
 import { setBand } from "./band.js";
 import { sortValue } from "./facts.js";
+import { rewrite, zhParams } from "./zh-terms.js";
 
 export const listState = { rows: [], total: 0, state: "loading" };
 const DEF = { sort: "code", now: true };  // default list: this term's courses by course number
@@ -16,14 +17,25 @@ function readFilters() {
 }
 const activeFilters = () => [st.subj, st.lvl, st.br, st.gpa].filter(Boolean).length + (st.now ? 1 : 0) + (st.sv ? 1 : 0);
 
+// A Chinese query becomes English words, a lens (水课) or a breadth (人文); null for any other query
+let zh = null;
+const zhEmpty = () => !!zh && !zh.q && !zh.lens && !zh.ids && !zh.br;   // no word the search can use
+
 function queryParams() {
-  const p = {};
-  if (st.q) p.q = st.q;
+  const p = {}, mine = st.sv ? [...plan.must].slice(0, 60) : null;
+  zh = st.q ? rewrite(st.q) : null;
+  if (zh) Object.assign(p, zhParams(zh, mine));   // a topic within the schedule, not instead of it
+  else if (st.q) p.q = st.q;
   if (st.sort !== "m") p.sort = st.sort;
   for (const k of ["subj", "lvl", "br", "gpa"]) if (st[k]) p[k] = st[k];
   if (st.now) p.now = "1";
-  if (st.sv) p.ids = [...plan.must].slice(0, 60).join(",") || "-";
+  if (mine && !(zh && zh.ids)) p.ids = mine.join(",") || "-";
   return p;
+}
+function zhHint() {
+  if (!zh) return "";
+  const parts = [zh.shown, zh.idsLabel, zh.brLabel, zh.lensLabel].filter(Boolean);
+  return [parts.length ? t("zhAs", parts.join(" + ")) : "", zh.miss ? t("zhMissed", zh.miss) : ""].filter(Boolean).join(LANG === "zh" ? "；" : "; ");
 }
 
 function statusOf(c) { return !c.now ? ["off", t("notTerm")] : c.now.open ? ["open", t("open")] : c.now.wait ? ["wait", t("wait")] : ["closed", t("full")]; }
@@ -51,12 +63,14 @@ function whoLine(c) {
 
 export function render() {
   const { rows, total, state } = listState;
-  $("#cnt").textContent = state === "ok" ? t("count", total, app.meta.count) : "";
+  const hint = state === "ok" ? zhHint() : "";
+  $("#cnt").textContent = state === "ok" ? t("count", total, app.meta.count) + (hint ? " · " + hint : "") : "";
   const COLS = [["", ""], ["code", t("colCourse")], ["", t("colCr")], ["gpa", t("colGpa")], ["", t("colA")], ["", termLabel(app.term)]];
   const head = `<div class="row head">` + COLS.map(([k, l], i) =>
     `<div class="${i === 2 || i === 4 ? "num" : ""}"${i === 5 ? ` title="${esc(t("seatsAsOf", app.meta.built_at.slice(0, 10)))}"` : ""}>${k ? `<button data-sort="${k}"${st.sort === k ? ' aria-current="true"' : ""}>${esc(l)}</button>` : esc(l)}</div>`).join("") + "</div>";
   const body = state === "error" ? `<div class="empty">${esc(t("apiError"))} <button class="btn" id="retry">${esc(t("retry"))}</button></div>`
     : state === "loading" && !rows.length ? `<div class="empty">${esc(t("loading"))}</div>`
+    : zhEmpty() ? `<div class="empty">${esc(zh.miss ? t("zhMiss") : t("zhVague", st.q, zh.note))} <button class="btn" id="clearQ">${esc(t("clearQ"))}</button></div>`
     : !rows.length && st.now ? `<div class="empty">${esc(t("empty"))} <button class="btn" id="allTerms">${esc(t("emptyAll", termLabel(app.term)))}</button></div>`
     : rows.length ? `<div class="rows" role="list" aria-label="${esc(t("tabCourses"))}">` + rows.map((c) => `
     <div class="row" role="listitem" tabindex="0" data-id="${esc(c.id)}">
@@ -79,6 +93,7 @@ export async function refresh(append) {
   const my = ++seq, params = queryParams();
   if (append) params.offset = listState.rows.length;
   else { listState.state = "loading"; if (!listState.rows.length) render(); }
+  if (zhEmpty()) { listState.rows = []; listState.total = 0; listState.state = "ok"; render(); emit("list"); return; }
   let r;
   try { r = await api("/api/courses", params); }
   catch { if (my === seq) { listState.state = "error"; render(); } return; }
@@ -131,6 +146,7 @@ export function init() {
   list.addEventListener("click", (e) => {
     if (e.target.closest("#retry")) { refresh(); return; }
     if (e.target.closest("#allTerms")) { $("#fNow").checked = false; onFilter(); return; }
+    if (e.target.closest("#clearQ")) { $("#q").value = ""; onFilter(); $("#q").focus(); return; }
     const s = e.target.closest("[data-star]"); if (s) { plan.toggle(s.dataset.star); e.stopPropagation(); return; }
     const h = e.target.closest("[data-sort]"); if (h) { $("#sort").value = h.dataset.sort === "gpa" && st.sort === "gpa" ? "gpaL" : h.dataset.sort; onFilter(); return; }
     const r = e.target.closest(".row[data-id]"); if (r) emit("open", r.dataset.id);

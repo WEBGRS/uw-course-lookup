@@ -9,7 +9,7 @@ degree-aware timetable planner and an assistant that can answer questions about 
 
 ## What you can do with it
 
-**Look courses up.** Search by code, title or instructor (`cs 577`, `calculus 234`, `calc feldman`). Open a course for its
+**Look courses up.** Search by code, title or instructor (`cs 577`, `calculus 234`, `calc feldman`), or in Chinese (`计算机 577`, `线性代数`, `水课`). Open a course for its
 grade distribution against the campus baseline, GPA by term since 2006, every instructor's GPA in that course, this
 term's sections with days, times and rooms, and recent r/UWMadison threads. Filters and a handful of sort orders narrow
 6,771 courses fast.

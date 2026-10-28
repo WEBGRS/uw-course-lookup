@@ -23,7 +23,7 @@ function fill(c) {
 }
 
 const LENSES = {
-  easy: (c) => c.gs != null && c.gs >= 3.7 && c.n >= 500,
+  easy: (c) => c.gs != null && c.gs >= 3.7 && c.n >= 500 && c.num < 500,   // undergraduate only (水课 in Chinese search)
   intro: (c) => c.num < 300 && size(c) >= 250,
   instr: (c) => c.sp != null && c.sp >= 0.6,
   harder: (c) => c.tr != null && c.tr <= -0.03,
