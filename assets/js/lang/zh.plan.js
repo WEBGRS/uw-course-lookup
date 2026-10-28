@@ -61,7 +61,7 @@ export default {
   reqDone: (a, b) => `${b} 项要求已满足 ${a} 项`, reqUnit: (u, h, n) => (u === "credits" ? `${h} / ${n} 学分` : `${h} / ${n}`),
   reqNote: "来自 UW Guide，仅供参考，请以 DARS 和导师为准。", reqInfo: "具体规则见 Guide",
   countedAbove: "（已算在别的要求里）",
-  tookIt: "我修过", chooseN: (n) => (n === 1 ? "任选一门" : `任选 ${n} 门`),
+  tookIt: "我修过", stillNeeded: "还没修", reqLegend: "✓ 已修 · ◐ 在读 · ○ 还没修 · – 已算在别的要求里", chooseN: (n) => (n === 1 ? "任选一门" : `任选 ${n} 门`),
   notOffered: "本学期不开", pickOne: "任选其一", viewGuide: "在 Guide 打开",
   fillLabel: "用剩余要求自动补满学分", targetCr: "学分", mustHave: "课程",
   addCourse: "添加课程…", prefs: "偏好",

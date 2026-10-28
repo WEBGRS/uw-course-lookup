@@ -48,7 +48,7 @@ const idText = (id) => id.replace(/-/g, " ");
 function itemHtml(x) {
   const { item, state, via } = x;
   if (state === "used") {
-    return `<li class="req-item used"><span class="mark">–</span><span class="req-opts">${optLabel(via)} <span class="muted">${esc(t("countedAbove"))}</span></span></li>`;
+    return `<li class="req-item used"><span class="mark" title="${esc(t("countedAbove"))}">–</span><span class="req-opts">${optLabel(via)} <span class="muted">${esc(t("countedAbove"))}</span></span></li>`;
   }
   if (state !== "todo") {
     return `<li class="req-item ${state}"><span class="mark" title="${esc(t(state === "done" ? "taken" : "inProgress"))}">${state === "done" ? "✓" : "◐"}</span><span class="req-opts">${optLabel(via)}</span></li>`;
@@ -57,9 +57,9 @@ function itemHtml(x) {
     const p = o.i.map(planOf).find(Boolean);
     const noTerm = p && p.pk.length === 0;
     const added = o.i.some((i) => plan.must.has(i) || (p && plan.must.has(p.id)));
-    return `<span class="req-opt"><button class="mini-btn${added ? " on" : ""}" data-addreq="${esc(o.i[0])}" aria-pressed="${added}" aria-label="${esc(t(added ? "added" : "add"))} ${esc(idText(o.i[0]))}">${added ? "✓" : "+"}</button>${optLabel(o)}${noTerm ? ` <span class="tag">${esc(t("notOffered"))}</span>` : ""}<button class="linkbtn" data-took="${esc(o.i[0])}">${esc(t("tookIt"))}</button></span>`;
+    return `<span class="req-opt"><button class="mini-btn${added ? " on" : ""}" data-addreq="${esc(o.i[0])}" aria-pressed="${added}" aria-label="${esc(t(added ? "added" : "add"))} ${esc(idText(o.i[0]))}">${added ? "✓" : "+"}</button>${optLabel(o)}${noTerm ? ` <span class="tag">${esc(t("notOffered"))}</span>` : ""}<button class="linkbtn" data-took="${esc(o.i[0])}" aria-label="${esc(t("tookIt"))}: ${esc(idText(o.i[0]))}">${esc(t("tookIt"))}</button></span>`;
   }).join(`<span class="or">${LANG === "zh" ? "或" : "or"}</span>`);
-  return `<li class="req-item todo"><span class="mark">○</span><span class="req-opts">${opts}</span></li>`;
+  return `<li class="req-item todo"><span class="mark" title="${esc(t("stillNeeded"))}">○</span><span class="req-opts">${opts}</span></li>`;
 }
 
 function blockHtml(s) {
@@ -102,7 +102,7 @@ function renderReqs() {
   const pr = progress(st);
   $("#reqSum").innerHTML = `<span class="req-h">${esc(t("reqTitle"))}</span><span class="muted">${esc(t("reqDone", pr.met, pr.total))}</span>`;
   const order = [...st].sort((a, b) => Number(a.met) - Number(b.met) || a.index - b.index);
-  $("#stReqs").innerHTML = `<div class="reqs">${order.map(blockHtml).join("")}</div><p class="muted">${esc(t("reqNote"))}</p>`;
+  $("#stReqs").innerHTML = `<p class="muted small req-legend">${esc(t("reqLegend"))}</p><div class="reqs">${order.map(blockHtml).join("")}</div><p class="muted">${esc(t("reqNote"))}</p>`;
 }
 
 /* Program picker: a listbox exactly as wide as the field */

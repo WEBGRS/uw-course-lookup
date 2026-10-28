@@ -68,6 +68,7 @@ details.req.met .req-title{color:var(--ink-3)}
 .req-title{font-weight:600;font-size:14.5px}
 .req-prog{font-size:13px;color:var(--ink-2);white-space:nowrap}
 .req-note{font-size:13px;margin:8px 4px 2px}
+.req-legend{margin:0 0 8px}
 .req-items{list-style:none;margin:6px 0 12px;padding:0}
 .req-item{display:flex;gap:10px;padding:6px 4px;align-items:flex-start;font-size:14px}
 .req-item .mark{width:18px;text-align:center;flex:none;color:var(--ink-3)}
