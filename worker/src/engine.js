@@ -80,6 +80,8 @@ export function buildIndex(data) {
   ix.gpa = Float32Array.from(C, (c) => nz(c.gpa, NaN));
   ix.hasNow = Uint8Array.from(C, (c) => (c.now ? 1 : 0));
   ix.sa = C.map((c) => c.sa || "");
+  // every subject a course is listed under (COMP SCI 240 is also MATH 240)
+  ix.subjs = C.map((c) => new Set([c.sa, ...[c.code, ...c.al].map((x) => x.replace(/\s*\d[\w]*$/, ""))].filter(Boolean)));
   ix.es = Uint8Array.from(C, (c) => (c.es ? 1 : 0));
   ix.ge = Uint8Array.from(C, (c) => (c.ge ? 1 : 0));
   ix.lens = {};
@@ -171,7 +173,7 @@ export function query(ix, params) {
       const i = order[k];
       if (idSet && !idSet.has(i)) continue;
       if (lens && !lens[i]) continue;
-      if (subj && ix.sa[i] !== subj) continue;
+      if (subj && !ix.subjs[i].has(subj)) continue;
       if (lvl && !(lvl === "5" ? ix.num[i] >= 500 : Math.floor(ix.num[i] / 100) === +lvl)) continue;
       if (br && !(br === "__es" ? ix.es[i] : br === "__ge" ? ix.ge[i] : C[i].br.includes(br))) continue;
       if (minGpa != null && !(ix.gpa[i] >= minGpa)) continue;
