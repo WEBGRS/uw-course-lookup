@@ -133,13 +133,20 @@ function codeLike(ix, nq) {
   return !!m && (!!m[2] || m[1].length <= 3) && ix.subjKeys.some((k) => k.startsWith(SHORT[m[1]] || m[1]));
 }
 
+// Shorthand that is a topic, not a code prefix: bare "ai" matched "air", "ml" found no machine learning course
+const TOPIC = { ai: "artificial intelligence", ml: "machine learning" };
+// Shorthand that means one subject only: "cs" is COMP SCI, not CS&D or CSCS
+const ONLY = new Set(["cs"]);
+
 function makeMatcher(ix, q) {
-  q = (q || "").trim().toLowerCase();
+  q = (q || "").trim().toLowerCase().split(/\s+/).map((w) => TOPIC[w] || w).join(" ");
   if (!q) return null;
   const nq = norm(q);
   if (!nq) return null;
+  const lead = (nq.match(/^[a-z]+/) || [""])[0], only = ONLY.has(lead);
   const expanded = nq.replace(/^([a-z]+)/, (m) => SHORT[m] || m);
-  if (codeLike(ix, nq)) return (i) => ix.codes[i].some((x) => x.startsWith(nq) || x.startsWith(expanded));
+  const hit = (x) => (!only && x.startsWith(nq)) || x.startsWith(expanded);
+  if (codeLike(ix, nq)) return (i) => ix.codes[i].some(hit);
   const ws = q.split(/\s+/).map((w) => w.replace(/[^a-z0-9]/g, "")).filter(Boolean);
   const fn = (i) => {
     if (ix.codes[i].some((x) => x.includes(nq))) return true;
@@ -149,7 +156,6 @@ function makeMatcher(ix, q) {
     return ix.people[i].some((p) => rest.every((w) => p.includes(" " + w)));
   };
   // "comp sci", "math": own code starts with the query (0), then a cross-listing does (1), then the rest (2)
-  const hit = (x) => x.startsWith(nq) || x.startsWith(expanded);
   fn.tier = (i) => (hit(ix.codes[i][0]) ? 0 : ix.codes[i].some(hit) ? 1 : 2);
   return fn;
 }

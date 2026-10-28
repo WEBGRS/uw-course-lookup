@@ -206,3 +206,27 @@ test("a near-zero GPA trend is flat, not -0.00", async () => {
   const near = R().data.courses.filter((c) => c.tr != null && c.tr < 0 && c.tr.toFixed(2) === "-0.00");
   assert.ok(near.length > 100 && near.every((c) => isFlat(c.tr)), "courses that used to read -0.00/yr: " + near.length);
 });
+
+test("shorthand: cs is COMP SCI only; ai and ml are topics", () => {
+  const x = withExtra({
+    "CS&D-210": { code: "CS&D 210", sa: "CS&D", t: "Speech Science", num: 210 },
+    "COMP-SCI-540": { code: "COMP SCI 540", sa: "COMP SCI", t: "Introduction to Artificial Intelligence", num: 540 },
+    "ENVIR-ST-301": { code: "ENVIR ST 301", sa: "ENVIR ST", t: "Air Pollution", num: 301 },
+    "STAT-451": { code: "STAT 451", sa: "STAT", t: "Introduction to Machine Learning and Statistical Pattern Classification", num: 451 },
+  });
+  assert.deepEqual(run({ q: "cs", sort: "code" }, x).ids, ["COMP-SCI-300", "COMP-SCI-540", "COMP-SCI-577"]);
+  assert.deepEqual(run({ q: "cs&d" }, x).ids, ["CS&D-210"], "the other subject is still one search away");
+  assert.deepEqual(run({ q: "ai" }, x).ids, ["COMP-SCI-540"]);
+  assert.deepEqual(run({ q: "ml" }, x).ids, ["STAT-451"]);
+  assert.deepEqual(run({ q: "cs 577" }, x).ids, ["COMP-SCI-577"]);
+});
+
+test("real data: cs, ai and ml", { skip: !REAL }, () => {
+  const cs = every({ q: "cs" });
+  assert.ok(cs.length > 50 && cs.every((r) => [r.code, ...(r.al || [])].some((x) => x.startsWith("COMP SCI "))));
+  const ai = every({ q: "ai" });
+  assert.ok(ai.some((r) => r.id === "COMP-SCI-540"));
+  assert.ok(!ai.some((r) => /^A F AERO/.test(r.code)));
+  assert.ok(every({ q: "ml" }).some((r) => /machine learning/i.test(r.t)));
+  assert.equal(run({ q: "cs 577" }, R().ix).rows[0].id, "COMP-SCI-577");
+});
