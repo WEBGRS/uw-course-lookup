@@ -71,7 +71,7 @@ details.req.met .req-title{color:var(--ink-3)}
 .req-legend{margin:0 0 8px}
 .req-items{list-style:none;margin:6px 0 12px;padding:0}
 .req-item{display:flex;gap:10px;padding:6px 4px;align-items:flex-start;font-size:14px}
-.req-item .mark{width:18px;text-align:center;flex:none;color:var(--ink-3)}
+.req-item .mark{width:18px;text-align:center;flex:none;color:var(--ink-3);height:auto;background:none;padding:0;border-radius:0;display:block}   /* not the logo .mark */
 .req-item.done .mark{color:var(--ok)}
 .req-item.done .req-opts{color:var(--ink-3)}
 .req-item.ip .mark{color:var(--warn)}
