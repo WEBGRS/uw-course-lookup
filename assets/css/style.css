@@ -180,6 +180,7 @@ select,.chk{background:var(--surface);border:1px solid var(--line);border-radius
 .itable td,.itable th{padding:6px 4px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:middle}
 .itable th{font-size:12px;color:var(--ink-3);font-weight:600}
 .itable td.r,.itable th.r{text-align:right}
+.itable tr.merged td:first-child,.itable tr.merged td:last-child{vertical-align:top;line-height:20px}.itable tr.merged td:last-child{font-size:13.5px}
 .bar{position:relative;height:8px;background:var(--line-2);border-radius:4px;min-width:50px}
 .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--series)}
 .badge{font-size:11px;font-weight:700;color:var(--ok);border:1px solid currentColor;border-radius:4px;padding:0 4px;margin-left:6px;white-space:nowrap}
