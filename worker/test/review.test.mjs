@@ -145,3 +145,42 @@ test("real data: the size sort before registration opens ranks by last term and 
   if (rows.every((r) => !r.en)) assert.ok(rows.every((r) => sortValue(r, "en")[0] === "svSz"), "no enrollment yet: last term's size");
   assert.ok(run({ sort: "m", now: "1" }, R().ix).rows.slice(0, 20).every((r) => sortValue(r, "m")));
 });
+
+test("instructor names: nicknames match, a surname alone does not", async () => {
+  const { sameName, historyOf } = await import("../../assets/js/facts.js");
+  assert.ok(sameName("Thomas Curry", "Tom Curry"));
+  assert.ok(sameName("Grzegorz Pac", "Gregory Pac"));
+  assert.ok(sameName("Matthew Bowman", "Matt Bowman"));
+  assert.ok(sameName("Ada Lovelace", "ADA LOVELACE"));
+  assert.ok(!sameName("Hezi Zhang", "Ziyi Zhang"));
+  assert.ok(!sameName("Thomas Curry", "Tom Smith"));
+  const ins = [["Thomas Curry", 3.5, 400, 0.5, 1262, 0], ["Ada Lovelace", 3.1, 90, 0.3, 1262, 1]];
+  assert.equal(historyOf(ins, "Tom Curry")[1], 3.5);
+  assert.equal(historyOf(ins, "Ziyi Lovelace"), null);
+});
+
+test("instructors with identical numbers merge into one row; a nickname match marks them as teaching now", async () => {
+  const { mergeInstructors } = await import("../../assets/js/facts.js");
+  const ins = [["Prof A", 3.2, 500, 0.3, 1262, 1], ["Ta One", 3.0, 120, 0.2, 1254, 0], ["Ta Two", 3.0, 120, 0.2, 1254, 0], ["Thomas Curry", 3.5, 40, 0.5, 1262, 0]];
+  const g = mergeInstructors(ins, ["Tom Curry"]);
+  assert.equal(g.length, 3);
+  assert.deepEqual(g[1].people.map((p) => p.name), ["Ta One", "Ta Two"]);
+  assert.equal(g[2].people[0].now, true, "Tom Curry teaches now, recorded as Thomas Curry");
+  assert.equal(g[0].people[0].now, true);
+});
+
+test("real data: nickname matches and merged instructor rows", { skip: !REAL }, async () => {
+  const { sameName, historyOf, mergeInstructors } = await import("../../assets/js/facts.js");
+  const old = (a, b) => { const pa = a.toUpperCase().split(/\s+/), pb = b.toUpperCase().split(/\s+/); return pa[0] === pb[0] && pa[pa.length - 1] === pb[pb.length - 1]; };
+  let nick = 0, extra = 0;
+  for (const c of R().data.courses) {
+    const ins = c.ins || [];
+    for (const n of (c.now && c.now.who) || []) if (!ins.some((i) => i[5] && old(i[0], n)) && historyOf(ins, n)) nick++;
+    extra += ins.length - mergeInstructors(ins).length;
+  }
+  assert.ok(nick > 100, "instructors found only through a nickname: " + nick);
+  assert.ok(extra > 1000, "rows merged: " + extra);
+  const cs577 = R().byId.get("COMP-SCI-577");
+  assert.ok(mergeInstructors(cs577.ins).length < cs577.ins.length, "positive control: COMP SCI 577 has repeated rows");
+  assert.ok(sameName("Jim Williams", "James Williams"));
+});

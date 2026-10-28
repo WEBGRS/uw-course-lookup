@@ -9,10 +9,7 @@ export const pct = (v) => (v == null ? "–" : Math.round(v * 100) + "%");
 export const fmt = (n) => (n ?? 0).toLocaleString();
 export const MOB = () => matchMedia("(max-width:640px)").matches;
 export const lastName = (n) => n.split(/\s+/).slice(-1)[0];
-export const sameName = (a, b) => {
-  const pa = a.toUpperCase().split(/\s+/), pb = b.toUpperCase().split(/\s+/);
-  return pa[0] === pb[0] && pa[pa.length - 1] === pb[pb.length - 1];
-};
+export { sameName } from "./facts.js";   // nicknames count (Tom = Thomas)
 
 export const store = {
   get(k, d) { try { const v = localStorage.getItem("uwcl." + k); return v == null ? d : JSON.parse(v); } catch { return d; } },

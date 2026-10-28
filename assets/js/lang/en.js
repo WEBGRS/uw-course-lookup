@@ -30,7 +30,7 @@ const ORIG = {
     kGpa: "GPA, all terms", kRecent: "Last 6 terms", kA: "Got an A", kDF: "Got a D or F", kNow: t => "Enrolled " + t,
     snapshot: d => "snapshot " + d,
     nowLine: (en, lec, open, pk, wait, sz) => (en ? "about " + fmt(en) + " students enrolled, " : sz ? "about " + fmt(sz) + " students last term, " : "") + lec + " lecture section" + (lec === 1 ? "" : "s") + ", " + open + " of " + pk + " enrollment options open" + (wait ? ", " + wait + " waitlisted" : "") + ".",
-    teaching: "Teaching: ", pastHere: g => "(past GPA here " + g + ")", noHist: "(no grade history in this course)",
+    teaching: "Teaching: ", pastHere: g => "(past GPA here " + g + ")", noHist: "(no grades found for this name in this course)", sameStudents: "Same students, same numbers",
     notOffered: last => "Not offered this term" + (last ? "; last taught " + last : "") + ".",
     grades: "Grades", studentsRange: (n, a, b) => fmt(n) + " students, " + a + " – " + b,
     thisCourse: "This course", allTracked: n => "All " + fmt(n) + " courses",

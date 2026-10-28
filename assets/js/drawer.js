@@ -1,5 +1,5 @@
 // Course detail drawer: grades, instructors, this term's sections with times, what students say.
-import { $, $$, esc, f2, pct, fmt, app, plan, DET, loadDetail, mgUrl, enrollUrl, guideUrl, rmpUrl, redditUrl, sameName, hideTip, on, emit } from "./core.js";
+import { $, $$, esc, f2, pct, fmt, app, plan, DET, loadDetail, mgUrl, enrollUrl, guideUrl, rmpUrl, redditUrl, hideTip, on, emit } from "./core.js";
 import { t, termLabel, termShort, termYear, brName, lvlName } from "./i18n.js";
 import { distChart, lineChart, instrChart, trendTxt } from "./charts.js";
 import { nowTxt, listState } from "./courses.js";
@@ -8,6 +8,7 @@ import { loadPlanData, planOf } from "./planner/data.js";
 import { fmtRange, daysText, DAY_LETTERS } from "./planner/schedule.js";
 import { mount as mountReviews } from "./reviews.js";
 import { mount as mountMates } from "./mates.js";
+import { historyOf, mergeInstructors } from "./facts.js";
 
 export let cur = null;
 let lastFocus = null, lastFocusId = null, showAllIns = false, seq = 0;
@@ -89,7 +90,7 @@ export async function openDrawer(id, keepScroll) {
     h += `<p style="margin:0 0 6px">${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, c.now.lec, c.now.open, c.now.pk, c.now.wait, c.sz))}</p>`;
     h += `<div id="dSections"></div>`;
     if (c.now.who.length) h += `<p class="small" style="margin:8px 0 0;color:var(--ink-2)">${esc(t("teaching"))}` + c.now.who.map((n) => {
-      const m = c.ins.find((i) => i[5] && sameName(i[0], n));
+      const m = historyOf(c.ins, n);
       return esc(n) + ` <span class="muted">${esc(m ? t("pastHere", f2(m[1])) : t("noHist"))}</span>`;
     }).join(", ") + "</p>";
   } else h += `<p class="muted" style="margin:0">${esc(t("notOffered", c.last ? termLabel(c.last) : ""))}</p>`;
@@ -104,11 +105,14 @@ export async function openDrawer(id, keepScroll) {
     }
   } else h += `<div class="d-sec"><h3>${esc(t("grades"))}</h3><p class="muted">${esc(t("noGrades"))}</p></div>`;
   if (c.ins.length) {
-    const mxN = Math.max(...c.ins.map((i) => i[2])), LIM = 8, rows = showAllIns ? c.ins : c.ins.slice(0, LIM);
+    // identical numbers = the same students (TAs, co-teachers): one row with every name
+    const groups = mergeInstructors(c.ins, c.now ? c.now.who : []);
+    const mxN = Math.max(...c.ins.map((i) => i[2])), LIM = 8, rows = showAllIns ? groups : groups.slice(0, LIM);
+    const badge = (p) => (p.now ? `<span class="badge">${termShort(app.term)}</span>` : "");
     h += `<div class="d-sec"><h3>${esc(t("instructors"))}</h3>`;
     h += `<table class="itable"><thead><tr><th>${esc(t("thName"))}</th><th class="r">${esc(t("thGpa"))}</th><th class="r">${esc(t("thA"))}</th><th>${esc(t("thN"))}</th><th class="r">${esc(t("thLast"))}</th><th><span class="sr">${esc(t("thLinks"))}</span></th></tr></thead><tbody>` +
-      rows.map((i) => `<tr><td>${esc(i[0])}${i[5] ? `<span class="badge">${termShort(app.term)}</span>` : ""}</td><td class="r"><b>${f2(i[1])}</b></td><td class="r">${pct(i[3])}</td><td><div class="bar" data-tip="${fmt(i[2])}"><i style="width:${(i[2] / mxN) * 100}%"></i></div></td><td class="r small muted">${termShort(i[4])}</td><td class="small"><a target="_blank" rel="noopener" href="${rmpUrl(i[0])}">RMP</a></td></tr>`).join("") + "</tbody></table>";
-    if (c.ins.length > LIM) h += `<p style="margin:8px 0 0"><button class="linkbtn" id="dAllIns">${esc(showAllIns ? t("showFewer") : t("showAll", c.ins.length))}</button></p>`;
+      rows.map(({ i, people }) => `<tr><td>${people.map((p) => esc(p.name) + badge(p)).join("<br>")}${people.length > 1 ? `<div class="small muted">${esc(t("sameStudents"))}</div>` : ""}</td><td class="r"><b>${f2(i[1])}</b></td><td class="r">${pct(i[3])}</td><td><div class="bar" data-tip="${fmt(i[2])}"><i style="width:${(i[2] / mxN) * 100}%"></i></div></td><td class="r small muted">${termShort(i[4])}</td><td class="small">${people.map((p) => `<a target="_blank" rel="noopener" href="${rmpUrl(p.name)}" aria-label="${esc("RMP: " + p.name)}">RMP</a>`).join("<br>")}</td></tr>`).join("") + "</tbody></table>";
+    if (groups.length > LIM) h += `<p style="margin:8px 0 0"><button class="linkbtn" id="dAllIns">${esc(showAllIns ? t("showFewer") : t("showAll", groups.length))}</button></p>`;
     if (c.ins.some((i) => i[2] < 30)) h += `<p class="small muted" style="margin:8px 0 0">${esc(t("thin"))}</p>`;
     h += "</div>";
     if (c.ins.length > 1) h += `<details class="d-sec d-fold"><summary><span>${esc(t("instrChartTitle"))}</span></summary>${instrChart(c)}</details>`;

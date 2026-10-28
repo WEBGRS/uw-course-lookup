@@ -2,6 +2,8 @@
 // Times are minutes after local midnight; days are 0 = Mon … 6 = Sun; a package is one valid way to enroll
 // in a course (lecture + the discussion/lab that goes with it), exactly as the API returns it.
 
+import { sameName } from "../facts.js";   // nicknames count (Tom = Thomas)
+
 export const DAY_LETTERS = "MTWRFSU";
 const OPEN = "O", WAIT = "W", CLOSED = "C";
 
@@ -26,10 +28,6 @@ export const fmtMin = (m) => { const h = Math.floor(m / 60), mm = m % 60; return
 export const fmtRange = (s, e) => `${fmtMin(s)}–${fmtMin(e)}`;
 export const daysText = (idx) => [...new Set(idx)].sort((a, b) => a - b).map((d) => DAY_LETTERS[d]).join("");
 
-const sameName = (a, b) => {
-  const pa = a.toUpperCase().split(/\s+/), pb = b.toUpperCase().split(/\s+/);
-  return pa[0] === pb[0] && pa[pa.length - 1] === pb[pb.length - 1];
-};
 const credit = (cr) => { const n = parseFloat(String(cr ?? "").split(/[–-]/)[0]); return Number.isFinite(n) ? n : 0; };
 
 /** One API package → flat meetings plus the facts the scorer needs. */
