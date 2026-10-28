@@ -124,3 +124,24 @@ test("real data: every graded course has an A share and a D/F share", { skip: !R
   assert.ok(graded.filter((c) => c.pdf == null).length > 1000, "positive control: the export leaves D/F out when it is zero");
   assert.ok(graded.every((c) => { const s = shares(c); return s.pa != null && s.pdf != null; }));
 });
+
+test("rows carry the number their sort ranks by", async () => {
+  const { sortValue } = await import("../../assets/js/facts.js");
+  assert.deepEqual(sortValue({ en: 0, sz: 1438 }, "en"), ["svSz", 1438]);
+  assert.deepEqual(sortValue({ en: 400, sz: 1438 }, "en"), ["svEn", 400]);
+  assert.deepEqual(sortValue({ m: 0, ms: 1, rdn: 3 }, "m"), ["chatFew", 0]);
+  assert.deepEqual(sortValue({ m: 12 }, "m"), ["chat", 12]);
+  assert.deepEqual(sortValue({ gs: 3.81, n: 900 }, "gpa"), ["svGpa", 3.81]);
+  assert.equal(sortValue({ gs: 3.81, n: 9 }, "gpa"), null);
+  assert.equal(sortValue({ en: 4 }, "code"), null);
+  assert.equal(run({ q: "cs 577" }).rows[0].en, 419);
+});
+
+test("real data: the size sort before registration opens ranks by last term and every row says so", { skip: !REAL }, async () => {
+  const { sortValue } = await import("../../assets/js/facts.js");
+  const rows = run({ sort: "en", now: "1" }, R().ix).rows;
+  assert.ok(rows.length === 60);
+  assert.ok(rows.every((r) => sortValue(r, "en")), "every row shows a size");
+  if (rows.every((r) => !r.en)) assert.ok(rows.every((r) => sortValue(r, "en")[0] === "svSz"), "no enrollment yet: last term's size");
+  assert.ok(run({ sort: "m", now: "1" }, R().ix).rows.slice(0, 20).every((r) => sortValue(r, "m")));
+});

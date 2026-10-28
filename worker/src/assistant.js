@@ -14,7 +14,7 @@ export const TOOLS = [
     level: { type: "string", enum: ["u", "1", "2", "3", "4", "5"], description: "u=undergraduate (below 500), 1=100s … 4=400s, 5=500 and up" },
     min_gpa: { type: "number", description: "Minimum average GPA, e.g. 3.5 (courses with fewer than 30 graded students never pass)" },
     offered_now: { type: "boolean", description: "Only courses with sections this term" },
-    sort: { type: "string", enum: ["gpa", "gpaL", "pa", "en", "code", "m"], description: "gpa=highest GPA, gpaL=lowest, pa=most A's (these three rank courses under 50 graded students and independent study last), en=largest this term, code=course number, m=most discussed" },
+    sort: { type: "string", enum: ["gpa", "gpaL", "pa", "en", "code", "m"], description: "gpa=highest GPA, gpaL=lowest, pa=most A's (these three rank courses under 50 graded students and independent study last), en=largest (this term's enrollment, last term's until registration opens), code=course number, m=most discussed" },
   }),
   fn("get_course", "Full facts for one course: description, prerequisites, grade statistics, instructors with their past GPA in this course, and this term's sections with days and times.", {
     id: { type: "string", description: "Course code such as 'COMP SCI 577' or 'COMP-SCI-577'" },

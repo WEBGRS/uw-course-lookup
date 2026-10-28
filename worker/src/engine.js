@@ -60,7 +60,7 @@ function toRow(c) {
   if (c.cr) r.cr = c.cr;
   if (c.br.length) r.br = c.br;
   if (c.n) r.n = c.n;
-  for (const k of ["gpa", "gs", "pa", "tr", "sp", "en"]) if (c[k] != null) r[k] = c[k];
+  for (const k of ["gpa", "gs", "pa", "tr", "sp", "en", "sz"]) if (c[k] != null) r[k] = c[k];
   if (c.dist) r.dist = c.dist;
   const sk = c.terms.filter((x) => x[2] >= 10 && x[0] % 10 !== 6).slice(-12).map((x) => x[1]);
   if (sk.length >= 3) r.sk = sk;

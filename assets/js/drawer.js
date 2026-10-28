@@ -86,7 +86,7 @@ export async function openDrawer(id, keepScroll) {
     <div class="kpi"><b>${pct(c.pa)}</b><span>${esc(t("kA"))}</span></div><div class="kpi"><b>${c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"}</b><span>${esc(t("kDF"))}</span></div></div></div>`;
   h += `<div class="d-sec"><h3>${esc(termLabel(app.term))}</h3>`;
   if (c.now) {
-    h += `<p style="margin:0 0 6px">${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, c.now.lec, c.now.open, c.now.pk, c.now.wait))}</p>`;
+    h += `<p style="margin:0 0 6px">${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, c.now.lec, c.now.open, c.now.pk, c.now.wait, c.sz))}</p>`;
     h += `<div id="dSections"></div>`;
     if (c.now.who.length) h += `<p class="small" style="margin:8px 0 0;color:var(--ink-2)">${esc(t("teaching"))}` + c.now.who.map((n) => {
       const m = c.ins.find((i) => i[5] && sameName(i[0], n));

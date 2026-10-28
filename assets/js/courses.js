@@ -3,6 +3,7 @@ import { $, $$, esc, f2, pct, fmt, api, app, ROW, fill, rec, lastName, plan, on,
 import { t, termShort, termLabel, brName } from "./i18n.js";
 import { strip } from "./charts.js";
 import { setBand } from "./band.js";
+import { sortValue } from "./facts.js";
 
 export const listState = { rows: [], total: 0, state: "loading" };
 const DEF = { sort: "code", now: true };  // default list: this term's courses by course number
@@ -39,8 +40,8 @@ function gpaCell(c) {
 }
 // The number the active sort ranks by, when the row does not show it already
 function sortVal(c) {
-  if (st.sort === "gpa" || st.sort === "gpaL") return c.gs != null && c.n >= 50 ? t("svGpa", f2(c.gs)) : "";
-  return "";
+  const v = sortValue(c, st.sort);
+  return v ? t(v[0], v[0] === "svGpa" ? f2(v[1]) : fmt(v[1])) : "";
 }
 function whoLine(c) {
   if (!c.now || !c.now.who.length) return "";

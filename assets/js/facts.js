@@ -8,3 +8,11 @@ export function shares(c) {
   if (!tot) return { pa: c.pa ?? null, pdf: c.pdf ?? null };
   return { pa: c.pa ?? r3(d[0] / tot), pdf: c.pdf ?? r3((d[5] + d[6]) / tot) };
 }
+
+/** The number a list sort ranks by, as [string key, value], when the row does not show it already. */
+export function sortValue(c, sort) {
+  if (sort === "gpa" || sort === "gpaL") return c.gs != null && c.n >= 50 ? ["svGpa", c.gs] : null;
+  if (sort === "en") return c.en ? ["svEn", c.en] : c.sz ? ["svSz", c.sz] : null;
+  if (sort === "m") return c.m ? ["chat", c.m] : c.ms ? ["chatFew", 0] : c.rdn ? ["reddit", c.rdn] : null;
+  return null;
+}
