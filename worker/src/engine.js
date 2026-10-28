@@ -29,14 +29,18 @@ const LENSES = {
   reddit: (c) => c.rdn >= 8,
 };
 
-const MIN_GRADED = 50;  // GPA sorts ignore courses with too few graded students
-const gsr = (c) => (c.n >= MIN_GRADED ? c.gs : null);
+export const MIN_GRADED = 50;  // GPA and A-share sorts rank courses with fewer graded students last
+export const MIN_FILTER = 30;  // the minimum-GPA filter skips courses with fewer graded students
+const INDEPENDENT = /^(independent|directed)\b|\b(independent study|directed study|independent reading)\b/i;
+const ranked = (c) => c.n >= MIN_GRADED && !INDEPENDENT.test(c.t);  // one student per supervisor: no grading signal
+const gsr = (c) => (ranked(c) ? c.gs : null);
+const par = (c) => (ranked(c) ? c.pa : null);
 
 const SORTS = {
   m: (a, b) => b.m - a.m || b.rdn - a.rdn || size(b) - size(a),
-  gpa: (a, b) => nz(gsr(b), -1) - nz(gsr(a), -1),
-  gpaL: (a, b) => nz(gsr(a), 9) - nz(gsr(b), 9),
-  pa: (a, b) => nz(b.pa, -1) - nz(a.pa, -1),
+  gpa: (a, b) => nz(gsr(b), -1) - nz(gsr(a), -1) || b.n - a.n,
+  gpaL: (a, b) => nz(gsr(a), 9) - nz(gsr(b), 9) || b.n - a.n,
+  pa: (a, b) => nz(par(b), -1) - nz(par(a), -1) || b.n - a.n,
   tr: (a, b) => nz(b.tr, -9) - nz(a.tr, -9),
   tl: (a, b) => nz(a.tr, 9) - nz(b.tr, 9),
   sp: (a, b) => nz(b.sp, -1) - nz(a.sp, -1),
@@ -77,7 +81,7 @@ export function buildIndex(data) {
 
   // numeric columns
   ix.num = Int32Array.from(C, (c) => c.num);
-  ix.gpa = Float32Array.from(C, (c) => nz(c.gpa, NaN));
+  ix.gpa = Float32Array.from(C, (c) => (c.gpa != null && c.n >= MIN_FILTER ? c.gpa : NaN));
   ix.hasNow = Uint8Array.from(C, (c) => (c.now ? 1 : 0));
   ix.sa = C.map((c) => c.sa || "");
   // every subject a course is listed under (COMP SCI 240 is also MATH 240)
@@ -174,7 +178,7 @@ export function query(ix, params) {
       if (idSet && !idSet.has(i)) continue;
       if (lens && !lens[i]) continue;
       if (subj && !ix.subjs[i].has(subj)) continue;
-      if (lvl && !(lvl === "5" ? ix.num[i] >= 500 : Math.floor(ix.num[i] / 100) === +lvl)) continue;
+      if (lvl && !(lvl === "5" ? ix.num[i] >= 500 : lvl === "u" ? ix.num[i] < 500 : Math.floor(ix.num[i] / 100) === +lvl)) continue;
       if (br && !(br === "__es" ? ix.es[i] : br === "__ge" ? ix.ge[i] : C[i].br.includes(br))) continue;
       if (minGpa != null && !(ix.gpa[i] >= minGpa)) continue;
       if (now && !ix.hasNow[i]) continue;

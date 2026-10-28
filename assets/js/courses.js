@@ -30,6 +30,13 @@ export function nowTxt(c, bare, long) {
   const [cls, lbl] = statusOf(c), en = c.now && c.en && !bare ? c.en : 0;
   return `<span class="status"${en ? ` title="${esc(t("enrolledN", en))}"` : ""}><span class="dot ${cls}"></span>${lbl}${en ? `<span class="muted small">· ${long ? esc(t("enrolledN", en)) : fmt(en)}</span>` : ""}</span>`;
 }
+// Fewer graded students than this: the GPA is greyed and says why
+const THIN = 30;
+function gpaCell(c) {
+  if (c.gpa == null || c.n >= THIN) return `<b>${f2(c.gpa)}</b>`;
+  const why = esc(t("thinRow", c.n));
+  return `<b class="thin" data-tip="${why}">${f2(c.gpa)}<span class="sr"> (${why})</span></b>`;
+}
 function whoLine(c) {
   if (!c.now || !c.now.who.length) return "";
   const w = c.now.who.map(lastName), more = w.length > 3 ? " +" + (w.length - 3) : "";
@@ -50,7 +57,7 @@ export function render() {
       <div class="c-star"><button class="addbtn" data-star="${esc(c.id)}" aria-pressed="${plan.must.has(c.id)}" title="${esc(t(plan.must.has(c.id) ? "inTip" : "addTip"))}" aria-label="${esc(t(plan.must.has(c.id) ? "saved" : "save"))} ${esc(c.code)}">${plan.must.has(c.id) ? "✓" : "+"}</button></div>
       <div class="cname"><div><span class="code">${esc(c.code)}</span>${c.al.length ? ` <span class="alias">= ${esc(c.al.join(", "))}</span>` : ""}</div><div class="title">${esc(c.t)}</div>${whoLine(c)}</div>
       <div class="c-cr num small">${esc(c.cr || "–")}</div>
-      <div class="c-gpa gcell"><b>${f2(c.gpa)}</b>${strip(c.dist)}</div>
+      <div class="c-gpa gcell">${gpaCell(c)}${strip(c.dist)}</div>
       <div class="c-pa num">${pct(c.pa)}</div>
       <div class="c-now">${nowTxt(c)}</div>
       <div class="c-meta"><span>${esc(c.cr || "?")} cr</span><span>A ${pct(c.pa)}</span>${nowTxt(c, false, true)}</div>

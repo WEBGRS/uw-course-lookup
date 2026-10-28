@@ -115,6 +115,7 @@ select,.chk{background:var(--surface);border:1px solid var(--line);border-radius
 .num{text-align:right}
 .gcell{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:center}
 .gcell b{font-size:15px}
+.gcell b.thin{color:var(--ink-3);font-weight:600;text-decoration:underline dotted;text-underline-offset:3px;cursor:help}
 .strip{display:flex;height:10px;border-radius:3px;overflow:hidden;gap:1px;background:var(--line-2)}
 .strip i{display:block;height:100%}
 .muted{color:var(--ink-3)}
