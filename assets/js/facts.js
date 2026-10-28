@@ -55,3 +55,15 @@ export function mergeInstructors(ins, teachingNow = []) {
   }
   return [...groups.values()];
 }
+
+/** This term's lectures: one group per lead section (LEC or SEM, else the first) with the packages that use it. */
+export function lectureGroups(pk) {
+  const groups = new Map();
+  for (const p of pk || []) {
+    const lead = p.s.find((s) => s.t === "LEC" || s.t === "SEM") || p.s[0];
+    if (!lead) continue;
+    const g = groups.get(lead.t + lead.n) || { lead, pkgs: [] };
+    g.pkgs.push(p); groups.set(lead.t + lead.n, g);
+  }
+  return [...groups.values()];
+}

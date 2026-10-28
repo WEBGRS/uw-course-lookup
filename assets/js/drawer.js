@@ -8,7 +8,7 @@ import { loadPlanData, planOf } from "./planner/data.js";
 import { fmtRange, daysText, DAY_LETTERS } from "./planner/schedule.js";
 import { mount as mountReviews } from "./reviews.js";
 import { mount as mountMates } from "./mates.js";
-import { historyOf, mergeInstructors } from "./facts.js";
+import { historyOf, mergeInstructors, lectureGroups } from "./facts.js";
 
 export let cur = null;
 let lastFocus = null, lastFocusId = null, showAllIns = false, seq = 0;
@@ -29,23 +29,21 @@ function setModal(on_) {
 }
 
 /** This term's sections: one row per lecture with its time, room, instructor and seats. */
+const SEC_SHOWN = 10;
 function sectionsTable(pk) {
   if (!pk || !pk.length) return "";
-  const groups = new Map();
-  for (const p of pk) {
-    const lead = p.s.find((s) => s.t === "LEC" || s.t === "SEM") || p.s[0];
-    if (!lead) continue;
-    const g = groups.get(lead.t + lead.n) || { lead, pkgs: [] };
-    g.pkgs.push(p); groups.set(lead.t + lead.n, g);
-  }
-  const rows = [...groups.values()].slice(0, 10).map(({ lead, pkgs }) => {
+  const groups = lectureGroups(pk);
+  const rows = groups.slice(0, SEC_SHOWN).map(({ lead, pkgs }) => {
     const open = pkgs.some((p) => p.st === "O"), wait = pkgs.some((p) => p.st === "W");
     const cls = open ? "open" : wait ? "wait" : "closed", lbl = open ? t("open") : wait ? t("wait") : t("full");
     const when = lead.m.length ? lead.m.map((m) => `${daysText([...m[0]].map((ch) => DAY_LETTERS.indexOf(ch)))} ${fmtRange(m[1], m[2])}`).join(", ") : t("online");
     return `<tr><td><b>${esc(lead.t)} ${esc(lead.n)}</b></td><td>${esc(when)}${lead.m[0] && lead.m[0][3] ? `<div class="muted small">${esc(lead.m[0][3])}</div>` : ""}</td><td>${esc((lead.i || []).join(", "))}</td><td><span class="status"><span class="dot ${cls}"></span>${esc(lbl)}</span></td></tr>`;
   });
-  return `<div class="tw"><table class="itable"><tbody>${rows.join("")}</tbody></table></div>`;
+  return `<div class="tw"><table class="itable"><tbody>${rows.join("")}</tbody></table></div>` +
+    (groups.length > SEC_SHOWN ? `<p class="small muted" style="margin:6px 0 0">${esc(t("secMore", groups.length - SEC_SHOWN))}</p>` : "");
 }
+// The line above the table counts the lectures it lists (the export's count includes sections no package uses)
+const nowLineHtml = (c, lec) => `${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, lec, c.now.open, c.now.pk, c.now.wait, c.sz))}`;
 
 function openDrawerError(id) {
   const dr = $("#drawer"); cur = null;
@@ -87,7 +85,8 @@ export async function openDrawer(id, keepScroll) {
     <div class="kpi"><b>${pct(c.pa)}</b><span>${esc(t("kA"))}</span></div><div class="kpi"><b>${c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"}</b><span>${esc(t("kDF"))}</span></div></div></div>`;
   h += `<div class="d-sec"><h3>${esc(termLabel(app.term))}</h3>`;
   if (c.now) {
-    h += `<p style="margin:0 0 6px">${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, c.now.lec, c.now.open, c.now.pk, c.now.wait, c.sz))}</p>`;
+    const known = planOf(c.id);
+    h += `<p style="margin:0 0 6px" id="dNowLine">${nowLineHtml(c, known && known.pk.length ? lectureGroups(known.pk).length : null)}</p>`;
     h += `<div id="dSections"></div>`;
     if (c.now.who.length) h += `<p class="small" style="margin:8px 0 0;color:var(--ink-2)">${esc(t("teaching"))}` + c.now.who.map((n) => {
       const m = historyOf(c.ins, n);
@@ -144,8 +143,11 @@ export async function openDrawer(id, keepScroll) {
   if (c.now) {
     loadPlanData([c.id]).then(() => {
       const el = $("#dSections"), p = planOf(c.id);
-      if (el && cur === c && p) el.innerHTML = sectionsTable(p.pk);
-    }).catch(() => {});
+      if (el && cur === c && p) {
+        el.innerHTML = sectionsTable(p.pk);
+        $("#dNowLine").innerHTML = nowLineHtml(c, p.pk.length ? lectureGroups(p.pk).length : c.now.lec);
+      }
+    }).catch(() => { if (cur === c && $("#dNowLine")) $("#dNowLine").innerHTML = nowLineHtml(c, c.now.lec); });
   }
 }
 

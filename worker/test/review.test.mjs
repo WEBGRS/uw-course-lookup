@@ -184,3 +184,16 @@ test("real data: nickname matches and merged instructor rows", { skip: !REAL }, 
   assert.ok(mergeInstructors(cs577.ins).length < cs577.ins.length, "positive control: COMP SCI 577 has repeated rows");
   assert.ok(sameName("Jim Williams", "James Williams"));
 });
+
+test("course page: the lecture count is the lectures listed", async () => {
+  const { lectureGroups } = await import("../../assets/js/facts.js");
+  assert.equal(lectureGroups(fixture.sections["COMP-SCI-577"]).length, 1);
+  assert.equal(lectureGroups([]).length, 0);
+  if (!REAL) return;
+  const { data, byId } = R();
+  const g = lectureGroups(data.sections["COMP-SCI-577"]);
+  assert.ok(byId.get("COMP-SCI-577").now.lec > g.length, "positive control: the export counts more lectures than it lists");
+  let differ = 0;
+  for (const c of data.courses) if (c.now && data.sections[c.id] && lectureGroups(data.sections[c.id]).length !== c.now.lec) differ++;
+  assert.ok(differ > 100, String(differ));
+});
