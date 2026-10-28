@@ -240,3 +240,19 @@ test("'In schedule' lists every saved course, offered this term or not", async (
   assert.deepEqual(run(p).ids, ["COMP-SCI-577", "PHYSICS-241"]);
   assert.deepEqual(run({ ...p, now: "1" }).ids, ["COMP-SCI-577"], "positive control: the term filter hid PHYSICS 241");
 });
+
+test("transcript: DARS 'SELECT FROM' and 'NEEDS' lists are not courses taken", async () => {
+  const { parseTranscript, dropOptionLists } = await import("../../assets/js/planner/degree.js");
+  const SUBJ = ["COMP SCI", "MATH", "STAT"];
+  const dars = "NEEDS: 1 COURSE\nSELECT FROM: MATH 340, MATH 341, MATH 375\nEARNED: 12.00 CREDITS\nFA24 COMP SCI 300 PROGRAMMING II 3.00 A";
+  const raw = parseTranscript(dars.replace(/SELECT FROM:/, "").replace(/NEEDS:/, ""), SUBJ);
+  assert.ok(raw.ip.includes("MATH-375"), "positive control: without the fix the list reads as in progress");
+  const r = parseTranscript(dars, SUBJ);
+  assert.deepEqual(r.done, ["COMP-SCI-300"]);
+  assert.deepEqual(r.ip, []);
+  const wrapped = "  NEEDS: 2 COURSES\n  SELECT FROM: COMP SCI 400 407\n     MATH 421 431\n  FA23 MATH 340 LINEAR ALGEBRA 3.00 A\nSP25 STAT 340 DATA SCIENCE 4.00";
+  const w = parseTranscript(wrapped, SUBJ);
+  assert.deepEqual(w.done, ["MATH-340"]);
+  assert.deepEqual(w.ip, ["STAT-340"]);
+  assert.equal(dropOptionLists("A\n\nB"), "A\n\nB");
+});
