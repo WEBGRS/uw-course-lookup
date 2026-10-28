@@ -230,3 +230,13 @@ test("real data: cs, ai and ml", { skip: !REAL }, () => {
   assert.ok(every({ q: "ml" }).some((r) => /machine learning/i.test(r.t)));
   assert.equal(run({ q: "cs 577" }, R().ix).rows[0].id, "COMP-SCI-577");
 });
+
+test("'In schedule' lists every saved course, offered this term or not", async () => {
+  const { listParams } = await import("../../assets/js/zh-terms.js");
+  const st = { q: "", sort: "code", subj: "", lvl: "", br: "", gpa: "", now: true };
+  assert.equal(listParams(st, null).p.now, "1");
+  const { p } = listParams(st, ["COMP-SCI-577", "PHYSICS-241"]);
+  assert.equal(p.now, undefined);
+  assert.deepEqual(run(p).ids, ["COMP-SCI-577", "PHYSICS-241"]);
+  assert.deepEqual(run({ ...p, now: "1" }).ids, ["COMP-SCI-577"], "positive control: the term filter hid PHYSICS 241");
+});

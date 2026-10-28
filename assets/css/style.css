@@ -81,6 +81,7 @@ body.has-plan main{padding-bottom:120px}
 .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
 select,.chk{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13.5px}
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px;align-items:center}
+.filters .chk:has(input:disabled){opacity:.55}
 .chk{display:inline-flex;gap:6px;align-items:center;cursor:pointer;user-select:none}
 .chk input{margin:0;accent-color:var(--brand)}
 @media(max-width:640px){.filters{display:none}.filters.open{display:flex}.filters select,.filters .chk{min-height:40px}.linkbtn{padding:10px 4px}}

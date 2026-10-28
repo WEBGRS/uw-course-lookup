@@ -4,7 +4,7 @@ import { t, LANG, termShort, termLabel, brName } from "./i18n.js";
 import { strip } from "./charts.js";
 import { setBand } from "./band.js";
 import { sortValue } from "./facts.js";
-import { rewrite, zhParams } from "./zh-terms.js";
+import { listParams } from "./zh-terms.js";
 
 export const listState = { rows: [], total: 0, state: "loading" };
 const DEF = { sort: "code", now: true };  // default list: this term's courses by course number
@@ -15,22 +15,16 @@ function readFilters() {
   st.q = $("#q").value.trim().toLowerCase(); st.sort = $("#sort").value; st.subj = $("#fSubj").value; st.lvl = $("#fLvl").value;
   st.br = $("#fBr").value; st.gpa = $("#fGpa").value; st.now = $("#fNow").checked; st.sv = $("#fSaved").checked;
 }
-const activeFilters = () => [st.subj, st.lvl, st.br, st.gpa].filter(Boolean).length + (st.now ? 1 : 0) + (st.sv ? 1 : 0);
+const activeFilters = () => [st.subj, st.lvl, st.br, st.gpa].filter(Boolean).length + (st.now && !st.sv ? 1 : 0) + (st.sv ? 1 : 0);
 
 // A Chinese query becomes English words, a lens (水课) or a breadth (人文); null for any other query
 let zh = null;
 const zhEmpty = () => !!zh && !zh.q && !zh.lens && !zh.ids && !zh.br;   // no word the search can use
 
 function queryParams() {
-  const p = {}, mine = st.sv ? [...plan.must].slice(0, 60) : null;
-  zh = st.q ? rewrite(st.q) : null;
-  if (zh) Object.assign(p, zhParams(zh, mine));   // a topic within the schedule, not instead of it
-  else if (st.q) p.q = st.q;
-  if (st.sort !== "m") p.sort = st.sort;
-  for (const k of ["subj", "lvl", "br", "gpa"]) if (st[k]) p[k] = st[k];
-  if (st.now) p.now = "1";
-  if (mine && !(zh && zh.ids)) p.ids = mine.join(",") || "-";
-  return p;
+  const r = listParams(st, st.sv ? [...plan.must].slice(0, 60) : null);
+  zh = r.zh;
+  return r.p;
 }
 function zhHint() {
   if (!zh) return "";
@@ -63,7 +57,7 @@ function whoLine(c) {
 
 export function render() {
   const { rows, total, state } = listState;
-  const hint = state === "ok" ? zhHint() : "";
+  const hint = state === "ok" ? [zhHint(), st.sv ? t("svAll", termLabel(app.term)) : ""].filter(Boolean).join(" · ") : "";
   $("#cnt").textContent = state === "ok" ? t("count", total, app.meta.count) + (hint ? " · " + hint : "") : "";
   const COLS = [["", ""], ["code", t("colCourse")], ["", t("colCr")], ["gpa", t("colGpa")], ["", t("colA")], ["", termLabel(app.term)]];
   const head = `<div class="row head">` + COLS.map(([k, l], i) =>
@@ -71,7 +65,7 @@ export function render() {
   const body = state === "error" ? `<div class="empty">${esc(t("apiError"))} <button class="btn" id="retry">${esc(t("retry"))}</button></div>`
     : state === "loading" && !rows.length ? `<div class="empty">${esc(t("loading"))}</div>`
     : zhEmpty() ? `<div class="empty">${esc(zh.miss ? t("zhMiss") : t("zhVague", st.q, zh.note))} <button class="btn" id="clearQ">${esc(t("clearQ"))}</button></div>`
-    : !rows.length && st.now ? `<div class="empty">${esc(t("empty"))} <button class="btn" id="allTerms">${esc(t("emptyAll", termLabel(app.term)))}</button></div>`
+    : !rows.length && st.now && !st.sv ? `<div class="empty">${esc(t("empty"))} <button class="btn" id="allTerms">${esc(t("emptyAll", termLabel(app.term)))}</button></div>`
     : rows.length ? `<div class="rows" role="list" aria-label="${esc(t("tabCourses"))}">` + rows.map((c) => `
     <div class="row" role="listitem" tabindex="0" data-id="${esc(c.id)}">
       <div class="c-star"><button class="addbtn" data-star="${esc(c.id)}" aria-pressed="${plan.must.has(c.id)}" title="${esc(t(plan.must.has(c.id) ? "inTip" : "addTip"))}" aria-label="${esc(t(plan.must.has(c.id) ? "saved" : "save"))} ${esc(c.code)}">${plan.must.has(c.id) ? "✓" : "+"}</button></div>
@@ -85,6 +79,7 @@ export function render() {
   $("#list").innerHTML = head + body;
   $("#list").setAttribute("aria-busy", state === "loading");
   $("#fToggle").textContent = t("filters", activeFilters());
+  $("#fNow").disabled = st.sv;   // the schedule lists every saved course, offered this term or not
   $("#moreWrap").hidden = state !== "ok" || rows.length >= total;
 }
 

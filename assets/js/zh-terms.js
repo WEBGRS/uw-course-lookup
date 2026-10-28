@@ -1,5 +1,6 @@
 // Chinese search words -> English query words, a list lens or a breadth (ported from the mini program's shared/zh-terms.js).
 // The search engine matches English word prefixes, so a Chinese query used to match nothing and list every course.
+// listParams() at the bottom builds the course list's API query from the filters, Chinese or not.
 
 const terms = {
   // Subjects
@@ -111,4 +112,19 @@ export function zhParams(zh, mine) {
   if (zh.br) p.br = zh.br;
   if (zh.ids) { const z = zh.ids.split(","); p.ids = (mine ? z.filter((id) => mine.includes(id)) : z).join(",") || "-"; }
   return p;
+}
+
+/**
+ * The course list's API parameters for the filter state `st`; `mine` = saved course ids when "In schedule" is on.
+ * "In schedule" lists every saved course, so the offered-this-term filter does not apply to it.
+ */
+export function listParams(st, mine) {
+  const p = {}, zh = st.q ? rewrite(st.q) : null;
+  if (zh) Object.assign(p, zhParams(zh, mine));   // a topic within the schedule, not instead of it
+  else if (st.q) p.q = st.q;
+  if (st.sort !== "m") p.sort = st.sort;
+  for (const k of ["subj", "lvl", "br", "gpa"]) if (st[k]) p[k] = st[k];
+  if (st.now && !mine) p.now = "1";
+  if (mine && !(zh && zh.ids)) p.ids = mine.join(",") || "-";
+  return { p, zh };
 }

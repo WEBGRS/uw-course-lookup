@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { buildIndex, query } from "../src/engine.js";
-import { rewrite, zhParams, terms, courses } from "../../assets/js/zh-terms.js";
+import { rewrite, zhParams, listParams, terms, courses } from "../../assets/js/zh-terms.js";
 
 const dataPath = new URL("../data.json", import.meta.url);
 const REAL = existsSync(dataPath);
@@ -13,7 +13,7 @@ const R = () => (real ||= (() => { const data = JSON.parse(readFileSync(dataPath
 
 // What the course list sends for a query, as courses.js builds it
 function search(q, extra = {}, mine = null) {
-  const zh = rewrite(q), p = { ...(zh ? zhParams(zh, mine) : { q }), ...extra };
+  const { p: base, zh } = listParams({ q, sort: "m" }, mine), p = { ...base, ...extra };
   if (zh && !zh.q && !zh.lens && !zh.ids && !zh.br) return { total: 0, rows: [], zh };
   const r = query(R().ix, new URLSearchParams(p));
   return { total: r.total, rows: r.rows.map((s) => JSON.parse(s)), zh };
