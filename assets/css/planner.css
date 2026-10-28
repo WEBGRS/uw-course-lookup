@@ -310,3 +310,8 @@ details.req.met .req-title{color:var(--ink-3)}
 .tr-row{flex-wrap:nowrap}.tr-n{flex:1;min-width:0}
 .rd-import{margin:0 0 10px;font-weight:600;color:color-mix(in srgb,#1f9d55 80%,var(--ink))}
 .rd-import .muted{font-weight:400}
+/* Tap targets: at least 24px (WCAG 2.5.8), 32px on touch screens */
+.mini-btn{width:24px;height:24px}
+.opt-chip{height:24px}
+.pill button{min-width:24px;min-height:24px}
+@media (pointer:coarse){.mini-btn{width:32px;height:32px}.opt-chip{min-width:32px;height:32px}.pill button{min-width:32px;min-height:32px}}
