@@ -25,6 +25,7 @@ const ORIG = {
     chat: n => "讨论 " + n, reddit: n => "Reddit " + n,
     empty: "没有符合条件的课。换个关键词，或者减少筛选条件。", emptyAll: t => "包括 " + t + " 不开的课",
     bandNoData: code => "<b>" + code + "</b> · 没有字母成绩记录",
+    bandAll: n => "<b>全校所有课程</b> · " + n + " 个字母成绩",
     save: "+ 加入课表", saved: "✓ 已在课表", addTip: "加入课表", inTip: "已在课表（点击移除）", mg: "MadGrades", cse: "选课系统", guide: "课程目录", searchReddit: "搜 Reddit",
     copy: "复制链接", copied: "已复制", prev: "上一门", next: "下一门", close: "关闭",
     credits: c => c + " 学分", usually: s => "通常开课：" + s.toLowerCase(), alsoAs: "同", req: "先修要求：", prqTitle: "先修要求", instrChartTitle: "教授对比图",
