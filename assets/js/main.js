@@ -94,6 +94,7 @@ async function boot() {
   await planner.init();
   applyLang();
   route();
+  reviews.probeTab();
   loadRows([...plan.must].slice(0, 60)).then(planbar.render).catch(() => {});   // saved courses may be off the first page
   await courses.start();
 }

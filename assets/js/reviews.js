@@ -220,8 +220,23 @@ export async function renderTab() {
   $$(".rv-row", body).forEach((b) => (b.onclick = () => openForm(b.dataset.id)));
 }
 
-on("plan", () => { if (app.tab === "reviews") renderTab(); });
+/* ── Tab visibility ──────────────────────────────────────── */
+// Show the Reviews tab only when it has rows: an imported transcript, or courses someone asked about
+let askedAny = null, probeSeq = 0;
+export async function probeTab(refetch = false) {
+  const my = ++probeSeq;
+  if (!plan.done.size && (askedAny === null || refetch)) {
+    try { askedAny = (await api("/api/review-requests")).rows.length > 0; } catch { askedAny = false; }
+  }
+  if (my !== probeSeq) return;
+  const show = plan.done.size > 0 || !!askedAny, a = $('nav.tabs a[data-tab="reviews"]');
+  if (a) a.hidden = !show;
+  document.documentElement.classList.toggle("rv-off", !show);
+}
+
+on("plan", () => { probeTab(); if (app.tab === "reviews") renderTab(); });
 on("reviews", () => {
+  probeTab(true);
   if (app.tab === "reviews") renderTab();
   if (curCourse && $("#dRevTop")) mount(curCourse);
 });
