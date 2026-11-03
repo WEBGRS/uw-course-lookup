@@ -187,7 +187,7 @@ details.req.met .req-title{color:var(--ink-3)}
   .meter:not(.wide){display:none}
   .cal-head,.cal-body{grid-template-columns:34px repeat(var(--days),minmax(0,1fr))}
   .ev{padding:2px 3px}.ev span,.ev i{display:none}
-  .hbtns .btn{padding:6px 10px}
+  .hbtns .btn{padding:6px 8px}
 }
 
 /* Form system: one control height, one spacing rhythm */
