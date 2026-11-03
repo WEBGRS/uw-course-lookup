@@ -8,7 +8,7 @@
   var PORT = { hub: 8891, courses: 8892, housing: 8893, food: 8894, guide: 8895, news: 8896 };
   var L = {
     en: { brand: "Madison Students", hub: "Home", courses: "Courses", housing: "Housing", food: "Food", guide: "Campus guide", news: "News" },
-    zh: { brand: "麦屯工具站", hub: "首页", courses: "选课", housing: "租房", food: "吃饭", guide: "校园指南", news: "新闻" }
+    zh: { brand: "Madison Students", hub: "首页", courses: "选课", housing: "租房", food: "吃饭", guide: "校园指南", news: "新闻" }
   };
   var local = /^(127\.0\.0\.1|localhost)$/.test(location.hostname) && +location.port >= 8890 && +location.port <= 8899;
   function url(k) { return local ? "http://127.0.0.1:" + PORT[k] + "/" : PROD[k]; }
