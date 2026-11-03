@@ -105,6 +105,16 @@ select,.chk{background:var(--surface);border:1px solid var(--line);border-radius
 .row.head button[aria-current]{color:var(--ink)}
 .addbtn{width:24px;height:24px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:7px;cursor:pointer;font-weight:700;font-size:15px;line-height:1;padding:0}
 .addbtn:hover{background:var(--hover)}
+/* Loading placeholders */
+.sk{display:inline-block;max-width:100%;height:11px;vertical-align:middle;background:var(--line-2);border-radius:4px}
+.sk-band{display:block;width:100%;height:100%;border-radius:6px}
+.sk-box{width:24px;height:24px;border-radius:7px}
+.sk-rows .row{cursor:default}
+.sk-rows .row:hover{background:none}
+.sk-rows .cname>div{height:20px;display:flex;align-items:center}
+.sk-rows,.sk-band{animation:sk-pulse 1.1s ease-in-out infinite alternate}
+@keyframes sk-pulse{from{opacity:1}to{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.sk-rows,.sk-band{animation:none}}
 .addbtn[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 @media(max-width:640px){.addbtn{width:28px;height:28px}}
 .cname{min-width:0}
