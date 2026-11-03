@@ -25,12 +25,12 @@
 .ms-menu-list a[aria-current="page"] { color: var(--ms-navy); font-weight: 700; }
 
 /* Pill button (the hub's 中文 button) */
-.ms-pill { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 6px 14px; font: 600 14px/1.2 var(--ms-font); color: var(--ms-ink); text-decoration: none; white-space: nowrap; background: #fff; border: 1.5px solid var(--ms-line); border-radius: 999px; cursor: pointer; }
+.ms-pill { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 6px 14px; font: 600 14px/1.2 var(--ms-font); color: var(--ms-ink); text-decoration: none; white-space: nowrap; background: #fff; border: 1.5px solid var(--ms-line); border-radius: 10px; cursor: pointer; }
 .ms-pill:hover { border-color: var(--ms-navy); }
 .ms-pill svg { width: 16px; height: 16px; flex: none; }
 .ms-pill[aria-pressed="true"], .ms-pill.is-on { border-color: var(--ms-navy); color: var(--ms-navy); }
 /* Primary (the hub's Search button) */
-.ms-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--ms-navy); color: #fff; font: 700 15px/1 var(--ms-font); text-decoration: none; cursor: pointer; }
+.ms-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--ms-navy); color: #fff; font: 700 15px/1 var(--ms-font); text-decoration: none; cursor: pointer; }
 .ms-primary:hover { background: var(--ms-navy-2); }
 
 /* Site tabs row under the top bar */
