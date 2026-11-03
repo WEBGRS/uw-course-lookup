@@ -1,0 +1,65 @@
+/* Madison Students family look (hub style) on top of style.css + planner.css */
+
+/* Hub tokens, light theme */
+:root:not([data-theme="dark"]){
+  --bg:#fff;--surface:#fff;--surface-2:#f2f6f9;--ink:#0f2a3a;--ink-2:#39535f;--ink-3:#5f7480;--line:#e1e8ee;--line-2:#edf2f5;
+  --brand:#1f5d80;--on-brand:#fff;--link:#1f5d80;--focus:#1f5d80;--hover:#f2f6f9;--sel:#e4eef4;
+  --shadow:0 1px 2px rgba(15,42,58,.06),0 12px 32px rgba(15,42,58,.14);
+  --pick:#1f5d80;--on-pick:#fff;--card-sh:0 1px 2px rgba(15,42,58,.06),0 8px 28px rgba(15,42,58,.09)}
+:root[data-theme="dark"]{--pick:var(--ink);--on-pick:var(--surface);--card-sh:none}
+
+/* Type */
+body{font-family:var(--ms-font);font-weight:400}
+.serif,.card>h2,.reqcard>summary .req-h{font-family:var(--ms-font);font-weight:800;font-variation-settings:"wdth" 112;letter-spacing:-.01em}
+h1,h2,h3{font-weight:800;font-variation-settings:"wdth" 112;letter-spacing:-.01em}
+svg text{font-family:var(--ms-font)}
+.ms-brand svg text{fill:#fff;font:800 13px Arial,sans-serif}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+
+/* Shared bar: below the drawer and assistant panel; not sticky over the grade strip on phones */
+.ms-top{z-index:17}
+.ms-actions{--msac-av:var(--ms-navy)}
+.band{top:62px}
+@media(max-width:760px){.band{top:0}}
+
+/* Site tabs (second row), styled like the hub nav */
+.ms-sub nav.tabs{display:flex;gap:22px;margin:0;height:100%}
+.ms-sub nav.tabs a{display:flex;align-items:center;padding:0;font-weight:600;font-size:15px;color:var(--ms-ink-2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.ms-sub nav.tabs a:hover{color:var(--ms-ink);border-bottom-color:var(--ms-navy)}
+.ms-sub nav.tabs a[aria-current="page"]{color:var(--ms-ink);font-weight:700;border-bottom-color:var(--ms-navy)}
+
+/* Dark theme: shared bar follows the page */
+:root[data-theme="dark"] .ms-top,:root[data-theme="dark"] .ms-sub{background:var(--surface);border-color:var(--line);color:var(--ink)}
+:root[data-theme="dark"] .ms-brand,:root[data-theme="dark"] .ms-sub nav.tabs a[aria-current="page"],:root[data-theme="dark"] .ms-sub nav.tabs a:hover{color:var(--ink)}
+:root[data-theme="dark"] .ms-nav a,:root[data-theme="dark"] .ms-sub nav.tabs a{color:var(--ink-2)}
+:root[data-theme="dark"] .ms-pill,:root[data-theme="dark"] .ms-menu-list{background:var(--surface);border-color:var(--line);color:var(--ink)}
+:root[data-theme="dark"] .ms-menu-list a{color:var(--ink)}
+
+/* Notice: courses accent (amber) */
+:root:not([data-theme="dark"]) .notice{background:color-mix(in srgb,var(--ms-courses) 14%,#fff);border-color:color-mix(in srgb,var(--ms-courses) 30%,#fff)}
+.notice .dot{background:var(--ms-courses)}
+
+/* Pills: buttons, chips, selects, search */
+.btn,.icon-btn{border-radius:999px;border-width:1.5px;padding:7px 14px;font-weight:600}
+.btn.primary,.btn.big.primary{background:var(--pick);border-color:var(--pick);color:var(--on-pick)}
+.btn.primary:hover,.btn.big.primary:hover{background:var(--ms-navy-2);border-color:var(--ms-navy-2);filter:none}
+:root[data-theme="dark"] .btn.primary:hover,:root[data-theme="dark"] .btn.big.primary:hover{background:var(--pick);filter:brightness(.92)}
+select,.chk{border-radius:999px;border-width:1.5px;padding:8px 14px}
+.search input{border-radius:999px;border-width:1.5px;padding-left:42px}
+.search svg{left:16px}
+#v-plan input:not([type=checkbox]),#v-plan select,.add input{border-radius:999px;border-width:1.5px;padding-left:14px;padding-right:14px}
+#v-plan textarea,#importDlg textarea,.agent textarea,.rv-dlg textarea{border-radius:14px}
+.addbtn,.day-btn,.var-btn{border-radius:999px}
+.chip,.rv-tag,.rv-chip,.opt-chip,.mini-btn{border-radius:999px}
+.toast{border-radius:999px}
+
+/* Selected = navy fill */
+.addbtn[aria-pressed="true"],.rv-chip[aria-pressed="true"],.mini-btn.on,.day-btn[aria-pressed="true"],.var-btn[aria-pressed="true"],.opt-chip.on{background:var(--pick);color:var(--on-pick);border-color:var(--pick)}
+.swap-opt.on{border-color:var(--pick)}
+.msg.user{background:var(--pick);color:var(--on-pick);border-radius:18px 18px 4px 18px}
+
+/* Cards: white, radius 18, hub soft shadow */
+.list,.panel,.card,.stat,.plan,dialog,.rv-dlg{border-radius:18px}
+.kpi,.mini,.cal,.road-sem,.bsec,.picks,.suggest,.rv-row,.swap-opt,.sug,.gpa-badge,.empty-state{border-radius:14px}
+:root:not([data-theme="dark"]) :is(.list,.panel,.card,.stat){border-color:transparent;box-shadow:var(--card-sh)}
+@media(max-width:640px){.plan{border-radius:18px 18px 0 0}}

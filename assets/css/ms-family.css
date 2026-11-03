@@ -1,0 +1,63 @@
+/* Madison Students family style v2: the live hub's look (madisonstudents.com) shared by every site */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Noto+Sans+SC:wght@400..900&display=swap");
+
+:root {
+  --ms-bg: #ffffff; --ms-band: #f2f6f9; --ms-ink: #0f2a3a; --ms-ink-2: #39535f; --ms-line: #e1e8ee;
+  --ms-navy: #1f5d80; --ms-navy-2: #174a67;
+  --ms-courses: #e9a23b; --ms-housing: #3d8dba; --ms-food: #6ba547; --ms-guide: #c95a63; --ms-news: #5b6fb3;
+  --ms-font: Archivo, "Noto Sans SC", system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* Top bar (same as the hub) */
+.ms-top { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--ms-line); font-family: var(--ms-font); color: var(--ms-ink); }
+.ms-top .ms-wrap { display: flex; align-items: center; gap: 28px; height: 62px; max-width: 1440px; margin: 0 auto; padding: 0 24px; }
+.ms-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ms-ink); font-weight: 800; font-size: 19px; font-variation-settings: "wdth" 118; letter-spacing: -.01em; white-space: nowrap; }
+.ms-brand svg { width: 30px; height: 30px; flex: none; }
+.ms-nav { display: flex; gap: 22px; margin-left: auto; }
+.ms-nav a { text-decoration: none; font-weight: 600; font-size: 15px; color: var(--ms-ink-2); padding: 6px 0; border-bottom: 2px solid transparent; white-space: nowrap; }
+.ms-nav a:hover { color: var(--ms-ink); border-color: var(--ms-navy); }
+.ms-nav a[aria-current="page"] { color: var(--ms-ink); font-weight: 700; border-color: var(--ms-navy); }
+.ms-actions { display: flex; align-items: center; gap: 8px; }
+.ms-menu { display: none; position: relative; margin-left: auto; }
+.ms-menu-list { position: absolute; top: calc(100% + 8px); right: 0; min-width: 190px; padding: 6px; background: #fff; border: 1px solid var(--ms-line); border-radius: 16px; box-shadow: 0 12px 32px rgba(15,42,58,.16); }
+.ms-menu-list a { display: block; padding: 10px 14px; border-radius: 10px; color: var(--ms-ink); text-decoration: none; font-weight: 600; font-size: 15px; }
+.ms-menu-list a:hover { background: var(--ms-band); }
+.ms-menu-list a[aria-current="page"] { color: var(--ms-navy); font-weight: 700; }
+
+/* Pill button (the hub's 中文 button) */
+.ms-pill { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 6px 14px; font: 600 14px/1.2 var(--ms-font); color: var(--ms-ink); text-decoration: none; white-space: nowrap; background: #fff; border: 1.5px solid var(--ms-line); border-radius: 999px; cursor: pointer; }
+.ms-pill:hover { border-color: var(--ms-navy); }
+.ms-pill svg { width: 16px; height: 16px; flex: none; }
+.ms-pill[aria-pressed="true"], .ms-pill.is-on { border-color: var(--ms-navy); color: var(--ms-navy); }
+/* Primary (the hub's Search button) */
+.ms-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--ms-navy); color: #fff; font: 700 15px/1 var(--ms-font); text-decoration: none; cursor: pointer; }
+.ms-primary:hover { background: var(--ms-navy-2); }
+
+/* Site tabs row under the top bar */
+.ms-sub { background: #fff; border-bottom: 1px solid var(--ms-line); font-family: var(--ms-font); }
+.ms-sub .ms-wrap { display: flex; align-items: center; gap: 22px; height: 48px; max-width: 1440px; margin: 0 auto; padding: 0 24px; overflow-x: auto; scrollbar-width: none; }
+.ms-sub .ms-wrap::-webkit-scrollbar { display: none; }
+
+/* Card (the hub's tool card surface) */
+.ms-card { background: #fff; border-radius: 18px; box-shadow: 0 1px 2px rgba(15,42,58,.06), 0 8px 28px rgba(15,42,58,.09); }
+
+:focus-visible { outline: 3px solid var(--ms-navy); outline-offset: 3px; }
+
+@media (max-width: 980px) {
+  .ms-nav { display: none; }
+  .ms-menu { display: block; }
+  .ms-top .ms-wrap { gap: 12px; }
+}
+/* Phones: top bar scrolls with the page */
+@media (max-width: 760px) {
+  .ms-top { position: relative; }
+  .ms-top .ms-wrap, .ms-sub .ms-wrap { padding: 0 16px; }
+  .ms-actions .ms-lbl { display: none; }
+}
+@media (max-width: 420px) {
+  .ms-top .ms-wrap { height: 56px; gap: 8px; }
+  .ms-brand { font-size: 16px; gap: 8px; font-variation-settings: "wdth" 100; }
+  .ms-brand span { display: none; }
+  .ms-brand svg { width: 26px; height: 26px; }
+  .ms-pill { padding: 5px 11px; font-size: 13px; min-height: 32px; }
+}
