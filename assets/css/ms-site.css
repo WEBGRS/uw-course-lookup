@@ -49,9 +49,9 @@ select,.chk{border-radius:10px;border-width:1.5px;padding:8px 14px}
 .search svg{left:16px}
 #v-plan input:not([type=checkbox]),#v-plan select,.add input{border-radius:10px;border-width:1.5px;padding-left:14px;padding-right:14px}
 #v-plan textarea,#importDlg textarea,.agent textarea,.rv-dlg textarea{border-radius:14px}
-.addbtn,.day-btn,.var-btn{border-radius:10px}
-.chip,.rv-tag,.rv-chip,.opt-chip,.mini-btn{border-radius:10px}
-.toast{border-radius:10px}
+.addbtn{border-radius:10px}.day-btn,.var-btn{border-radius:999px}
+.chip,.rv-tag,.rv-chip,.opt-chip,.mini-btn{border-radius:999px}
+.toast{border-radius:999px}
 
 /* Selected = navy fill */
 .addbtn[aria-pressed="true"],.rv-chip[aria-pressed="true"],.mini-btn.on,.day-btn[aria-pressed="true"],.var-btn[aria-pressed="true"],.opt-chip.on{background:var(--pick);color:var(--on-pick);border-color:var(--pick)}
