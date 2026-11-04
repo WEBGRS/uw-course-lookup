@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8">
+<html data-theme="light" lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>UW Course Lookup — Grades, GPA by Instructor &amp; Sections for UW–Madison</title>
 <meta name="description" content="Grade history, instructor-by-instructor GPA, current sections and student discussion for UW–Madison courses, in one page. English / 中文.">
@@ -15,40 +15,36 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&family=Noto+Serif+SC:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/ms-family.css">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/planner.css">
+<link rel="stylesheet" href="assets/css/ms-site.css">
+<script src="assets/js/ms-family.js" data-site="courses"></script>
 <script src="assets/config.js"></script>
 <script src="assets/js/guard-client.js"></script>
 </head><body>
 <a class="skip" href="#main" data-t="skip"></a>
-<header>
-  <div class="wrap">
-    <div class="top">
-      <a class="home" href="./">
-        <div class="mark" aria-hidden="true"><i style="height:6px"></i><i style="height:14px"></i><i style="height:20px"></i><i style="height:10px"></i></div>
-        <h1 class="serif">UW Course Lookup</h1>
-      </a>
-      <div class="hbtns">
-        <button class="btn" id="askBtn" aria-expanded="false" aria-controls="agent" data-t="ask"></button>
-        <button class="icon-btn" id="langBtn" data-tt="langTip"></button>
-        <button class="icon-btn" id="themeBtn" data-tt="themeTip">◐</button>
-      </div>
-    </div>
-    <nav class="tabs" aria-label="Sections">
-      <a href="#/courses" data-tab="courses" data-t="tabCourses"></a>
-      <a href="#/plan" data-tab="plan" data-t="tabPlan"></a>
-      <a href="#/reviews" data-tab="reviews" data-t="tabReviews"></a>
-      <a href="#/insights" data-tab="insights" data-t="tabInsights"></a>
-    </nav>
-  </div>
-</header>
+<div hidden id="msActs">
+  <button class="ms-pill" id="askBtn" aria-expanded="false" aria-controls="agent" data-t="ask"></button>
+  <button class="ms-pill" id="langBtn" data-tt="langTip"></button>
+  <button class="ms-pill" id="themeBtn" data-tt="themeTip">◐</button>
+</div>
+<script>(function(){var F=window.MSFamily,h=document.getElementById("msActs");if(!F)return;while(h.firstElementChild)F.actions.appendChild(h.firstElementChild);h.remove();document.body.insertBefore(F.bar,document.body.firstChild);})();</script>
+<h1 class="sr">UW Course Lookup</h1>
+<div class="ms-sub"><div class="ms-wrap">
+  <nav class="tabs" aria-label="Sections">
+    <a href="#/courses" data-tab="courses" data-t="tabCourses"></a>
+    <a href="#/plan" data-tab="plan" data-t="tabPlan"></a>
+    <a href="#/reviews" data-tab="reviews" data-t="tabReviews"></a>
+    <a href="#/insights" data-tab="insights" data-t="tabInsights"></a>
+  </nav>
+</div></div>
 
 <div class="notice" id="notice" role="status"><div class="wrap"><span class="dot" aria-hidden="true"></span><span data-t="notice"></span></div></div>
 
 <div class="band" id="band" aria-live="polite">
   <div class="wrap">
-    <div class="band-row" id="bandRow"></div>
+    <div class="band-row" id="bandRow"><span class="sk sk-band"></span></div>
     <div class="band-cap"><span class="l" id="bandL"></span></div>
   </div>
 </div>
@@ -149,7 +145,7 @@
 <aside class="agent" id="agent" aria-label="Assistant" hidden></aside>
 
 <script src="assets/js/feedback.js" data-site="courses" data-star="WEBGRS/uw-course-lookup" defer></script>
-<script src="assets/js/account.js" data-mount=".hbtns" data-class="btn" data-compact="640" defer></script>
+<script src="assets/js/account.js" data-mount=".ms-actions" data-class="ms-pill" data-compact="760" defer></script>
 <script type="module" src="assets/js/main.js"></script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "bac1569834fa4682962ab1c4355c6474"}'></script><!-- End Cloudflare Web Analytics -->
 </body></html>

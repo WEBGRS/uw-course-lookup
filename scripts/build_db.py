@@ -275,7 +275,7 @@ def main():
         packages = c["packages"] or []
         db.execute("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
             cid, code, c["subject_code"], int(c["num"]),
-            (h or {}).get("title") or (mg or {}).get("name"),
+            ((h or {}).get("title") or "").strip() or (mg or {}).get("name"),
             (h or {}).get("description"),
             (h or {}).get("minimumCredits"), (h or {}).get("maximumCredits"),
             (h or {}).get("enrollmentPrerequisites"),

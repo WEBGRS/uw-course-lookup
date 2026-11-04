@@ -63,7 +63,7 @@ export function render() {
   const head = `<div class="row head">` + COLS.map(([k, l], i) =>
     `<div class="${i === 2 || i === 4 ? "num" : ""}"${i === 5 ? ` title="${esc(t("seatsAsOf", app.meta.built_at.slice(0, 10)))}"` : ""}>${k ? `<button data-sort="${k}"${st.sort === k ? ' aria-current="true"' : ""}>${esc(l)}</button>` : esc(l)}</div>`).join("") + "</div>";
   const body = state === "error" ? `<div class="empty">${esc(t("apiError"))} <button class="btn" id="retry">${esc(t("retry"))}</button></div>`
-    : state === "loading" && !rows.length ? `<div class="empty">${esc(t("loading"))}</div>`
+    : state === "loading" && !rows.length ? skelRows()
     : zhEmpty() ? `<div class="empty">${esc(zh.miss ? t("zhMiss") : t("zhVague", st.q, zh.note))} <button class="btn" id="clearQ">${esc(t("clearQ"))}</button></div>`
     : !rows.length && st.now && !st.sv ? `<div class="empty">${esc(t("empty"))} <button class="btn" id="allTerms">${esc(t("emptyAll", termLabel(app.term)))}</button></div>`
     : rows.length ? `<div class="rows" role="list" aria-label="${esc(t("tabCourses"))}">` + rows.map((c) => `
@@ -81,6 +81,24 @@ export function render() {
   $("#fToggle").textContent = t("filters", activeFilters());
   $("#fNow").disabled = st.sv;   // the schedule lists every saved course, offered this term or not
   $("#moreWrap").hidden = state !== "ok" || rows.length >= total;
+}
+
+// Placeholder rows shaped like real rows while the list loads
+function skelRows(n = 9) {
+  const sk = (w, h) => `<span class="sk" style="width:${w}${h ? `;height:${h}px` : ""}"></span>`;
+  let h = "";
+  for (let i = 0; i < n; i++) {
+    h += `<div class="row sk-row" aria-hidden="true"><div class="c-star"><span class="sk sk-box"></span></div>` +
+      `<div class="cname"><div>${sk(64 + ((i * 17) % 40) + "px", 14)}</div><div class="title">${sk(38 + ((i * 23) % 34) + "%")}</div><div class="who">${sk(70 + ((i * 11) % 50) + "px", 9)}</div></div>` +
+      `<div class="c-cr num">${sk("12px")}</div><div class="c-gpa gcell">${sk("34px", 14)}${sk("100%", 10)}</div>` +
+      `<div class="c-pa num">${sk("30px")}</div><div class="c-now">${sk("64px")}</div><div class="c-meta">${sk("150px")}</div></div>`;
+  }
+  return `<div class="rows sk-rows">${h}</div><p class="sr" role="status">${esc(t("loading"))}</p>`;
+}
+// Header + placeholder rows before the course index has loaded
+export function skeleton() {
+  const L = [t("colCourse"), t("colCr"), t("colGpa"), t("colA")];
+  return `<div class="row head"><div></div><div>${esc(L[0])}</div><div class="num">${esc(L[1])}</div><div>${esc(L[2])}</div><div class="num">${esc(L[3])}</div><div></div></div>` + skelRows();
 }
 
 export async function refresh(append) {

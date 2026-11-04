@@ -25,13 +25,16 @@ const TABS = ["courses", "plan", "reviews", "insights", "about"];
 })();
 
 /* ── Language ────────────────────────────────────────────── */
-function applyLang() {
+function staticLang() {
   document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
   $$("[data-t]").forEach((el) => (el.innerHTML = esc(t(el.dataset.t))));
   $$("[data-tp]").forEach((el) => (el.placeholder = t(el.dataset.tp)));
   $$("[data-tt]").forEach((el) => { el.title = t(el.dataset.tt); el.setAttribute("aria-label", t(el.dataset.tt)); });
   $$("[data-lang]").forEach((el) => (el.hidden = el.dataset.lang !== LANG));
   $("#langBtn").textContent = t("langBtn");
+}
+function applyLang() {
+  staticLang();
   $("#foot").innerHTML = `<p>${esc(t("foot"))} <a href="#/about">${esc(t("tabAbout"))}</a> · <a href="https://github.com/WEBGRS/uw-course-lookup" target="_blank" rel="noopener">${esc(t("src"))}</a></p>`;
   courses.localize();
   resetBand();
@@ -76,6 +79,8 @@ initSync();
 
 /* ── Boot ────────────────────────────────────────────────── */
 async function boot() {
+  staticLang();
+  if (!app.meta) $("#list").innerHTML = courses.skeleton();
   try { app.meta = await api("/api/meta"); }
   catch {
     $("#list").innerHTML = `<div class="empty">${esc(t("apiError"))} <button class="btn" id="retry">${esc(t("retry"))}</button></div>`;
