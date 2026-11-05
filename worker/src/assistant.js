@@ -11,10 +11,10 @@ export const TOOLS = [
   fn("search_courses", "Search the UW-Madison catalog. Returns up to 10 courses with code, title, credits, GPA, seats and who teaches this term. Use English keywords or course codes.", {
     q: { type: "string", description: "Words from the title, a course code like 'COMP SCI 577', or an instructor's last name" },
     subject: { type: "string", description: "Subject abbreviation such as 'COMP SCI' or 'STAT'" },
-    level: { type: "string", enum: ["1", "2", "3", "4", "5"], description: "1=100s … 4=400s, 5=500 and up" },
-    min_gpa: { type: "number", description: "Minimum average GPA, e.g. 3.5" },
+    level: { type: "string", enum: ["u", "1", "2", "3", "4", "5"], description: "u=undergraduate (below 500), 1=100s … 4=400s, 5=500 and up" },
+    min_gpa: { type: "number", description: "Minimum average GPA, e.g. 3.5 (courses with fewer than 30 graded students never pass)" },
     offered_now: { type: "boolean", description: "Only courses with sections this term" },
-    sort: { type: "string", enum: ["gpa", "gpaL", "pa", "en", "code", "m"], description: "gpa=highest GPA, gpaL=lowest, pa=most A's, en=largest this term, code=course number, m=most discussed" },
+    sort: { type: "string", enum: ["gpa", "gpaL", "pa", "en", "code", "m"], description: "gpa=highest GPA, gpaL=lowest, pa=most A's (these three rank courses under 50 graded students and independent study last), en=largest (this term's enrollment, last term's until registration opens), code=course number, m=most discussed" },
   }),
   fn("get_course", "Full facts for one course: description, prerequisites, grade statistics, instructors with their past GPA in this course, and this term's sections with days and times.", {
     id: { type: "string", description: "Course code such as 'COMP SCI 577' or 'COMP-SCI-577'" },

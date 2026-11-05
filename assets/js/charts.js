@@ -1,6 +1,7 @@
 // Hand-drawn SVG charts. Each returns an HTML string; hover text comes from data-tip (see core.js).
 import { app, esc, f2, pct, fmt, MOB, G, GV, lastName } from "./core.js";
 import { t, LANG, termShort } from "./i18n.js";
+import { isFlat } from "./facts.js";
 
 /** Thin A–F strip used in list rows. */
 export function strip(dist, h = 10) {
@@ -13,8 +14,9 @@ export function strip(dist, h = 10) {
 
 export function trendTxt(v) {
   if (v == null) return "";
+  if (isFlat(v)) return `<span class="muted small">${esc(t("flat"))}</span>`;   // not "-0.00/yr"
   const cls = v > 0.01 ? "up" : v < -0.01 ? "down" : "muted";
-  return `<span class="${cls} small">${v > 0 ? "+" : ""}${v.toFixed(2)}${LANG === "zh" ? "/年" : "/yr"}</span>`;
+  return `<span class="${cls} small">${v > 0 ? "+" : "−"}${Math.abs(v).toFixed(2)}${LANG === "zh" ? "/年" : "/yr"}</span>`;
 }
 
 export function spark(ys) {
@@ -122,7 +124,7 @@ export function scatter() {
   const INS = app.insights;
   const pts = (INS.scatter || []).map(([id, code, title, gpa, m, n, num]) => ({ id, code, t: title, gpa, m, n, num }));
   const W = MOB() ? 380 : 1080, H = MOB() ? 340 : 380, L = 46, R = 16, T = 14, B = 36;
-  const X = (v) => L + ((W - L - R) * Math.log10(v)) / Math.log10(80);
+  const P = 18, X = (v) => L + P + ((W - L - R - P) * Math.log10(v)) / Math.log10(80);   // P keeps the x=1 column off the y-axis numbers
   const y0 = 2.4, y1 = 4.0, Y = (v) => T + (H - T - B) * (1 - (Math.max(v, y0) - y0) / (y1 - y0));
   let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(t("xMent"))} / ${esc(t("yGpa"))}">`;
   for (let v = 2.4; v <= 4.0001; v += 0.4) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${v.toFixed(1)}</text>`;
@@ -131,10 +133,22 @@ export function scatter() {
   if (INS.campus_gpa) s += `<line x1="${L}" x2="${W - R}" y1="${Y(INS.campus_gpa)}" y2="${Y(INS.campus_gpa)}" stroke="var(--ref)" stroke-dasharray="4 3"/>`;
   const jit = (c) => (((c.num * 7919) % 100) / 100) * 0.5 - 0.25;
   const labeled = new Set(pts.slice().sort((a, b) => b.m - a.m).slice(0, MOB() ? 4 : 7).map((c) => c.id).concat(pts.slice().sort((a, b) => a.gpa - b.gpa).slice(0, MOB() ? 1 : 3).map((c) => c.id)));
+  const pos = (c) => [X(Math.max(1, c.m) * Math.pow(10, jit(c) * 0.08)), Y(c.gpa)];
+  // Labels: most mentioned first, each nudged up or down until it clears the ones already placed
+  const boxes = [], lab = new Map();
+  pts.filter((c) => labeled.has(c.id)).sort((a, b) => b.m - a.m || a.gpa - b.gpa).forEach((c) => {
+    const [x, y] = pos(c), right = x > W - 140, w = c.code.length * 7 + 4;
+    for (const dy of [0, -12, 12, -24, 24]) {
+      const ly = y + 4 + dy, x0 = right ? x - 8 - w : x + 8, b = [x0, ly - 10, x0 + w, ly + 2];
+      if (b[1] < T || b[3] > H - B + 2) continue;
+      if (boxes.some((o) => b[0] < o[2] && o[0] < b[2] && b[1] < o[3] && o[1] < b[3])) continue;
+      boxes.push(b); lab.set(c.id, { x: right ? x - 8 : x + 8, y: ly, right }); break;
+    }
+  });
   pts.forEach((c) => {
-    const x = X(Math.max(1, c.m) * Math.pow(10, jit(c) * 0.08)), y = Y(c.gpa), right = x > W - 140;
+    const [x, y] = pos(c), l = lab.get(c.id);
     s += `<g data-c="${c.id}" style="cursor:pointer" data-tip="<b>${esc(c.code)}</b> ${esc(c.t)}<br>GPA ${c.gpa.toFixed(2)} · ${esc(c.m ? t("chat", c.m) : t("chatFew"))} · ${fmt(c.n)}"><circle cx="${x}" cy="${y}" r="10" fill="transparent"/><circle cx="${x}" cy="${y}" r="4.5" fill="var(--series)" fill-opacity=".72" stroke="var(--surface)" stroke-width="1.5"/>` +
-      (labeled.has(c.id) ? `<text class="lbl" x="${right ? x - 8 : x + 8}" y="${y + 4}"${right ? ' text-anchor="end"' : ""}>${esc(c.code)}</text>` : "") + "</g>";
+      (l ? `<text class="lbl" x="${l.x}" y="${l.y}"${l.right ? ' text-anchor="end"' : ""}>${esc(c.code)}</text>` : "") + "</g>";
   });
   return s + "</svg>";
 }

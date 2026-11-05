@@ -68,9 +68,10 @@ details.req.met .req-title{color:var(--ink-3)}
 .req-title{font-weight:600;font-size:14.5px}
 .req-prog{font-size:13px;color:var(--ink-2);white-space:nowrap}
 .req-note{font-size:13px;margin:8px 4px 2px}
+.req-legend{margin:0 0 8px}
 .req-items{list-style:none;margin:6px 0 12px;padding:0}
 .req-item{display:flex;gap:10px;padding:6px 4px;align-items:flex-start;font-size:14px}
-.req-item .mark{width:18px;text-align:center;flex:none;color:var(--ink-3)}
+.req-item .mark{width:18px;text-align:center;flex:none;color:var(--ink-3);height:auto;background:none;padding:0;border-radius:0;display:block}   /* not the logo .mark */
 .req-item.done .mark{color:var(--ok)}
 .req-item.done .req-opts{color:var(--ink-3)}
 .req-item.ip .mark{color:var(--warn)}
@@ -309,3 +310,8 @@ details.req.met .req-title{color:var(--ink-3)}
 .tr-row{flex-wrap:nowrap}.tr-n{flex:1;min-width:0}
 .rd-import{margin:0 0 10px;font-weight:600;color:color-mix(in srgb,#1f9d55 80%,var(--ink))}
 .rd-import .muted{font-weight:400}
+/* Tap targets: at least 24px (WCAG 2.5.8), 32px on touch screens */
+.mini-btn{width:24px;height:24px}
+.opt-chip{height:24px}
+.pill button{min-width:24px;min-height:24px}
+@media (pointer:coarse){.mini-btn{width:32px;height:32px}.opt-chip{min-width:32px;height:32px}.pill button{min-width:32px;min-height:32px}}

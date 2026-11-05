@@ -1,5 +1,5 @@
 // Course detail drawer: grades, instructors, this term's sections with times, what students say.
-import { $, $$, esc, f2, pct, fmt, app, plan, DET, loadDetail, mgUrl, enrollUrl, guideUrl, rmpUrl, redditUrl, sameName, hideTip, on, emit } from "./core.js";
+import { $, $$, esc, f2, pct, fmt, app, plan, DET, loadDetail, mgUrl, enrollUrl, guideUrl, rmpUrl, redditUrl, hideTip, on, emit } from "./core.js";
 import { t, termLabel, termShort, termYear, brName, lvlName } from "./i18n.js";
 import { distChart, lineChart, instrChart, trendTxt } from "./charts.js";
 import { nowTxt, listState } from "./courses.js";
@@ -8,6 +8,7 @@ import { loadPlanData, planOf } from "./planner/data.js";
 import { fmtRange, daysText, DAY_LETTERS } from "./planner/schedule.js";
 import { mount as mountReviews } from "./reviews.js";
 import { mount as mountMates } from "./mates.js";
+import { historyOf, mergeInstructors, lectureGroups } from "./facts.js";
 
 export let cur = null;
 let lastFocus = null, lastFocusId = null, showAllIns = false, seq = 0;
@@ -28,23 +29,21 @@ function setModal(on_) {
 }
 
 /** This term's sections: one row per lecture with its time, room, instructor and seats. */
+const SEC_SHOWN = 10;
 function sectionsTable(pk) {
   if (!pk || !pk.length) return "";
-  const groups = new Map();
-  for (const p of pk) {
-    const lead = p.s.find((s) => s.t === "LEC" || s.t === "SEM") || p.s[0];
-    if (!lead) continue;
-    const g = groups.get(lead.t + lead.n) || { lead, pkgs: [] };
-    g.pkgs.push(p); groups.set(lead.t + lead.n, g);
-  }
-  const rows = [...groups.values()].slice(0, 10).map(({ lead, pkgs }) => {
+  const groups = lectureGroups(pk);
+  const rows = groups.slice(0, SEC_SHOWN).map(({ lead, pkgs }) => {
     const open = pkgs.some((p) => p.st === "O"), wait = pkgs.some((p) => p.st === "W");
     const cls = open ? "open" : wait ? "wait" : "closed", lbl = open ? t("open") : wait ? t("wait") : t("full");
     const when = lead.m.length ? lead.m.map((m) => `${daysText([...m[0]].map((ch) => DAY_LETTERS.indexOf(ch)))} ${fmtRange(m[1], m[2])}`).join(", ") : t("online");
     return `<tr><td><b>${esc(lead.t)} ${esc(lead.n)}</b></td><td>${esc(when)}${lead.m[0] && lead.m[0][3] ? `<div class="muted small">${esc(lead.m[0][3])}</div>` : ""}</td><td>${esc((lead.i || []).join(", "))}</td><td><span class="status"><span class="dot ${cls}"></span>${esc(lbl)}</span></td></tr>`;
   });
-  return `<div class="tw"><table class="itable"><tbody>${rows.join("")}</tbody></table></div>`;
+  return `<div class="tw"><table class="itable"><tbody>${rows.join("")}</tbody></table></div>` +
+    (groups.length > SEC_SHOWN ? `<p class="small muted" style="margin:6px 0 0">${esc(t("secMore", groups.length - SEC_SHOWN))}</p>` : "");
 }
+// The line above the table counts the lectures it lists (the export's count includes sections no package uses)
+const nowLineHtml = (c, lec) => `${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, lec, c.now.open, c.now.pk, c.now.wait, c.sz))}`;
 
 function openDrawerError(id) {
   const dr = $("#drawer"); cur = null;
@@ -86,10 +85,11 @@ export async function openDrawer(id, keepScroll) {
     <div class="kpi"><b>${pct(c.pa)}</b><span>${esc(t("kA"))}</span></div><div class="kpi"><b>${c.pdf == null ? "–" : (c.pdf * 100).toFixed(1) + "%"}</b><span>${esc(t("kDF"))}</span></div></div></div>`;
   h += `<div class="d-sec"><h3>${esc(termLabel(app.term))}</h3>`;
   if (c.now) {
-    h += `<p style="margin:0 0 6px">${nowTxt(c, true)} &nbsp;${esc(t("nowLine", c.en, c.now.lec, c.now.open, c.now.pk, c.now.wait))}</p>`;
+    const known = planOf(c.id);
+    h += `<p style="margin:0 0 6px" id="dNowLine">${nowLineHtml(c, known && known.pk.length ? lectureGroups(known.pk).length : null)}</p>`;
     h += `<div id="dSections"></div>`;
     if (c.now.who.length) h += `<p class="small" style="margin:8px 0 0;color:var(--ink-2)">${esc(t("teaching"))}` + c.now.who.map((n) => {
-      const m = c.ins.find((i) => i[5] && sameName(i[0], n));
+      const m = historyOf(c.ins, n);
       return esc(n) + ` <span class="muted">${esc(m ? t("pastHere", f2(m[1])) : t("noHist"))}</span>`;
     }).join(", ") + "</p>";
   } else h += `<p class="muted" style="margin:0">${esc(t("notOffered", c.last ? termLabel(c.last) : ""))}</p>`;
@@ -104,22 +104,24 @@ export async function openDrawer(id, keepScroll) {
     }
   } else h += `<div class="d-sec"><h3>${esc(t("grades"))}</h3><p class="muted">${esc(t("noGrades"))}</p></div>`;
   if (c.ins.length) {
-    const mxN = Math.max(...c.ins.map((i) => i[2])), LIM = 8, rows = showAllIns ? c.ins : c.ins.slice(0, LIM);
+    // identical numbers = the same students (TAs, co-teachers): one row with every name
+    const groups = mergeInstructors(c.ins, c.now ? c.now.who : []);
+    const mxN = Math.max(...c.ins.map((i) => i[2])), LIM = 8, rows = showAllIns ? groups : groups.slice(0, LIM);
+    const badge = (p) => (p.now ? `<span class="badge">${termShort(app.term)}</span>` : "");
     h += `<div class="d-sec"><h3>${esc(t("instructors"))}</h3>`;
     h += `<table class="itable"><thead><tr><th>${esc(t("thName"))}</th><th class="r">${esc(t("thGpa"))}</th><th class="r">${esc(t("thA"))}</th><th>${esc(t("thN"))}</th><th class="r">${esc(t("thLast"))}</th><th><span class="sr">${esc(t("thLinks"))}</span></th></tr></thead><tbody>` +
-      rows.map((i) => `<tr><td>${esc(i[0])}${i[5] ? `<span class="badge">${termShort(app.term)}</span>` : ""}</td><td class="r"><b>${f2(i[1])}</b></td><td class="r">${pct(i[3])}</td><td><div class="bar" data-tip="${fmt(i[2])}"><i style="width:${(i[2] / mxN) * 100}%"></i></div></td><td class="r small muted">${termShort(i[4])}</td><td class="small"><a target="_blank" rel="noopener" href="${rmpUrl(i[0])}">RMP</a></td></tr>`).join("") + "</tbody></table>";
-    if (c.ins.length > LIM) h += `<p style="margin:8px 0 0"><button class="linkbtn" id="dAllIns">${esc(showAllIns ? t("showFewer") : t("showAll", c.ins.length))}</button></p>`;
+      rows.map(({ i, people }) => `<tr${people.length > 1 ? ' class="merged"' : ""}><td>${people.map((p) => esc(p.name) + badge(p)).join("<br>")}${people.length > 1 ? `<div class="small muted">${esc(t("sameStudents"))}</div>` : ""}</td><td class="r"><b>${f2(i[1])}</b></td><td class="r">${pct(i[3])}</td><td><div class="bar" data-tip="${fmt(i[2])}"><i style="width:${(i[2] / mxN) * 100}%"></i></div></td><td class="r small muted">${termShort(i[4])}</td><td class="small">${people.map((p) => `<a target="_blank" rel="noopener" href="${rmpUrl(p.name)}" aria-label="${esc("RMP: " + p.name)}">RMP</a>`).join("<br>")}</td></tr>`).join("") + "</tbody></table>";
+    if (groups.length > LIM) h += `<p style="margin:8px 0 0"><button class="linkbtn" id="dAllIns">${esc(showAllIns ? t("showFewer") : t("showAll", groups.length))}</button></p>`;
     if (c.ins.some((i) => i[2] < 30)) h += `<p class="small muted" style="margin:8px 0 0">${esc(t("thin"))}</p>`;
     h += "</div>";
     if (c.ins.length > 1) h += `<details class="d-sec d-fold"><summary><span>${esc(t("instrChartTitle"))}</span></summary>${instrChart(c)}</details>`;
   }
   h += '<div id="dRev"></div>';
   const tone = c.rdt == null ? "" : c.rdt > 0.15 ? t("tonePos") : c.rdt < -0.15 ? t("toneNeg") : t("toneMix");
-  const sayHead = `<summary><span>${esc(t("say"))}</span><span class="muted">${c.src === "catalog" ? "" : esc(t("reddit", c.rdn))}</span></summary>`;
-  if (c.src === "catalog") h += `<details class="d-sec d-fold">${sayHead}<p class="small" style="margin:0;color:var(--ink-2)">${esc(t("sayCatalog"))}</p></details>`;
-  else {
-    h += `<details class="d-sec d-fold">${sayHead}<p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : c.ms ? esc(t("sayChatFew")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
-    if (c.rd.length) h += `<ul class="threads">` + c.rd.map((x) => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${x[3] > 0 ? "+ " : x[3] < 0 ? "− " : ""}${x[2] || ""}</span></li>`).join("") + "</ul>";
+  const sayHead = `<summary><span>${esc(t("say"))}</span><span class="muted">${esc(t("reddit", c.rdn))}</span></summary>`;
+  if (c.src !== "catalog") {   // catalog-tier courses have no discussion or Reddit data: no fold to open
+    h +=`<details class="d-sec d-fold">${sayHead}<p class="small" style="margin:0 0 10px;color:var(--ink-2)">${c.src === "enrollment" ? esc(t("sayEnroll")) : c.ms ? esc(t("sayChatFew")) : t("sayChat", c.m, c.pos, c.neg)}${t("sayReddit", c.rdn, tone)}</p>`;
+    if (c.rd.length) h += `<ul class="threads">` + c.rd.map((x) => `<li><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a><span class="tone ${x[3] > 0 ? "up" : x[3] < 0 ? "down" : "muted"}">${esc([x[3] > 0 ? t("tUp") : x[3] < 0 ? t("tDown") : "", x[2] || ""].filter(Boolean).join(" · "))}</span></li>`).join("") + "</ul>";
     h += "</details>";
   }
   h += `<div class="d-sec d-links"><a target="_blank" rel="noopener" href="${mgUrl(c)}">${esc(t("mg"))}</a><a target="_blank" rel="noopener" href="${enrollUrl(c.code)}">${esc(t("cse"))}</a><a target="_blank" rel="noopener" href="${guideUrl(c.code)}">${esc(t("guide"))}</a><a target="_blank" rel="noopener" href="${redditUrl(c)}">${esc(t("searchReddit"))}</a><button class="linkbtn" id="dShare">${esc(t("copy"))}</button></div>`;
@@ -140,8 +142,11 @@ export async function openDrawer(id, keepScroll) {
   if (c.now) {
     loadPlanData([c.id]).then(() => {
       const el = $("#dSections"), p = planOf(c.id);
-      if (el && cur === c && p) el.innerHTML = sectionsTable(p.pk);
-    }).catch(() => {});
+      if (el && cur === c && p) {
+        el.innerHTML = sectionsTable(p.pk);
+        $("#dNowLine").innerHTML = nowLineHtml(c, p.pk.length ? lectureGroups(p.pk).length : c.now.lec);
+      }
+    }).catch(() => { if (cur === c && $("#dNowLine")) $("#dNowLine").innerHTML = nowLineHtml(c, c.now.lec); });
   }
 }
 

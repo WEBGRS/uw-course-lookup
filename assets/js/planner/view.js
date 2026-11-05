@@ -8,6 +8,7 @@ import { parseTranscript, statusOf, progress, candidatesFrom, blockCaps, prereqR
 import { calendarHtml, buildICS, COLORS } from "./calendar.js";
 import { openCompare } from "../compare.js";
 import { pickRequired, layout, chooseLight, termsFrom, termsBetween, nextTerm, crNum } from "./roadmap.js";
+import { programMatch } from "../zh-terms.js";
 
 const S = { index: [], program: null, results: null, i: 0, colors: {}, courses: new Map(), building: false, open: new Set(), openPick: new Set(), sort: store.get("planSort", "gpa"), swap: null, draft: null, error: "" };
 let solver = null;
@@ -48,7 +49,7 @@ const idText = (id) => id.replace(/-/g, " ");
 function itemHtml(x) {
   const { item, state, via } = x;
   if (state === "used") {
-    return `<li class="req-item used"><span class="mark">–</span><span class="req-opts">${optLabel(via)} <span class="muted">${esc(t("countedAbove"))}</span></span></li>`;
+    return `<li class="req-item used"><span class="mark" title="${esc(t("countedAbove"))}">–</span><span class="req-opts">${optLabel(via)} <span class="muted">${esc(t("countedAbove"))}</span></span></li>`;
   }
   if (state !== "todo") {
     return `<li class="req-item ${state}"><span class="mark" title="${esc(t(state === "done" ? "taken" : "inProgress"))}">${state === "done" ? "✓" : "◐"}</span><span class="req-opts">${optLabel(via)}</span></li>`;
@@ -57,9 +58,9 @@ function itemHtml(x) {
     const p = o.i.map(planOf).find(Boolean);
     const noTerm = p && p.pk.length === 0;
     const added = o.i.some((i) => plan.must.has(i) || (p && plan.must.has(p.id)));
-    return `<span class="req-opt"><button class="mini-btn${added ? " on" : ""}" data-addreq="${esc(o.i[0])}" aria-pressed="${added}" aria-label="${esc(t(added ? "added" : "add"))} ${esc(idText(o.i[0]))}">${added ? "✓" : "+"}</button>${optLabel(o)}${noTerm ? ` <span class="tag">${esc(t("notOffered"))}</span>` : ""}<button class="linkbtn" data-took="${esc(o.i[0])}">${esc(t("tookIt"))}</button></span>`;
+    return `<span class="req-opt"><button class="mini-btn${added ? " on" : ""}" data-addreq="${esc(o.i[0])}" aria-pressed="${added}" aria-label="${esc(t(added ? "added" : "add"))} ${esc(idText(o.i[0]))}">${added ? "✓" : "+"}</button>${optLabel(o)}${noTerm ? ` <span class="tag">${esc(t("notOffered"))}</span>` : ""}<button class="linkbtn" data-took="${esc(o.i[0])}" aria-label="${esc(t("tookIt"))}: ${esc(idText(o.i[0]))}">${esc(t("tookIt"))}</button></span>`;
   }).join(`<span class="or">${LANG === "zh" ? "或" : "or"}</span>`);
-  return `<li class="req-item todo"><span class="mark">○</span><span class="req-opts">${opts}</span></li>`;
+  return `<li class="req-item todo"><span class="mark" title="${esc(t("stillNeeded"))}">○</span><span class="req-opts">${opts}</span></li>`;
 }
 
 function blockHtml(s) {
@@ -102,13 +103,13 @@ function renderReqs() {
   const pr = progress(st);
   $("#reqSum").innerHTML = `<span class="req-h">${esc(t("reqTitle"))}</span><span class="muted">${esc(t("reqDone", pr.met, pr.total))}</span>`;
   const order = [...st].sort((a, b) => Number(a.met) - Number(b.met) || a.index - b.index);
-  $("#stReqs").innerHTML = `<div class="reqs">${order.map(blockHtml).join("")}</div><p class="muted">${esc(t("reqNote"))}</p>`;
+  $("#stReqs").innerHTML = `<p class="muted small req-legend">${esc(t("reqLegend"))}</p><div class="reqs">${order.map(blockHtml).join("")}</div><p class="muted">${esc(t("reqNote"))}</p>`;
 }
 
 /* Program picker: a listbox exactly as wide as the field */
 function pgOptions(q) {
   const k = q.trim().toLowerCase(), pm = programMeta();
-  const list = k && !(pm && pm.name.toLowerCase() === k) ? S.index.filter((p) => p.name.toLowerCase().includes(k)) : S.index;
+  const list = k && !(pm && pm.name.toLowerCase() === k) ? S.index.filter((p) => programMatch(p.name, k)) : S.index;   // Chinese and shorthand too
   return list.slice(0, 40);
 }
 function pgOpen() {
@@ -463,7 +464,7 @@ function semHtml(s, i) {
     const d = planOf(p.id), code = d ? d.code : idText(p.id);
     return `<li>${courseLine(code, d ? d.t : p.t, p.cr, p.gpa, p.kind !== "core" ? ` <span class="tag soft">${esc(kinds[p.kind] || "")}</span>` : "")}${p.blockName ? `<span class="rd-why muted">${esc(p.blockName)}</span>` : ""}</li>`;
   }).join("") || `<li class="muted">${esc(t("roadNoMain"))}</li>`;
-  const light = (s.light || []).map((r) => `<li>${courseLine(r.code, r.t, crNum(r.cr), r.gs ?? r.gpa ?? null, (r.br || []).slice(0, 2).map((b) => ` <span class="tag soft">${esc(brName(b))}</span>`).join(""))}${i === 0 ? `<button class="mini-btn" data-rdadd="${esc(r.id)}" aria-label="${esc(t("roadAddOne"))} ${esc(r.code)}">+</button>` : ""}</li>`).join("");
+  const light = (s.light || []).map((r) => `<li>${courseLine(r.code, r.t, crNum(r.cr), r.gpa ?? null, (r.br || []).slice(0, 2).map((b) => ` <span class="tag soft">${esc(brName(b))}</span>`).join(""))}${i === 0 ? `<button class="mini-btn" data-rdadd="${esc(r.id)}" aria-label="${esc(t("roadAddOne"))} ${esc(r.code)}">+</button>` : ""}</li>`).join("");
   const total = s.mainCr + (s.lightGot ?? s.lightCr);
   return `<article class="road-sem${i === 0 ? " now" : ""}"><header><b class="serif">${esc(termLabel(s.term))}</b>${i === 0 ? `<span class="tag soft">${esc(t("roadFirst"))}</span>` : ""}
       <span class="rd-tot">${esc(t("roadCredits", +total.toFixed(1)))}${avgGpa != null ? ` · ${esc(t("roadAvg", avgGpa.toFixed(2)))}` : ""}</span></header>

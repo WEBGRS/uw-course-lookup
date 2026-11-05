@@ -24,12 +24,22 @@ function subjectRegex(designations, flags = "g") {
  * A course counts as taken when a credit/grade pair follows it; credits without a grade mean in progress.
  * With no structured lines at all (a typed list like "cs 300, math 221") every mention counts as taken.
  */
+/** DARS option lists ("NEEDS: 1 COURSE", "SELECT FROM: MATH 340, 341, 375") name courses nobody took: drop them. */
+export function dropOptionLists(text) {
+  let skip = false;
+  return String(text || "").split(/\r?\n/).filter((line) => {
+    if (/\b(SELECT\s+FROM|NEEDS)\s*:/i.test(line)) { skip = true; return false; }
+    if (skip && (!line.trim() || /\d\.\d/.test(line))) skip = false;   // a blank line or a line with credits ends the list
+    return !skip;
+  }).join("\n");
+}
+
 export function parseTranscript(text, designations) {
   const out = { done: new Set(), ip: new Set(), failed: new Set(), mentions: 0, structured: false };
   const groups = { done: new Map(), ip: new Map() };      // a cross-listed course (COMP SCI/MATH 240) is one group of ids
   const note = (kind, ids) => { if (!groups[kind].has(ids[0])) groups[kind].set(ids[0], ids); };
   const cr = new Map();                                   // first id of a course -> credits on its line
-  const flat = String(text || "").replace(/​/g, "").replace(/[ \t]+/g, " ");
+  const flat = dropOptionLists(text).replace(/​/g, "").replace(/[ \t]+/g, " ");
   const re = subjectRegex(designations);
   const hits = [...flat.matchAll(re)];
   out.mentions = hits.length;

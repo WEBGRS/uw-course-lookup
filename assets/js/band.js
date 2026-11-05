@@ -1,5 +1,5 @@
 // The sticky A–F band: the grade split of whichever course you hover or open.
-import { $, $$, esc, f2, app, G, GV } from "./core.js";
+import { $, $$, esc, f2, fmt, app, G, GV } from "./core.js";
 import { t } from "./i18n.js";
 
 let bandCourse, SEGS = [];
@@ -11,7 +11,7 @@ export function initBand() {
 
 export const resetBand = () => { const c = bandCourse; bandCourse = undefined; setBand(c || null); };
 
-// Idle: the campus-wide split with no caption. Hovering or opening a course: its split, captioned with the course.
+// Idle: the campus-wide split, captioned as such. Hovering or opening a course: its split, captioned with the course.
 export function setBand(c) {
   if (c === bandCourse) return;
   bandCourse = c;
@@ -23,5 +23,5 @@ export function setBand(c) {
     el.querySelector(".p").textContent = p >= 7 ? " " + Math.round(p) + "%" : "";
     el.dataset.tip = `<b>${G[i]}</b>: ${p.toFixed(1)}%`;
   });
-  $("#bandL").innerHTML = !c ? "" : c.dist ? `<b>${esc(c.code)}</b> ${esc(c.t)} · GPA ${f2(c.gpa)}` : t("bandNoData", esc(c.code));
+  $("#bandL").innerHTML = !c ? t("bandAll", fmt(app.campusTotal)) : c.dist ? `<b>${esc(c.code)}</b> ${esc(c.t)} · GPA ${f2(c.gpa)}` : t("bandNoData", esc(c.code));
 }

@@ -26,6 +26,7 @@ export const fmtMin = (m) => { const h = Math.floor(m / 60), mm = m % 60; return
 export const fmtRange = (s, e) => `${fmtMin(s)}–${fmtMin(e)}`;
 export const daysText = (idx) => [...new Set(idx)].sort((a, b) => a - b).map((d) => DAY_LETTERS[d]).join("");
 
+// Kept self-contained (the mini program converts this file alone); the page matches nicknames in facts.js
 const sameName = (a, b) => {
   const pa = a.toUpperCase().split(/\s+/), pb = b.toUpperCase().split(/\s+/);
   return pa[0] === pb[0] && pa[pa.length - 1] === pb[pb.length - 1];
