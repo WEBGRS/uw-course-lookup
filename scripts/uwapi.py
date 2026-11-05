@@ -45,6 +45,9 @@ def _fetch(url, headers, body=None, cache=True, tries=6):
         except (urllib.error.URLError, OSError, http.client.HTTPException):  # incl. resets while reading the body
             if i == tries - 1:
                 raise
+            # Wait out short network drops (DNS failures, Wi-Fi reconnects)
+            time.sleep(10 * (i + 1))
+            continue
         time.sleep(1.5 * (i + 1))
     if cache:
         os.makedirs(CACHE, exist_ok=True)

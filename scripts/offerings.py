@@ -64,7 +64,12 @@ def name_of(i):
 
 def compact_section(s, base):
     off = local_offset_ms(s)
-    ms = [x for x in (meeting(m, off) for m in s.get("classMeetings") or []) if x]
+    ms, seen = [], set()
+    for x in (meeting(m, off) for m in s.get("classMeetings") or []):
+        # One row per day, time and room (date-by-date schedules repeat them)
+        if x and tuple(x) not in seen:
+            seen.add(tuple(x))
+            ms.append(x)
     out = {"t": s.get("type"), "n": s.get("sectionNumber"), "m": ms,
            "i": [n for n in (name_of(i) for i in s.get("instructors") or []) if n]}
     k = (s.get("classUniqueId") or {}).get("classNumber")
