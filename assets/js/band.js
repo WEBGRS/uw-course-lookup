@@ -1,5 +1,5 @@
 // The sticky A–F band: the grade split of whichever course you hover or open.
-import { $, $$, esc, f2, fmt, app, G, GV } from "./core.js";
+import { $, $$, esc, f2, app, G, GV } from "./core.js";
 import { t } from "./i18n.js";
 
 let bandCourse, SEGS = [];
@@ -23,5 +23,5 @@ export function setBand(c) {
     el.querySelector(".p").textContent = p >= 7 ? " " + Math.round(p) + "%" : "";
     el.dataset.tip = `<b>${G[i]}</b>: ${p.toFixed(1)}%`;
   });
-  $("#bandL").innerHTML = !c ? t("bandAll", fmt(app.campusTotal)) : c.dist ? `<b>${esc(c.code)}</b> ${esc(c.t)} · GPA ${f2(c.gpa)}` : t("bandNoData", esc(c.code));
+  $("#bandL").innerHTML = !c ? "" : c.dist ? `<b>${esc(c.code)}</b> ${esc(c.t)} · GPA ${f2(c.gpa)}` : t("bandNoData", esc(c.code));
 }

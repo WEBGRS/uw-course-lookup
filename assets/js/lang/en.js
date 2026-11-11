@@ -24,7 +24,6 @@ const ORIG = {
     chat: n => n + " mentions", reddit: n => n + " Reddit",
     empty: "No course matches. Try a different search or fewer filters.", emptyAll: t => "Include courses not offered in " + t,
     bandNoData: code => "<b>" + code + "</b> · no letter-grade history",
-    bandAll: n => "<b>All courses</b> · " + n + " letter grades",
     save: "+ Add to schedule", saved: "✓ In schedule", addTip: "Add to schedule", inTip: "In schedule (click to remove)", mg: "MadGrades", cse: "Course Search & Enroll", guide: "Guide", searchReddit: "Search Reddit",
     copy: "Copy link", copied: "Copied", prev: "Previous course", next: "Next course", close: "Close",
     credits: c => c + " credits", usually: s => "Usually " + s.toLowerCase(), alsoAs: "also", req: "Requisites:", prqTitle: "Prerequisites", instrChartTitle: "Instructor comparison chart",
