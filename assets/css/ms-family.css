@@ -11,7 +11,7 @@
 /* Top bar (same as the hub) */
 .ms-top { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--ms-line); font-family: var(--ms-font); color: var(--ms-ink); }
 .ms-top .ms-wrap { display: flex; align-items: center; gap: 28px; height: 62px; max-width: 1440px; margin: 0 auto; padding: 0 24px; }
-.ms-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ms-ink); font-family: "Inter Tight", var(--ms-font); font-weight: 700; font-size: 19px; letter-spacing: -.02em; white-space: nowrap; }
+.ms-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ms-ink); font-family: "Inter Tight", var(--ms-font); font-weight: 700; font-size: 19px; letter-spacing: -.01em; white-space: nowrap; }
 .ms-brand svg { width: 30px; height: 30px; flex: none; }
 .ms-nav { display: flex; gap: 22px; margin-left: auto; }
 .ms-nav a { text-decoration: none; font-weight: 600; font-size: 15px; color: var(--ms-ink-2); padding: 6px 0; border-bottom: 2px solid transparent; white-space: nowrap; }
