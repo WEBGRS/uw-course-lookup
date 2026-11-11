@@ -49,7 +49,7 @@ export default {
   stepSchedule: "课表", cardProgram: "专业", cardTranscript: "成绩单", cardBuild: "生成课表",
   reqTitle: "毕业要求", transcriptHelp: "上传 unofficial transcript 或 DARS，标记已修课程。内容不会离开你的浏览器。",
   importedSub: (d, i, cr) => `已修 ${d} 门${i ? `，在读 ${i} 门` : ""}${cr ? `，${cr} 学分` : ""}`, resultEmpty: "添加课程、设好限制，点「生成课表」，课表会显示在这里。",
-  notice: "春季课表已于 11 月 4 日更新。",
+  notice: "春季课表已于 11 月 11 日更新。",
   program: "专业", programPh: "搜索你的专业",
   importBtn: "导入成绩单", importedN: (n) => `已导入 ${n} 门课`, importEdit: "编辑",
   importTitle: "导入已修课程",
